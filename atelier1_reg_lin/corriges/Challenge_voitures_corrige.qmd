@@ -1,0 +1,7 @@
+---
+title: "Corrigé — Challenge voitures"
+format: html
+---
+
+- Proposition de solution structurée selon le CSV utilisé (à compléter en atelier selon la source).
+- Rappels : encodage catégoriel, transformation des prédicteurs, diagnostics rapides.

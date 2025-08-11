@@ -1,0 +1,13 @@
+---
+title: "Préparation environnement"
+format: html
+---
+
+::: callout-important
+**Avant les ateliers** : exécutez le bloc ci-dessous pour installer les paquets requis.
+:::
+
+```{r}
+source("utils/requirements.R")
+sessionInfo()
+```

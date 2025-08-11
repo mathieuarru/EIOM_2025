@@ -1,0 +1,51 @@
+---
+title: "Mission 1 — Titanic: construire un glm()"
+format: html
+---
+
+```{r}
+source("../../utils/requirements.R")
+library(titanic); library(dplyr); library(broom); library(ggplot2)
+data("titanic_train")
+df <- titanic_train %>%
+  janitor::clean_names() %>%
+  mutate(survived = factor(survived),
+         sex = factor(sex),
+         pclass = factor(pclass)) %>%
+  tidyr::drop_na(age)
+```
+
+## Étapes
+
+### 1) EDA rapide : taux de survie par `sex` et `pclass`
+```{r}
+df %>% count(sex, survived) %>% group_by(sex) %>% mutate(p = n/sum(n)) %>%
+  knitr::kable()
+```
+
+### 2) Modèle logistique
+```{r}
+mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare,
+           family = binomial, data = df)
+summary(mod)
+exp(coef(mod))  # odds ratios bruts
+```
+
+### 3) Probabilités prédites
+```{r}
+df <- df %>% mutate(pi_hat = predict(mod, type="response"))
+ggplot(df, aes(pi_hat, fill = survived)) + geom_histogram(bins=40, alpha=.6, position="identity")
+```
+
+## Questions
+- Q1. Interprétez \( \exp(\beta_{\text{sexMale}}) \) en mots simples.
+- Q2. Quel est l’effet de l’âge (par 10 ans) ? Recalibrez le prédicteur et ré-estimez.
+```{r}
+df <- df %>% mutate(age10 = age/10)
+mod2 <- glm(survived ~ sex + pclass + age10 + sib_sp + parch + fare, family=binomial, data=df)
+exp(coef(mod2))["age10"]
+```
+
+## Points de discussion
+- Choix de la **référence** pour `sex` et `pclass`
+- Interactions plausibles (`sex:pclass`) et impact sur l'interprétation

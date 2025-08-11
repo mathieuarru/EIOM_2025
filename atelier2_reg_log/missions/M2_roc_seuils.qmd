@@ -1,0 +1,47 @@
+---
+title: "Mission 2 — ROC, AUC, seuils"
+format: html
+---
+
+```{r}
+source("../../utils/requirements.R")
+library(yardstick); library(pROC); library(dplyr)
+# On suppose df (avec pi_hat) et mod existent si Mission 1 a été exécutée dans la même session.
+# Sinon, inclure un petit bloc pour les recréer rapidement :
+if (!exists("df")) { 
+  library(titanic); data("titanic_train")
+  df <- titanic_train %>% janitor::clean_names() %>%
+    mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
+    tidyr::drop_na(age)
+  mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)
+  df <- df %>% mutate(pi_hat = predict(mod, type="response"))
+}
+```
+
+## Étapes
+
+### 1) Matrices de confusion pour différents seuils (0.3, 0.5, 0.7)
+```{r}
+make_cm <- function(th){
+  pred <- ifelse(df$pi_hat >= th, 1, 0)
+  as.data.frame(table(truth = df$survived, pred = pred))
+}
+knitr::kable(make_cm(.3), caption="Seuil 0.3")
+knitr::kable(make_cm(.5), caption="Seuil 0.5")
+knitr::kable(make_cm(.7), caption="Seuil 0.7")
+```
+
+### 2) Courbe ROC & AUC
+```{r}
+roc_obj <- pROC::roc(df$survived, df$pi_hat)
+plot(roc_obj, print.auc=TRUE)
+```
+
+### 3) Seuil "optimal" (Youden) & commentaire
+```{r}
+pROC::coords(roc_obj, x = "best", best.method="youden")
+```
+
+## Questions
+- Q1. Quel compromis **sensibilité/spécificité** choisir pour un contexte “sauvetage prioritaire” ?
+- Q2. Le seuil optimal ROC convient-il à votre **coût d’erreur** ? Pourquoi ?

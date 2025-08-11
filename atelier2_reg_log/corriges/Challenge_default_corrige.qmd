@@ -1,0 +1,7 @@
+---
+title: "Corrigé — Challenge défaut (ISLR)"
+format: html
+---
+
+- Exemple de solution : justification d'un seuil favorisant la réduction des faux négatifs si le coût d'un défaut non détecté est élevé.
+- Inclusion d'une matrice de confusion pour deux seuils et comparaison.

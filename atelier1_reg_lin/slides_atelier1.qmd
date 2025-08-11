@@ -1,0 +1,113 @@
+---
+title: "Atelier 1 — Régression linéaire multiple (3h)"
+format: revealjs
+include-in-header:
+  - text: |
+
+<!-- Minuteur -->
+<script>
+  let start = Date.now();
+  function fmt(t){
+    const m = Math.floor(t/60000), s = Math.floor((t%60000)/1000);
+    return `${m}m ${s.toString().padStart(2,'0')}s`; }
+  const el = document.createElement('div');
+  el.style.position='fixed'; el.style.bottom='10px'; el.style.right='20px';
+  el.style.background='#ffc103'; el.style.color='#000'; el.style.padding='6px 10px';
+  el.style.borderRadius='8px'; el.style.fontSize='14px'; el.style.zIndex=9999;
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.body.appendChild(el);
+    setInterval(()=>{ el.textContent = '⏱ ' + fmt(Date.now()-start); }, 1000);
+  });
+</script>
+---
+
+```{r}
+# Préparer l'environnement
+source("utils/requirements.R")
+library(AmesHousing)
+library(GGally)
+theme_set(ggplot2::theme_minimal())
+```
+
+# Plan & minutage (180 min)
+
+- (0–15) Brise-glace — *Pourquoi plusieurs variables ?*
+- (15–45) Mini-théorie illustrée — notions clés
+- (45–90) **Mission 1** — Modèle sur `AmesHousing::ames`
+- (90–120) **Mission 2** — Tests & interprétation
+- (120–150) **Challenge** — Prix de voitures (jeu alternatif)
+- (150–180) Débrief & pièges fréquents
+
+---
+
+## Brise-glace *(0–15 min)*
+
+- Visualisation rapide : surface vs prix (nuage de points)
+- Brainstorm : *Quelles autres variables ajouter ?*
+
+```{r}
+ames <- AmesHousing::make_ames()
+ames %>%
+  ggplot(aes(Gr_Liv_Area, Sale_Price)) +
+  geom_point(alpha=.3) +
+  labs(x="Aire habitable (pi²)", y="Prix de vente ($)")
+```
+
+---
+
+## Mini-théorie *(15–45 min)*
+
+### Modèle
+
+On modélise \(Y\in\mathbb{R}\) par :
+\[
+Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\quad \varepsilon\sim\mathcal{N}(0,\sigma^2)
+\]
+
+- Interprétation de \(\beta_j\) *à variables constantes*.
+- Variables catégorielles : indicatrices et **contrastes**.
+- Hypothèses : linéarité, indépendance, homoscédasticité, normalité des résidus.
+- Mesures : \(R^2\), \(R^2_{aj}\), RMSE.
+
+### Multicolinéarité (intuition)
+
+- Lorsque des prédicteurs sont fortement corrélés, les \(\widehat{\beta}\) deviennent instables.
+- Outil : **VIF** (Variance Inflation Factor). Règle pratique : VIF > 5–10 ⇒ vigilance.
+
+### Encodage des catégorielles
+
+Si `Neighborhood` a \(K\) niveaux, le modèle inclut \(K-1\) indicatrices.
+Le coefficient d’un niveau s’interprète relativement au **niveau de référence**.
+
+---
+
+## Mission 1 *(45–90 min)* — Construire le modèle sur Ames
+
+Ouvrir **`missions/M1_ames.qmd`**
+
+**Objectifs :** EDA rapide → `lm()` → diagnostics → interprétation.
+
+---
+
+## Mission 2 *(90–120 min)* — Tester & interpréter
+
+Ouvrir **`missions/M2_interpretation.qmd`**
+
+**Objectifs :** prédiction sur sous-échantillon; comparaison RMSE; discussion.
+
+---
+
+## Challenge *(120–150 min)* — Prix voitures
+
+Ouvrir **`missions/Challenge_voitures.qmd`**
+
+**Objectifs :** construire vite un modèle pertinent; expliquer 1 effet majeur.
+
+---
+
+## Débrief *(150–180 min)* — Pièges fréquents
+
+- Variables corrélées & VIF
+- Catégorielles mal encodées
+- Sur-ajustement & validation simple
+- Transformation (log, sqrt) quand la relation n’est pas linéaire

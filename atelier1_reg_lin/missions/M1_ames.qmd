@@ -1,0 +1,62 @@
+---
+title: "Mission 1 — Ames: modéliser le prix"
+format: html
+---
+
+```{r}
+source("../../utils/requirements.R")
+library(AmesHousing); library(broom); library(performance); library(car); library(GGally); library(dplyr)
+set.seed(123)
+ames <- make_ames()
+```
+
+## Objectifs
+- EDA rapide (5–10 min) — comprendre les variables candidates
+- Modèle `lm()` — inclure ≤ 6 prédicteurs pertinents
+- Diagnostics — résidus, normalité, homoscédasticité, **VIF**
+- Interprétation des \( \beta \)
+
+## Étapes guidées
+
+### 1) Nettoyage minimal
+```{r}
+ames <- ames %>% janitor::clean_names()
+```
+
+### 2) EDA éclair
+```{r}
+GGally::ggpairs(ames %>% dplyr::select(sale_price, gr_liv_area, year_built, overall_qual, full_bath, garage_cars))
+```
+
+> Astuce : pensez aux **transformations** si une relation paraît non linéaire (p. ex. `log(sale_price)`).
+
+### 3) Modèle de base
+```{r}
+mod <- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)
+summary(mod)
+```
+
+### 4) Diagnostics
+```{r}
+par(mfrow=c(2,2)); plot(mod); par(mfrow=c(1,1))
+performance::check_collinearity(mod)
+car::ncvTest(mod)  # test d'homoscédasticité de Breusch-Pagan (via car)
+```
+
+### 5) Interprétation
+- \( \beta_{\text{gr_liv_area}} \) : variation moyenne du prix pour +1 pi², *ceteris paribus*.
+- Pour comparer les effets, essayez un **modèle standardisé**.
+```{r}
+mod_std <- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(overall_qual) + scale(year_built) + scale(full_bath) + scale(garage_cars),
+              data = ames)
+broom::tidy(mod_std)
+```
+
+## Questions à résoudre (équipe)
+1. Quelle variable a l’effet **le plus fort** ? Justifiez via les coefficients standardisés.
+2. Y a-t-il des **signes inattendus** ? Proposez une explication.
+3. Que raconte le **QQ-plot** des résidus ?
+
+## Points de discussion (retour groupe)
+- Sélection manuelle raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)
+- Variables corrélées et VIF: seuils et bons réflexes

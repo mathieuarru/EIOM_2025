@@ -1,0 +1,19 @@
+---
+title: "Challenge — Prix de voitures (15–30 min)"
+format: html
+---
+
+> **Option A (sans Kaggle)** : l’animateur fournit un petit CSV local.\
+> **Option B (Kaggle)** : charger le CSV préparé par l’animateur.
+
+## Objectif
+- Construire rapidement un `lm()` pertinent et **expliquer 1 effet majeur**.
+
+## Pistes
+- Nettoyer `year`, `mileage`, `make`, `transmission`, `fuel`.
+- Encodage des catégorielles : vérifier les niveaux et la référence.
+- Tester une **transformation** pour `mileage` (`log1p(mileage)` par ex.).
+
+## Questions
+1. Quel **predictor** dominerait le prix après contrôle des autres ?
+2. Le **kilométrage** a-t-il un effet linéaire ? Essayez une transformation.

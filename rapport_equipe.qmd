@@ -1,0 +1,22 @@
+---
+title: "Mini-rapport d'équipe"
+format: html
+---
+
+## Contexte & objectif
+Décrivez en 4–5 lignes le problème et la variable cible.
+
+## Données
+- Source et dimensions
+- Variables retenues (et justification courte)
+
+## Méthode
+- Modèle utilisé : `lm()` ou `glm(family=binomial)`
+- Décisions clés (encodage, transformations)
+
+## Résultats
+- Tableau des coefficients et interprétations en une phrase par variable
+- Performance (RMSE/MAE ou AUC + matrice de confusion au seuil retenu)
+
+## Conclusion & limites
+- 3 points forts, 3 limites, et 1 axe d’amélioration

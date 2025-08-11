@@ -1,0 +1,22 @@
+---
+title: "Corrigé — Mission 1 Ames"
+format: html
+---
+
+::: {.callout-note}
+**Note** : Une solution possible parmi d'autres raisonnables.\
+Les chiffres peuvent varier selon l'échantillonnage et les versions de paquets.
+:::
+
+```{r}
+# Exemple de solution commentée
+source("../../utils/requirements.R")
+library(AmesHousing); library(broom); library(performance); library(car); library(dplyr)
+set.seed(123)
+ames <- make_ames() %>% janitor::clean_names()
+mod <- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)
+summary(mod)
+performance::check_collinearity(mod)
+car::ncvTest(mod)
+# Interprétations clés et alternatives (texte libre dans le document)
+```

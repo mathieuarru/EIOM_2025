@@ -1,0 +1,72 @@
+---
+title: "Atelier 2 — Régression logistique (3h)"
+format: revealjs
+include-in-header:
+  - text: |
+
+<!-- Minuteur -->
+<script>
+  let start = Date.now();
+  function fmt(t){
+    const m = Math.floor(t/60000), s = Math.floor((t%60000)/1000);
+    return `${m}m ${s.toString().padStart(2,'0')}s`; }
+  const el = document.createElement('div');
+  el.style.position='fixed'; el.style.bottom='10px'; el.style.right='20px';
+  el.style.background='#ffc103'; el.style.color='#000'; el.style.padding='6px 10px';
+  el.style.borderRadius='8px'; el.style.fontSize='14px'; el.style.zIndex=9999;
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.body.appendChild(el);
+    setInterval(()=>{ el.textContent = '⏱ ' + fmt(Date.now()-start); }, 1000);
+  });
+</script>
+---
+
+```{r}
+source("utils/requirements.R")
+library(titanic)
+theme_set(ggplot2::theme_minimal())
+```
+
+# Plan & minutage (180 min)
+
+- (0–15) Brise-glace — *Peut-on ajuster une droite ?*
+- (15–45) Mini-théorie — probabilité & logit
+- (45–90) **Mission 1** — `titanic::titanic_train`
+- (90–120) **Mission 2** — ROC, AUC, seuils
+- (120–150) **Challenge** — `ISLR::Default` (défaut de crédit)
+- (150–180) Débrief & pièges fréquents
+
+---
+
+## Mini-théorie *(15–45 min)*
+
+### Modèle
+
+\[
+\Pr(Y=1\mid x) = \pi(x),\quad \text{avec }\operatorname{logit}(\pi) = \log\frac{\pi}{1-\pi} = \beta_0 + \sum_{j=1}^p \beta_j x_j.
+\]
+
+- Interprétation en **odds ratios** : \(\exp(\beta_j)\)
+- Estimation par **maximum de vraisemblance**
+- Évaluation : matrice de confusion, **AUC**, sensibilité, spécificité
+- Choix de **seuil** selon le contexte (coûts d’erreur)
+
+> On reste opérationnel: pas de détails d’optimisation (Newton-Raphson, etc.).
+
+---
+
+## Missions
+
+- **Mission 1** *(45–90)* — Titanic: `glm(family = binomial)` et interprétation.
+
+- **Mission 2** *(90–120)* — Courbe ROC/AUC, comparer plusieurs seuils.
+
+- **Challenge** *(120–150)* — `ISLR::Default`: modèle rapide + justification du seuil.
+
+---
+
+## Pièges fréquents (débrief)
+
+- Utiliser \(R^2\) classique (non pertinent) au lieu d’AUC ou Brier.
+- Interpréter \(\beta\) sur l’échelle **logit** sans passer par \(\exp(\beta)\).
+- Oublier l’effet du **seuil** sur faux positifs/négatifs.

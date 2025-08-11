@@ -1,0 +1,36 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Ateliers EIOM — Régression linéaire multiple & logistique"
+  navbar:
+    left:
+      - text: "Atelier 1 — Linéaire"
+        file: atelier1_reg_lin/slides_atelier1.qmd
+      - text: "Atelier 2 — Logistique"
+        file: atelier2_reg_log/slides_atelier2.qmd
+    right:
+      - text: "Préparation"
+        file: utils/setup-packages.qmd
+
+format:
+  revealjs:
+    theme: [default]
+    css: styles/ulaval.css
+    slide-number: true
+    toc: true
+    toc-depth: 2
+    progress: true
+    transition: slide
+    controls: true
+    center: true
+    code-overflow: wrap
+    code-line-numbers: false
+    incremental: true
+    footer: "Ateliers EIOM — Université Laval"
+
+execute:
+  echo: true
+  warning: false
+  message: false

@@ -1,0 +1,16 @@
+---
+title: "Corrigé — Mission 1 Titanic"
+format: html
+---
+
+```{r}
+# Exemple de solution commentée
+source("../../utils/requirements.R")
+library(titanic); data("titanic_train")
+df <- titanic_train %>% janitor::clean_names() %>%
+  mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
+  tidyr::drop_na(age)
+mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)
+summary(mod); exp(coef(mod))
+# Commentaires d'interprétation à compléter lors du débrief.
+```
