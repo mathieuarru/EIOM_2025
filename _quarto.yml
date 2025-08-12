@@ -6,6 +6,8 @@ website:
   title: "Ateliers EIOM — Régression linéaire multiple & logistique"
   navbar:
     left:
+      - text: "Accueil"
+        file: index.qmd
       - text: "Atelier 1 — Linéaire"
         file: atelier1_reg_lin/slides_atelier1.qmd
       - text: "Atelier 2 — Logistique"
