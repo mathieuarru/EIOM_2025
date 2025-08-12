@@ -1,0 +1,142 @@
+[
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#brise-glace-015-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#brise-glace-015-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Brise-glace (0–15 min)",
+    "text": "Brise-glace (0–15 min)\n\nVisualisation rapide : surface vs prix (nuage de points)\nBrainstorm : Quelles autres variables ajouter ?\n\n\names &lt;- AmesHousing::make_ames()\names %&gt;%\n  ggplot(aes(Gr_Liv_Area, Sale_Price)) +\n  geom_point(alpha=.3) +\n  labs(x=\"Aire habitable (pi²)\", y=\"Prix de vente ($)\")"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#mini-théorie-1545-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#mini-théorie-1545-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Mini-théorie (15–45 min)",
+    "text": "Mini-théorie (15–45 min)\nModèle\nOn modélise (Y) par : [ Y = _0 + _1 x_1 + + _p x_p + ,(0,^2) ]\n\nInterprétation de (_j) à variables constantes.\nVariables catégorielles : indicatrices et contrastes.\nHypothèses : linéarité, indépendance, homoscédasticité, normalité des résidus.\nMesures : (R^2), (R^2_{aj}), RMSE.\n\nMulticolinéarité (intuition)\n\nLorsque des prédicteurs sont fortement corrélés, les () deviennent instables.\nOutil : VIF (Variance Inflation Factor). Règle pratique : VIF &gt; 5–10 ⇒ vigilance.\n\nEncodage des catégorielles\nSi Neighborhood a (K) niveaux, le modèle inclut (K-1) indicatrices. Le coefficient d’un niveau s’interprète relativement au niveau de référence."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#mission-1-4590-min-construire-le-modèle-sur-ames",
+    "href": "atelier1_reg_lin/slides_atelier1.html#mission-1-4590-min-construire-le-modèle-sur-ames",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Mission 1 (45–90 min) — Construire le modèle sur Ames",
+    "text": "Mission 1 (45–90 min) — Construire le modèle sur Ames\nOuvrir missions/M1_ames.qmd\nObjectifs : EDA rapide → lm() → diagnostics → interprétation."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#mission-2-90120-min-tester-interpréter",
+    "href": "atelier1_reg_lin/slides_atelier1.html#mission-2-90120-min-tester-interpréter",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Mission 2 (90–120 min) — Tester & interpréter",
+    "text": "Mission 2 (90–120 min) — Tester & interpréter\nOuvrir missions/M2_interpretation.qmd — Train/Test → RMSE/MAE → discussion."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#challenge-120150-min-prix-voitures",
+    "href": "atelier1_reg_lin/slides_atelier1.html#challenge-120150-min-prix-voitures",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Challenge (120–150 min) — Prix voitures",
+    "text": "Challenge (120–150 min) — Prix voitures\nOuvrir missions/Challenge_voitures.qmd\nObjectifs : construire vite un modèle pertinent; expliquer 1 effet majeur."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#débrief-150180-min-pièges-fréquents",
+    "href": "atelier1_reg_lin/slides_atelier1.html#débrief-150180-min-pièges-fréquents",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Débrief (150–180 min) — Pièges fréquents",
+    "text": "Débrief (150–180 min) — Pièges fréquents\n\nVariables corrélées & VIF\nCatégorielles mal encodées\nSur-ajustement & validation simple\nTransformation (log, sqrt) quand la relation n’est pas linéaire"
+  },
+  {
+    "objectID": "atelier2_reg_log/slides_atelier2.html#mini-théorie-1545-min",
+    "href": "atelier2_reg_log/slides_atelier2.html#mini-théorie-1545-min",
+    "title": "Atelier 2 — Régression logistique (3h)",
+    "section": "Mini-théorie (15–45 min)",
+    "text": "Mini-théorie (15–45 min)\nModèle\n[ (Y=1x) = (x),() = = 0 + {j=1}^p _j x_j. ]\n\nInterprétation en odds ratios : ((_j))\nEstimation par maximum de vraisemblance\nÉvaluation : matrice de confusion, AUC, sensibilité, spécificité\nChoix de seuil selon le contexte (coûts d’erreur)\n\n\nOn reste opérationnel: pas de détails d’optimisation (Newton-Raphson, etc.)."
+  },
+  {
+    "objectID": "atelier2_reg_log/slides_atelier2.html#missions",
+    "href": "atelier2_reg_log/slides_atelier2.html#missions",
+    "title": "Atelier 2 — Régression logistique (3h)",
+    "section": "Missions",
+    "text": "Missions\n\nMission 1 (45–90) — Titanic: glm(family = binomial) et interprétation.\nMission 2 (90–120) — Courbe ROC/AUC, comparer plusieurs seuils.\nChallenge (120–150) — ISLR::Default: modèle rapide + justification du seuil."
+  },
+  {
+    "objectID": "atelier2_reg_log/slides_atelier2.html#pièges-fréquents-débrief",
+    "href": "atelier2_reg_log/slides_atelier2.html#pièges-fréquents-débrief",
+    "title": "Atelier 2 — Régression logistique (3h)",
+    "section": "Pièges fréquents (débrief)",
+    "text": "Pièges fréquents (débrief)\n\nUtiliser (R^2) classique (non pertinent) au lieu d’AUC ou Brier.\nInterpréter () sur l’échelle logit sans passer par (()).\nOublier l’effet du seuil sur faux positifs/négatifs."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#rappel-régression-simple-multiple-1520-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#rappel-régression-simple-multiple-1520-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Rappel : régression simple → multiple (15–20 min)",
+    "text": "Rappel : régression simple → multiple (15–20 min)\n\nObjectif : approximer une relation moyenne entre une réponse \\(Y\\) et des prédicteurs \\(X\\).\nExtension à \\(p\\) prédicteurs : maintenir l’interprétation ceteris paribus.\n\n\\[\nY = \\beta_0 + \\beta_1 x_1 + \\cdots + \\beta_p x_p + \\varepsilon,\\qquad \\mathbb{E}[\\varepsilon]=0,\\ \\operatorname{Var}(\\varepsilon)=\\sigma^2\n\\]"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#écriture-matricielle-2030-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#écriture-matricielle-2030-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Écriture matricielle (20–30 min)",
+    "text": "Écriture matricielle (20–30 min)\nSoit \\(\\mathbf{y}\\in\\mathbb{R}^n\\), \\(\\mathbf{X}\\in\\mathbb{R}^{n\\times (p+1)}\\) (avec colonne d’1), \\(\\boldsymbol{\\beta}\\in\\mathbb{R}^{p+1}\\).\n\\[\n\\mathbf{y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon}, \\quad \\widehat{\\boldsymbol{\\beta}}_{\\text{OLS}} = (\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{y}\n\\]\n\nInterprétation : projection orthogonale de \\(\\mathbf{y}\\) sur l’espace colonnes de \\(\\mathbf{X}\\).\nRésidus : \\(\\widehat{\\boldsymbol{\\varepsilon}} = \\mathbf{y} - \\mathbf{X}\\widehat{\\boldsymbol{\\beta}}\\), somme nulle, orthogonaux aux colonnes de \\(\\mathbf{X}\\)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#hypothèses-conséquences-3040-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#hypothèses-conséquences-3040-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Hypothèses & conséquences (30–40 min)",
+    "text": "Hypothèses & conséquences (30–40 min)\n\nLinéarité de la relation moyenne\nIndépendance des erreurs\nHomoscédasticité : $(_i)=^2 $\nNormalité des erreurs (utile pour intervalles/tests)\nNon-colinéarité parfaite ( $^ $ inversible )\n\nConséquences : - Non-biais $[]= $ - Estimateur de $^2 $ : $^2 = _i^2 $ - Variance des coefficients : diag\\((\\widehat{\\sigma}^2 (\\mathbf{X}^\\top \\mathbf{X})^{-1})\\)"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#encodage-des-variables-catégorielles-4047-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#encodage-des-variables-catégorielles-4047-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Encodage des variables catégorielles (40–47 min)",
+    "text": "Encodage des variables catégorielles (40–47 min)\n\nSi un facteur a \\(K\\) niveaux ⇒ \\(K-1\\) indicatrices.\nAttention au niveau de référence.\nInteractions : \\(x \\times \\text{facteur}\\) pour effets différentiels.\n\n\n# Exemple : Neighborhood sur Ames (échantillon pour compacité)\nd &lt;- ames |&gt; dplyr::select(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) |&gt;\n  dplyr::mutate(Neighborhood = droplevels(Neighborhood))\nm_cat &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Neighborhood, data=d)\nbroom::tidy(m_cat) |&gt; dplyr::slice(1:8)\n\n# A tibble: 8 × 5\n  term                      estimate std.error statistic   p.value\n  &lt;chr&gt;                        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;\n1 (Intercept)                14165.   16778.       0.844 3.99e-  1\n2 Gr_Liv_Area                   52.1      1.61    32.3   4.14e-196\n3 Overall_QualPoor           28242.   19005.       1.49  1.37e-  1\n4 Overall_QualFair           33761.   17412.       1.94  5.26e-  2\n5 Overall_QualBelow_Average  46906.   16770.       2.80  5.19e-  3\n6 Overall_QualAverage        59023.   16675.       3.54  4.07e-  4\n7 Overall_QualAbove_Average  71350.   16704.       4.27  2.00e-  5\n8 Overall_QualGood           88325.   16778.       5.26  1.51e-  7"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#diagnostics-essentiels-4760-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#diagnostics-essentiels-4760-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Diagnostics essentiels (47–60 min)",
+    "text": "Diagnostics essentiels (47–60 min)\n\nRésidus vs valeurs ajustées (linéarité/homo)\nQQ-plot (normalité)\nLeverage & influence : distance de Cook\nMulticolinéarité : VIF\n\n\nm0 &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=ames)\npar(mfrow=c(2,2)); plot(m0); par(mfrow=c(1,1))\n\n\n\n\n\n\n\ncar::vif(m0)\n\n                 GVIF Df GVIF^(1/(2*Df))\nGr_Liv_Area  2.286185  1        1.512013\nOverall_Qual 2.628358  9        1.055154\nYear_Built   2.003266  1        1.415368\nFull_Bath    2.119535  1        1.455862\nGarage_Cars  1.859696  1        1.363707\n\nplot(cooks.distance(m0), type=\"h\", main=\"Distance de Cook\")"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#mission-1-6090-min-construire-le-modèle-sur-ames",
+    "href": "atelier1_reg_lin/slides_atelier1.html#mission-1-6090-min-construire-le-modèle-sur-ames",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Mission 1 (60–90 min) — Construire le modèle sur Ames",
+    "text": "Mission 1 (60–90 min) — Construire le modèle sur Ames\nOuvrir missions/M1_ames.qmd — EDA → lm() → diagnostics → interprétation."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#sélection-complexité-120130-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#sélection-complexité-120130-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Sélection & complexité (120–130 min)",
+    "text": "Sélection & complexité (120–130 min)\n\nCritères d’information : AIC/BIC (intuitions)\nPas-à-pas (step) : utile pour exploration, mais à prendre avec recul\nPréférer une sélection raisonnée basée sur le domaine\n\n\nm_small &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=ames)\nAIC(m0, m_small)\n\n        df      AIC\nm0      15 69530.67\nm_small 13 69662.98"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#transformations-non-linéarités-130140-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#transformations-non-linéarités-130140-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Transformations & non-linéarités (130–140 min)",
+    "text": "Transformations & non-linéarités (130–140 min)\n\nTransformation de \\(Y\\) (log) pour variance non constante\nTransformation de \\(X\\) (log, racine) ou termes quadratiques\n\n\nm_log &lt;- lm(log(Sale_Price) ~ log(Gr_Liv_Area) + Overall_Qual + Year_Built, data=ames)\nbroom::glance(m_log)\n\n# A tibble: 1 × 12\n  r.squared adj.r.squared sigma statistic p.value    df logLik    AIC    BIC\n      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;\n1     0.814         0.813 0.176     1161.       0    11   937. -1848. -1770.\n# ℹ 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#prédiction-incertitude-140147-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#prédiction-incertitude-140147-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Prédiction & incertitude (140–147 min)",
+    "text": "Prédiction & incertitude (140–147 min)\n\nIntervalle de prédiction vs confiance\n\n\nnewd &lt;- data.frame(Gr_Liv_Area=2000, Overall_Qual=\"Very_Poor\", Year_Built=2000, Full_Bath=2, Garage_Cars=2)\npredict(m0, newd, interval=\"prediction\")\n\n     fit      lwr      upr\n1 149412 73997.93 224826.1"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#influence-points-atypiques-147150-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#influence-points-atypiques-147150-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Influence & points atypiques (147–150 min)",
+    "text": "Influence & points atypiques (147–150 min)\n\nLeverage élevé + grand résidu ⇒ potentiellement influents\nVérifier la qualité des données avant d’exclure"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#débrief-pièges-fréquents-150180-min",
+    "href": "atelier1_reg_lin/slides_atelier1.html#débrief-pièges-fréquents-150180-min",
+    "title": "Atelier 1 — Régression linéaire multiple (3h)",
+    "section": "Débrief & pièges fréquents (150–180 min)",
+    "text": "Débrief & pièges fréquents (150–180 min)\n\nColinéarité ignorée ⇒ coefficients instables\nFacteurs mal encodés ⇒ interprétations erronées\nSur-ajustement ⇒ validation indispensable\nConfusion entre \\(R^2\\) et performance prédictive"
+  }
+]

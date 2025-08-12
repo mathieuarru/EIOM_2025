@@ -12,6 +12,13 @@ train <- ames[idx,]; test <- ames[-idx,]
 mod <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)
 pred <- predict(mod, newdata=test)
 rmse <- sqrt(mean((pred - test$Sale_Price)^2))
-mae  <- mean(abs(pred - test$Sale_Price))
+mae <- mean(abs(pred - test$Sale_Price))
 knitr::kable(data.frame(RMSE = rmse, MAE = mae))
 ```
+
+---
+
+## Conseils de présentation
+- Énoncez d’abord la question métier.
+- Donnez l’effet principal en une phrase par variable.
+- Illustrez avec une prédiction et un intervalle.

@@ -8,11 +8,11 @@ source("../../utils/requirements.R")
 library(titanic); library(dplyr); library(broom); library(ggplot2)
 data("titanic_train")
 df <- titanic_train %>%
-  janitor::clean_names() %>%
-  mutate(survived = factor(survived),
-         sex = factor(sex),
-         pclass = factor(pclass)) %>%
-  tidyr::drop_na(age)
+ janitor::clean_names() %>%
+ mutate(survived = factor(survived),
+ sex = factor(sex),
+ pclass = factor(pclass)) %>%
+ tidyr::drop_na(age)
 ```
 
 ## Étapes
@@ -20,15 +20,15 @@ df <- titanic_train %>%
 ### 1) EDA rapide : taux de survie par `sex` et `pclass`
 ```{r}
 df %>% count(sex, survived) %>% group_by(sex) %>% mutate(p = n/sum(n)) %>%
-  knitr::kable()
+ knitr::kable()
 ```
 
 ### 2) Modèle logistique
 ```{r}
 mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare,
-           family = binomial, data = df)
+ family = binomial, data = df)
 summary(mod)
-exp(coef(mod))  # odds ratios bruts
+exp(coef(mod)) # odds ratios bruts
 ```
 
 ### 3) Probabilités prédites
@@ -38,7 +38,7 @@ ggplot(df, aes(pi_hat, fill = survived)) + geom_histogram(bins=40, alpha=.6, pos
 ```
 
 ## Questions
-- Q1. Interprétez \( \exp(\beta_{\text{sexMale}}) \) en mots simples.
+- Q1. Interprétez $ \exp(\beta_{\text{sexMale}}) $ en mots simples.
 - Q2. Quel est l’effet de l’âge (par 10 ans) ? Recalibrez le prédicteur et ré-estimez.
 ```{r}
 df <- df %>% mutate(age10 = age/10)
@@ -49,3 +49,14 @@ exp(coef(mod2))["age10"]
 ## Points de discussion
 - Choix de la **référence** pour `sex` et `pclass`
 - Interactions plausibles (`sex:pclass`) et impact sur l'interprétation
+---
+
+## Points de discussion — approfondis
+- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
+- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
+- **Éthique & communication** : comment présenter l’incertitude à un public non technique.
+- **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+
+## Questions bonus
+1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
+2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).

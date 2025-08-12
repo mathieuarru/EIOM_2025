@@ -1,46 +1,27 @@
 ---
 title: "Atelier 1 — Régression linéaire multiple (3h)"
 format: revealjs
-include-in-header:
-  - text: |
-
-<!-- Minuteur -->
-<script>
-  let start = Date.now();
-  function fmt(t){
-    const m = Math.floor(t/60000), s = Math.floor((t%60000)/1000);
-    return `${m}m ${s.toString().padStart(2,'0')}s`; }
-  const el = document.createElement('div');
-  el.style.position='fixed'; el.style.bottom='10px'; el.style.right='20px';
-  el.style.background='#ffc103'; el.style.color='#000'; el.style.padding='6px 10px';
-  el.style.borderRadius='8px'; el.style.fontSize='14px'; el.style.zIndex=9999;
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.body.appendChild(el);
-    setInterval(()=>{ el.textContent = '⏱ ' + fmt(Date.now()-start); }, 1000);
-  });
-</script>
 ---
 
 ```{r}
-# Préparer l'environnement
-source("utils/requirements.R")
+#source("utils/requirements.R")
 library(AmesHousing)
 library(GGally)
 theme_set(ggplot2::theme_minimal())
 ```
 
-# Plan & minutage (180 min)
+# Plan & minutage 
 
 - (0–15) Brise-glace — *Pourquoi plusieurs variables ?*
-- (15–45) Mini-théorie illustrée — notions clés
-- (45–90) **Mission 1** — Modèle sur `AmesHousing::ames`
-- (90–120) **Mission 2** — Tests & interprétation
-- (120–150) **Challenge** — Prix de voitures (jeu alternatif)
+- (15–60) **Théorie complète** — modèle, estimation, diagnostics, variables catégorielles, interactions
+- (60–90) **Mission 1** — Modèle sur `AmesHousing::ames`
+- (90–120) **Mission 2** — Tests & interprétation (RMSE/MAE)
+- (120–150) **Compléments** — sélection de variables, transformations, influence
 - (150–180) Débrief & pièges fréquents
 
 ---
 
-## Brise-glace *(0–15 min)*
+## Brise-glace *(0–*
 
 - Visualisation rapide : surface vs prix (nuage de points)
 - Brainstorm : *Quelles autres variables ajouter ?*
@@ -48,66 +29,197 @@ theme_set(ggplot2::theme_minimal())
 ```{r}
 ames <- AmesHousing::make_ames()
 ames %>%
-  ggplot(aes(Gr_Liv_Area, Sale_Price)) +
-  geom_point(alpha=.3) +
-  labs(x="Aire habitable (pi²)", y="Prix de vente ($)")
+ ggplot(aes(Gr_Liv_Area, Sale_Price)) +
+ geom_point(alpha=.3) +
+ labs(x="Aire habitable (pi²)", y="Prix de vente ($)")
 ```
 
 ---
 
-## Mini-théorie *(15–45 min)*
+## Rappel : régression simple → multiple *(15–*
+- Objectif : approximer une relation moyenne entre une réponse $Y$ et des prédicteurs $X$.
+- Extension à $p$ prédicteurs : maintenir l’interprétation **ceteris paribus**.
 
-### Modèle
-
-On modélise \(Y\in\mathbb{R}\) par :
-\[
-Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\quad \varepsilon\sim\mathcal{N}(0,\sigma^2)
-\]
-
-- Interprétation de \(\beta_j\) *à variables constantes*.
-- Variables catégorielles : indicatrices et **contrastes**.
-- Hypothèses : linéarité, indépendance, homoscédasticité, normalité des résidus.
-- Mesures : \(R^2\), \(R^2_{aj}\), RMSE.
-
-### Multicolinéarité (intuition)
-
-- Lorsque des prédicteurs sont fortement corrélés, les \(\widehat{\beta}\) deviennent instables.
-- Outil : **VIF** (Variance Inflation Factor). Règle pratique : VIF > 5–10 ⇒ vigilance.
-
-### Encodage des catégorielles
-
-Si `Neighborhood` a \(K\) niveaux, le modèle inclut \(K-1\) indicatrices.
-Le coefficient d’un niveau s’interprète relativement au **niveau de référence**.
+$$
+Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}[\varepsilon]=0,\ \operatorname{Var}(\varepsilon)=\sigma^2
+$$
 
 ---
 
-## Mission 1 *(45–90 min)* — Construire le modèle sur Ames
+## Écriture matricielle *(20–*
 
-Ouvrir **`missions/M1_ames.qmd`**
+Soit $\mathbf{y}\in\mathbb{R}^n$, $\mathbf{X}\in\mathbb{R}^{n\times (p+1)}$ (avec colonne d’1), $\boldsymbol{\beta}\in\mathbb{R}^{p+1}$.
 
-**Objectifs :** EDA rapide → `lm()` → diagnostics → interprétation.
+$$
+\mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}, \quad \widehat{\boldsymbol{\beta}}_{\text{OLS}} = (\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{y}
+$$
 
----
-
-## Mission 2 *(90–120 min)* — Tester & interpréter
-
-Ouvrir **`missions/M2_interpretation.qmd`**
-
-**Objectifs :** prédiction sur sous-échantillon; comparaison RMSE; discussion.
+- **Interprétation** : projection orthogonale de $\mathbf{y}$ sur l’espace colonnes de $\mathbf{X}$.
+- **Résidus** : $\widehat{\boldsymbol{\varepsilon}} = \mathbf{y} - \mathbf{X}\widehat{\boldsymbol{\beta}}$, somme nulle, orthogonaux aux colonnes de $\mathbf{X}$.
 
 ---
 
-## Challenge *(120–150 min)* — Prix voitures
+## Hypothèses & conséquences *(30–*
+- Linéarité de la relation moyenne
+- Indépendance des erreurs
+- Homoscédasticité : $\operatorname{Var}(\varepsilon_i)=\sigma^2 $
+- Normalité des erreurs (utile pour intervalles/tests)
+- Non-colinéarité parfaite ( $\mathbf{X}^\top \mathbf{X} $ inversible )
 
-Ouvrir **`missions/Challenge_voitures.qmd`**
-
-**Objectifs :** construire vite un modèle pertinent; expliquer 1 effet majeur.
+**Conséquences** :
+- Non-biais $\mathbb{E}[\widehat{\boldsymbol{\beta}}]=\boldsymbol{\beta} $
+- Estimateur de $\sigma^2 $ : $\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2 $
+- Variance des coefficients : diag$(\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})$
 
 ---
 
-## Débrief *(150–180 min)* — Pièges fréquents
+## Encodage des variables catégorielles *(40–*
+- Si un facteur a $K$ niveaux ⇒ $K-1$ indicatrices.
+- Attention au **niveau de référence**.
+- Interactions : $x \times \text{facteur}$ pour effets différentiels.
 
-- Variables corrélées & VIF
-- Catégorielles mal encodées
-- Sur-ajustement & validation simple
-- Transformation (log, sqrt) quand la relation n’est pas linéaire
+```{r}
+# Exemple : Neighborhood sur Ames (échantillon pour compacité)
+d <- ames |> dplyr::select(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) |>
+ dplyr::mutate(Neighborhood = droplevels(Neighborhood))
+m_cat <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Neighborhood, data=d)
+broom::tidy(m_cat) |> dplyr::slice(1:8)
+```
+
+---
+
+## Diagnostics essentiels *(47–*
+- Résidus vs valeurs ajustées (linéarité/homo)
+- QQ-plot (normalité)
+- Leverage & influence : **distance de Cook**
+- **Multicolinéarité** : **VIF**
+
+```{r}
+m0 <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=ames)
+par(mfrow=c(2,2)); plot(m0); par(mfrow=c(1,1))
+car::vif(m0)
+plot(cooks.distance(m0), type="h", main="Distance de Cook")
+```
+
+---
+
+## Mission 1 *(60–* — Construire le modèle sur Ames
+Ouvrir **`missions/M1_ames.qmd`** — EDA → `lm()` → diagnostics → interprétation.
+
+---
+
+## Mission 2 *(90–* — Tester & interpréter
+Ouvrir **`missions/M2_interpretation.qmd`** — Train/Test → RMSE/MAE → discussion.
+
+---
+
+## Sélection & complexité *(120–*
+- Critères d’information : **AIC**/**BIC** (intuitions)
+- Pas-à-pas (`step`) : utile pour **exploration**, mais à prendre avec recul
+- Préférer une **sélection raisonnée** basée sur le domaine
+
+```{r}
+m_small <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=ames)
+AIC(m0, m_small)
+```
+
+---
+
+## Transformations & non-linéarités *(130–*
+- Transformation de $Y$ (log) pour variance non constante
+- Transformation de $X$ (log, racine) ou **termes quadratiques**
+
+```{r}
+m_log <- lm(log(Sale_Price) ~ log(Gr_Liv_Area) + Overall_Qual + Year_Built, data=ames)
+broom::glance(m_log)
+```
+
+---
+
+## Prédiction & incertitude *(140–*
+- Intervalle de **prédiction** vs **confiance**
+```{r}
+newd <- data.frame(Gr_Liv_Area=2000, Overall_Qual="Very_Poor", Year_Built=2000, Full_Bath=2, Garage_Cars=2)
+predict(m0, newd, interval="prediction")
+```
+
+---
+
+## Influence & points atypiques *(147–*
+- Leverage élevé + grand résidu ⇒ potentiellement **influents**
+- Vérifier la **qualité des données** avant d’exclure
+
+---
+
+## Débrief & pièges fréquents *(150–*
+- Colinéarité ignorée ⇒ coefficients instables
+- Facteurs mal encodés ⇒ interprétations erronées
+- Sur-ajustement ⇒ validation indispensable
+- Confusion entre $R^2$ et **performance prédictive**
+
+
+---
+
+## Théorie — supplément détaillé
+
+### Géométrie de l’OLS
+L’estimation OLS revient à projeter le vecteur des réponses $\mathbf y$ sur l’espace-colonnes de $\mathbf X$.
+Le résidu $\hat{\boldsymbol\varepsilon}=\mathbf y-\mathbf X\hat{\boldsymbol\beta}$ est orthogonal à chaque colonne de $\mathbf X$.
+On a alors $$\mathbf X^\top(\mathbf y-\mathbf X\hat{\boldsymbol\beta})=\mathbf 0 \iff \hat{\boldsymbol\beta}=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf y.$$
+
+```{r}
+# Schéma: plan de régression (projection) — simple illustration simulée
+set.seed(1)
+n <- 60
+x1 <- rnorm(n); x2 <- rnorm(n)
+y <- 3 + 2*x1 - 1.5*x2 + rnorm(n, sd=0.7)
+df <- tibble::tibble(x1,x2,y)
+m <- lm(y ~ x1 + x2, df)
+# Visualisation des contributions partielles
+p1 <- ggplot(df, aes(x1, y, color=x2)) + geom_point() + geom_smooth(method="lm", se=FALSE)
+p2 <- ggplot(df, aes(x2, residuals(m))) + geom_point() + geom_smooth(method="lm", se=FALSE)
+p1
+```
+
+### Gauss–Markov (intuition)
+Sous les hypothèses classiques (linéarité, erreurs d’espérance nulle et variance constante, absence de colinéarité parfaite), OLS est le **meilleur estimateur linéaire non-biaisé** (BLUE). L’optimalité porte sur la variance minimale parmi les estimateurs linéaires non-biaisés.
+
+### Variables catégorielles et contrastes
+Si un facteur a $K$ niveaux, le modèle inclut $K-1$ indicatrices.
+Le choix du niveau de référence modifie l’interprétation mais pas l’ajustement global.
+Les **interactions** (p. ex. $x\times\text{quartier}$) autorisent des pentes différentes selon les niveaux.
+
+### Diagnostics approfondis
+- **Linéarité** : résidus vs valeurs ajustées (absence de structure systématique).
+- **Homoscédasticité** : variance approximativement constante des résidus (test de Breusch–Pagan comme indicateur).
+- **Normalité** : QQ-plot pour l’inférence (IC/tests), moins critique pour la prédiction.
+- **Influence** : distance de Cook, leverage (hat-values).
+- **Colinéarité** : VIF élevés $\Rightarrow$ coefficients instables, CIs larges, signes erratiques.
+
+```{r}
+# Courbes de diagnostic usuelles
+par(mfrow=c(2,2)); plot(m); par(mfrow=c(1,1))
+car::vif(m)
+plot(cooks.distance(m), type="h"); abline(h=4/length(y), col="red", lty=2)
+```
+
+### Sélection raisonnée & transformations
+- Critères AIC/BIC (pénalisation de la complexité) pour **comparer** des modèles.
+- Préférer une sélection guidée par le **domaine** + validation simple (*train/test*).
+- Transformations usuelles : $\log(Y)$ pour réduire l’hétéroscédasticité; termes quadratiques pour capturer une courbure.
+
+```{r}
+m0 <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=ames)
+m_log <- lm(log(Sale_Price) ~ log(Gr_Liv_Area) + Overall_Qual + Year_Built, data=ames)
+AIC(m0, m_log)
+```
+
+---
+
+## Quiz interactif (rapide)
+
+- **Vrai/Faux** : Ajouter une variable catégorielle crée autant de colonnes que de niveaux.  
+<details><summary>Réponse</summary>Faux — on crée $K-1$ indicatrices si le facteur possède $K$ niveaux (référence incluse implicitement).</details>
+
+- **Question** : Pourquoi un $R^2$ plus grand ne garantit-il pas une meilleure **prédiction** ?  
+<details><summary>Réponse</summary>Un modèle peut sur-ajuster l’échantillon d’entraînement. Il faut juger sur un échantillon test (RMSE/MAE) et non sur l’ajustement seul.</details>

@@ -5,3 +5,10 @@ format: html
 
 - Exemple de solution : justification d'un seuil favorisant la réduction des faux négatifs si le coût d'un défaut non détecté est élevé.
 - Inclusion d'une matrice de confusion pour deux seuils et comparaison.
+
+---
+
+## Conseils de présentation
+- Énoncez d’abord la question métier.
+- Donnez l’effet principal en une phrase par variable.
+- Illustrez avec une prédiction et un intervalle.

@@ -20,3 +20,10 @@ performance::check_collinearity(mod)
 car::ncvTest(mod)
 # Interprétations clés et alternatives (texte libre dans le document)
 ```
+
+---
+
+## Conseils de présentation
+- Énoncez d’abord la question métier.
+- Donnez l’effet principal en une phrase par variable.
+- Illustrez avec une prédiction et un intervalle.

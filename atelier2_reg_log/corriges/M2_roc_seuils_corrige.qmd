@@ -7,11 +7,18 @@ format: html
 source("../../utils/requirements.R")
 library(titanic); data("titanic_train")
 df <- titanic_train %>% janitor::clean_names() %>%
-  mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
-  tidyr::drop_na(age)
+ mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
+ tidyr::drop_na(age)
 mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)
 df <- df %>% mutate(pi_hat = predict(mod, type="response"))
 roc_obj <- pROC::roc(df$survived, df$pi_hat)
 plot(roc_obj, print.auc=TRUE)
 pROC::coords(roc_obj, x = "best", best.method="youden")
 ```
+
+---
+
+## Conseils de présentation
+- Énoncez d’abord la question métier.
+- Donnez l’effet principal en une phrase par variable.
+- Illustrez avec une prédiction et un intervalle.

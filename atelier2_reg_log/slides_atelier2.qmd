@@ -1,24 +1,6 @@
 ---
 title: "Atelier 2 — Régression logistique (3h)"
 format: revealjs
-include-in-header:
-  - text: |
-
-<!-- Minuteur -->
-<script>
-  let start = Date.now();
-  function fmt(t){
-    const m = Math.floor(t/60000), s = Math.floor((t%60000)/1000);
-    return `${m}m ${s.toString().padStart(2,'0')}s`; }
-  const el = document.createElement('div');
-  el.style.position='fixed'; el.style.bottom='10px'; el.style.right='20px';
-  el.style.background='#ffc103'; el.style.color='#000'; el.style.padding='6px 10px';
-  el.style.borderRadius='8px'; el.style.fontSize='14px'; el.style.zIndex=9999;
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.body.appendChild(el);
-    setInterval(()=>{ el.textContent = '⏱ ' + fmt(Date.now()-start); }, 1000);
-  });
-</script>
 ---
 
 ```{r}
@@ -27,46 +9,139 @@ library(titanic)
 theme_set(ggplot2::theme_minimal())
 ```
 
-# Plan & minutage (180 min)
+# Plan & minutage 
 
-- (0–15) Brise-glace — *Peut-on ajuster une droite ?*
-- (15–45) Mini-théorie — probabilité & logit
-- (45–90) **Mission 1** — `titanic::titanic_train`
-- (90–120) **Mission 2** — ROC, AUC, seuils
-- (120–150) **Challenge** — `ISLR::Default` (défaut de crédit)
+- (0–15) Brise-glace — *Pourquoi pas une droite ?*
+- (15–65) **Théorie complète** — lien logit, vraisemblance, OR, GOF, calibration, seuils
+- (65–95) **Mission 1** — `titanic::titanic_train`
+- (95–125) **Mission 2** — ROC, AUC, seuils, coût d’erreur
+- (125–150) **Compléments** — pseudo-$R^2$, tests, séparation, interactions
 - (150–180) Débrief & pièges fréquents
 
 ---
 
-## Mini-théorie *(15–45 min)*
-
-### Modèle
-
-\[
-\Pr(Y=1\mid x) = \pi(x),\quad \text{avec }\operatorname{logit}(\pi) = \log\frac{\pi}{1-\pi} = \beta_0 + \sum_{j=1}^p \beta_j x_j.
-\]
-
-- Interprétation en **odds ratios** : \(\exp(\beta_j)\)
-- Estimation par **maximum de vraisemblance**
-- Évaluation : matrice de confusion, **AUC**, sensibilité, spécificité
-- Choix de **seuil** selon le contexte (coûts d’erreur)
-
-> On reste opérationnel: pas de détails d’optimisation (Newton-Raphson, etc.).
+## Motivation *(0–*
+- Réponse binaire $Y\in\{0,1\}$ ⇒ l’échelle naturelle est **la probabilité** $ \pi(x) $
+- Une droite peut prédire <0 ou >1 ⇒ inadéquat
 
 ---
 
-## Missions
+## Modèle et lien logit *(15–*
 
-- **Mission 1** *(45–90)* — Titanic: `glm(family = binomial)` et interprétation.
+\$$
+\Pr(Y=1\mid x) = \pi(x),\qquad \operatorname{logit}(\pi)=\log\frac{\pi}{1-\pi}=\beta_0+\sum_{j=1}^p \beta_j x_j.
+\$$
 
-- **Mission 2** *(90–120)* — Courbe ROC/AUC, comparer plusieurs seuils.
-
-- **Challenge** *(120–150)* — `ISLR::Default`: modèle rapide + justification du seuil.
+- Interprétation : pour +1 unité de $x_j$, les **log-odds** changent de $\beta_j$
+- **Odds ratio (OR)** : $ \exp(\beta_j) $ — multiplicateur sur les odds
 
 ---
 
-## Pièges fréquents (débrief)
+## Estimation par maximum de vraisemblance *(25–*
+- Vraisemblance : $ L(\boldsymbol{\beta})=\prod_i \pi_i^{y_i}(1-\pi_i)^{1-y_i} $
+- Log-vraisemblance concave ⇒ optimum unique (sauf séparation)
+- Sorties : estimateurs, erreurs types, tests Wald
 
-- Utiliser \(R^2\) classique (non pertinent) au lieu d’AUC ou Brier.
-- Interpréter \(\beta\) sur l’échelle **logit** sans passer par \(\exp(\beta)\).
-- Oublier l’effet du **seuil** sur faux positifs/négatifs.
+---
+
+## Interprétation des coefficients *(35–*
+- Facteurs : choix de **référence** critique
+- Continus : penser à **recaler** (ex.: par 10 ans)
+- **Effets marginaux** (idée) : impact sur la proba, dépendant de $x$
+
+---
+
+## Qualité d’ajustement *(45–*
+- **Deviance** (null, residuelle)
+- **Pseudo-$R^2$** (McFadden, Cox–Snell) — à interpréter prudemment
+- **Calibration** : courbe de calibration, **Brier score** (idée)
+
+---
+
+## Seuils et métriques *(55–*
+- Matrice de confusion dépend d’un **seuil**
+- **AUC** (ROC) : indépendance du seuil
+- Contexte ⇒ coût d’erreur ⇒ sélection du seuil
+
+---
+
+## Mission 1 *(65–* — Titanic
+Voir **`missions/M1_titanic.qmd`** — `glm(family=binomial)` + interprétation + proba.
+
+---
+
+## Mission 2 *(95–* — ROC/AUC, seuils
+Voir **`missions/M2_roc_seuils.qmd`** — comparer seuils, Youden vs. coût.
+
+---
+
+## Compléments *(125–*
+- **Tests** globaux (rapport de vraisemblance) et partiels (Wald)
+- **Séparation** (quasi/parfaite) : coefficients qui explosent → alerte
+- **Interactions** et non-linéarité (splines polynomiales légères)
+
+---
+
+## Débrief & pièges fréquents *(150–*
+- Utiliser $R^2$ classique (non pertinent)
+- Lire directement $\beta$ sans passer par $\exp(\beta)$
+- Oublier le **seuil** et son impact opérationnel
+- Ignorer **calibration** et **déséquilibre de classes**
+
+
+---
+
+## Théorie — supplément détaillé
+
+### Lien logit et odds ratio
+La probabilité $\pi(x)$ est transformée par le **logit**: $$\operatorname{logit}(\pi)=\log\frac{\pi}{1-\pi}.$$
+Un accroissement d’une unité de $x_j$ modifie les log-odds de $\beta_j$; l’**odds ratio** est $\exp(\beta_j)$.
+
+```{r}
+# Courbe logistique — visualisation simple
+xx <- seq(-6,6,length.out=200)
+pi <- 1/(1+exp(-xx))
+plot(xx, pi, type="l", xlab="log-odds (étendue simulée)", ylab="probabilité", main="Lien logit → probabilité")
+```
+
+### Estimation (vraisemblance) & tests
+La log-vraisemblance s’écrit $$\ell(\boldsymbol\beta)=\sum_i \big[ y_i\log\pi_i + (1-y_i)\log(1-\pi_i) \big].$$
+L’optimum est obtenu numériquement. Les sorties usuelles : estimateurs, erreurs types, tests de Wald, rapport de vraisemblance.
+
+### Qualité d’ajustement et calibration
+- **Deviance** : comparer modèle nul vs modèle ajusté.
+- **Pseudo-$R^2$** (McFadden) comme indicateur global, à interpréter prudemment.
+- **Calibration** : probas prédites vs observées (ex.: par déciles) ; **Brier score** (erreur quadratique moyenne).
+
+```{r}
+# Calibration rapide (déciles)
+dfc <- df |> dplyr::mutate(dec = ntile(pi_hat, 10)) |>
+  dplyr::group_by(dec) |>
+  dplyr::summarise(obs = mean(as.numeric(as.character(survived))), pred = mean(pi_hat), .groups="drop")
+ggplot(dfc, aes(pred, obs)) + geom_point() + geom_abline(lty=2) + labs(title="Calibration par déciles")
+```
+
+### Seuils, ROC/AUC et coût d’erreur
+- ROC/AUC : performance indépendante du seuil.
+- **Seuil** : doit refléter les coûts opérationnels (faux négatifs vs faux positifs). Le meilleur seuil statistique (Youden) n’est pas toujours optimal opérationnellement.
+
+```{r}
+roc_obj <- pROC::roc(df$survived, df$pi_hat)
+plot(roc_obj, print.auc=TRUE)
+pROC::coords(roc_obj, x = "best", best.method="youden")
+```
+
+### Séparation, interactions, non-linéarités
+- **Séparation** (quasi/parfaite) : coefficients qui explosent, avertissement sur l’interprétation; envisager régularisation ou regrouper niveaux rares.
+- **Interactions** : effets différenciés selon un facteur (ex. `sex:pclass` sur Titanic).
+- **Non-linéarité** : transformer un prédicteur continu (ex.: centrer/standardiser, termes quadratiques).
+
+---
+
+## Quiz interactif (rapide)
+
+- **Question** : Que signifie $\exp(\beta_j)=0.5$ pour une variable binaire $x_j$ ?  
+<details><summary>Réponse</summary>L’odds est divisé par 2 quand $x_j$ passe de 0 à 1; la probabilité diminue (dans un intervalle dépendant des autres variables).</details>
+
+- **Vrai/Faux** : Un AUC élevé implique qu’un seuil à 0.5 est le meilleur.  
+<details><summary>Réponse</summary>Faux — l’AUC n’implique rien sur le seuil optimal; il faut le choisir selon le coût d’erreur et le contexte.</details>

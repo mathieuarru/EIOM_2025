@@ -1,5 +1,5 @@
 ---
-title: "Challenge — Prix de voitures (15–30 min)"
+title: "Challenge — Prix de voitures (15–"
 format: html
 ---
 
@@ -17,3 +17,14 @@ format: html
 ## Questions
 1. Quel **predictor** dominerait le prix après contrôle des autres ?
 2. Le **kilométrage** a-t-il un effet linéaire ? Essayez une transformation.
+---
+
+## Points de discussion — approfondis
+- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
+- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
+- **Éthique & communication** : comment présenter l’incertitude à un public non technique.
+- **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+
+## Questions bonus
+1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
+2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).

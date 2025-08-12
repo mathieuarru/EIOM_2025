@@ -1,0 +1,17 @@
+<!-- Safe timer injected before body -->
+<div id="eiom-timer" style="position:fixed;bottom:10px;right:20px;background:#ffc103;color:#000;padding:6px 10px;border-radius:8px;font-size:14px;z-index:9999;">⏱ 0m 00s</div>
+<script>
+(function(){
+  var start = Date.now();
+  function fmt(t){
+    var m = Math.floor(t/60000), s = Math.floor((t%60000)/1000);
+    return m + "m " + String(s).padStart(2,"0") + "s";
+  }
+  function tick(){
+    var el = document.getElementById("eiom-timer");
+    if (el) el.textContent = "⏱ " + fmt(Date.now()-start);
+  }
+  setInterval(tick, 1000);
+  tick();
+})();
+</script>

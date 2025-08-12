@@ -11,10 +11,10 @@ ames <- make_ames()
 ```
 
 ## Objectifs
-- EDA rapide (5–10 min) — comprendre les variables candidates
+- EDA rapide (5– — comprendre les variables candidates
 - Modèle `lm()` — inclure ≤ 6 prédicteurs pertinents
 - Diagnostics — résidus, normalité, homoscédasticité, **VIF**
-- Interprétation des \( \beta \)
+- Interprétation des $ \beta $
 
 ## Étapes guidées
 
@@ -40,15 +40,15 @@ summary(mod)
 ```{r}
 par(mfrow=c(2,2)); plot(mod); par(mfrow=c(1,1))
 performance::check_collinearity(mod)
-car::ncvTest(mod)  # test d'homoscédasticité de Breusch-Pagan (via car)
+car::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan (via car)
 ```
 
 ### 5) Interprétation
-- \( \beta_{\text{gr_liv_area}} \) : variation moyenne du prix pour +1 pi², *ceteris paribus*.
+- $ \beta_{\text{gr_liv_area}} $ : variation moyenne du prix pour +1 pi², *ceteris paribus*.
 - Pour comparer les effets, essayez un **modèle standardisé**.
 ```{r}
 mod_std <- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(overall_qual) + scale(year_built) + scale(full_bath) + scale(garage_cars),
-              data = ames)
+ data = ames)
 broom::tidy(mod_std)
 ```
 
@@ -60,3 +60,14 @@ broom::tidy(mod_std)
 ## Points de discussion (retour groupe)
 - Sélection manuelle raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)
 - Variables corrélées et VIF: seuils et bons réflexes
+---
+
+## Points de discussion — approfondis
+- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
+- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
+- **Éthique & communication** : comment présenter l’incertitude à un public non technique.
+- **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+
+## Questions bonus
+1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
+2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).

@@ -5,3 +5,10 @@ format: html
 
 - Proposition de solution structurée selon le CSV utilisé (à compléter en atelier selon la source).
 - Rappels : encodage catégoriel, transformation des prédicteurs, diagnostics rapides.
+
+---
+
+## Conseils de présentation
+- Énoncez d’abord la question métier.
+- Donnez l’effet principal en une phrase par variable.
+- Illustrez avec une prédiction et un intervalle.

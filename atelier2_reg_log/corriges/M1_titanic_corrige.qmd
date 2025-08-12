@@ -8,9 +8,16 @@ format: html
 source("../../utils/requirements.R")
 library(titanic); data("titanic_train")
 df <- titanic_train %>% janitor::clean_names() %>%
-  mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
-  tidyr::drop_na(age)
+ mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
+ tidyr::drop_na(age)
 mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)
 summary(mod); exp(coef(mod))
 # Commentaires d'interprétation à compléter lors du débrief.
 ```
+
+---
+
+## Conseils de présentation
+- Énoncez d’abord la question métier.
+- Donnez l’effet principal en une phrase par variable.
+- Illustrez avec une prédiction et un intervalle.
