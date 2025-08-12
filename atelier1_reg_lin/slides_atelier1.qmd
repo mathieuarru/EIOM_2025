@@ -1,9 +1,9 @@
 ---
-title: "Atelier 1 — Régression linéaire multiple (3h)"
+title: "Atelier 1 — Régression linéaire multiple"
 format: revealjs
 ---
 
-```{r}
+```{r echo=FALSE}
 #source("utils/requirements.R")
 library(AmesHousing)
 library(GGally)
@@ -12,16 +12,16 @@ theme_set(ggplot2::theme_minimal())
 
 # Plan & minutage 
 
-- (0–15) Brise-glace — *Pourquoi plusieurs variables ?*
-- (15–60) **Théorie complète** — modèle, estimation, diagnostics, variables catégorielles, interactions
-- (60–90) **Mission 1** — Modèle sur `AmesHousing::ames`
-- (90–120) **Mission 2** — Tests & interprétation (RMSE/MAE)
-- (120–150) **Compléments** — sélection de variables, transformations, influence
-- (150–180) Débrief & pièges fréquents
+- Brise-glace — *Pourquoi plusieurs variables ?*
+- **Théorie complète** — modèle, estimation, diagnostics, variables catégorielles, interactions
+- **Mission 1** — Modèle sur `AmesHousing::ames`
+- **Mission 2** — Tests & interprétation (RMSE/MAE)
+- **Compléments** — sélection de variables, transformations, influence
+- Débrief & pièges fréquents
 
 ---
 
-## Brise-glace *(0–*
+## Brise-glace 
 
 - Visualisation rapide : surface vs prix (nuage de points)
 - Brainstorm : *Quelles autres variables ajouter ?*
@@ -36,7 +36,7 @@ ames %>%
 
 ---
 
-## Rappel : régression simple → multiple *(15–*
+## Rappel : régression simple → multiple 
 - Objectif : approximer une relation moyenne entre une réponse $Y$ et des prédicteurs $X$.
 - Extension à $p$ prédicteurs : maintenir l’interprétation **ceteris paribus**.
 
@@ -46,7 +46,7 @@ $$
 
 ---
 
-## Écriture matricielle *(20–*
+## Écriture matricielle 
 
 Soit $\mathbf{y}\in\mathbb{R}^n$, $\mathbf{X}\in\mathbb{R}^{n\times (p+1)}$ (avec colonne d’1), $\boldsymbol{\beta}\in\mathbb{R}^{p+1}$.
 
@@ -59,21 +59,24 @@ $$
 
 ---
 
-## Hypothèses & conséquences *(30–*
+## Hypothèses & conséquences 
 - Linéarité de la relation moyenne
 - Indépendance des erreurs
-- Homoscédasticité : $\operatorname{Var}(\varepsilon_i)=\sigma^2 $
+- Homoscédasticité : $\operatorname{Var}(\varepsilon_i)=\sigma^2$
 - Normalité des erreurs (utile pour intervalles/tests)
-- Non-colinéarité parfaite ( $\mathbf{X}^\top \mathbf{X} $ inversible )
+- Non-colinéarité parfaite ( $\mathbf{X}^\top \mathbf{X}$ inversible )
 
-**Conséquences** :
-- Non-biais $\mathbb{E}[\widehat{\boldsymbol{\beta}}]=\boldsymbol{\beta} $
-- Estimateur de $\sigma^2 $ : $\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2 $
-- Variance des coefficients : diag$(\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})$
+- **Conséquences** :
+
+  - Non-biais $\mathbb{E}[\widehat{\boldsymbol{\beta}}]=\boldsymbol{\beta}$
+
+  - Estimateur de $\sigma^2$ : $\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2$
+
+  - Variance des coefficients : diag$(\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})$
 
 ---
 
-## Encodage des variables catégorielles *(40–*
+## Encodage des variables catégorielles 
 - Si un facteur a $K$ niveaux ⇒ $K-1$ indicatrices.
 - Attention au **niveau de référence**.
 - Interactions : $x \times \text{facteur}$ pour effets différentiels.
@@ -88,7 +91,7 @@ broom::tidy(m_cat) |> dplyr::slice(1:8)
 
 ---
 
-## Diagnostics essentiels *(47–*
+## Diagnostics essentiels 
 - Résidus vs valeurs ajustées (linéarité/homo)
 - QQ-plot (normalité)
 - Leverage & influence : **distance de Cook**
@@ -103,17 +106,17 @@ plot(cooks.distance(m0), type="h", main="Distance de Cook")
 
 ---
 
-## Mission 1 *(60–* — Construire le modèle sur Ames
+## Mission 1— Construire le modèle sur Ames
 Ouvrir **`missions/M1_ames.qmd`** — EDA → `lm()` → diagnostics → interprétation.
 
 ---
 
-## Mission 2 *(90–* — Tester & interpréter
+## Mission 2  — Tester & interpréter
 Ouvrir **`missions/M2_interpretation.qmd`** — Train/Test → RMSE/MAE → discussion.
 
 ---
 
-## Sélection & complexité *(120–*
+## Sélection & complexité 
 - Critères d’information : **AIC**/**BIC** (intuitions)
 - Pas-à-pas (`step`) : utile pour **exploration**, mais à prendre avec recul
 - Préférer une **sélection raisonnée** basée sur le domaine
@@ -125,7 +128,7 @@ AIC(m0, m_small)
 
 ---
 
-## Transformations & non-linéarités *(130–*
+## Transformations & non-linéarités 
 - Transformation de $Y$ (log) pour variance non constante
 - Transformation de $X$ (log, racine) ou **termes quadratiques**
 
@@ -136,7 +139,7 @@ broom::glance(m_log)
 
 ---
 
-## Prédiction & incertitude *(140–*
+## Prédiction & incertitude 
 - Intervalle de **prédiction** vs **confiance**
 ```{r}
 newd <- data.frame(Gr_Liv_Area=2000, Overall_Qual="Very_Poor", Year_Built=2000, Full_Bath=2, Garage_Cars=2)
@@ -145,13 +148,13 @@ predict(m0, newd, interval="prediction")
 
 ---
 
-## Influence & points atypiques *(147–*
+## Influence & points atypiques 
 - Leverage élevé + grand résidu ⇒ potentiellement **influents**
 - Vérifier la **qualité des données** avant d’exclure
 
 ---
 
-## Débrief & pièges fréquents *(150–*
+## Débrief & pièges fréquents 
 - Colinéarité ignorée ⇒ coefficients instables
 - Facteurs mal encodés ⇒ interprétations erronées
 - Sur-ajustement ⇒ validation indispensable
@@ -167,6 +170,8 @@ L’estimation OLS revient à projeter le vecteur des réponses $\mathbf y$ sur 
 Le résidu $\hat{\boldsymbol\varepsilon}=\mathbf y-\mathbf X\hat{\boldsymbol\beta}$ est orthogonal à chaque colonne de $\mathbf X$.
 On a alors $$\mathbf X^\top(\mathbf y-\mathbf X\hat{\boldsymbol\beta})=\mathbf 0 \iff \hat{\boldsymbol\beta}=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf y.$$
 
+---
+
 ```{r}
 # Schéma: plan de régression (projection) — simple illustration simulée
 set.seed(1)
@@ -181,13 +186,20 @@ p2 <- ggplot(df, aes(x2, residuals(m))) + geom_point() + geom_smooth(method="lm"
 p1
 ```
 
+---
+
+
 ### Gauss–Markov (intuition)
 Sous les hypothèses classiques (linéarité, erreurs d’espérance nulle et variance constante, absence de colinéarité parfaite), OLS est le **meilleur estimateur linéaire non-biaisé** (BLUE). L’optimalité porte sur la variance minimale parmi les estimateurs linéaires non-biaisés.
+
+---
 
 ### Variables catégorielles et contrastes
 Si un facteur a $K$ niveaux, le modèle inclut $K-1$ indicatrices.
 Le choix du niveau de référence modifie l’interprétation mais pas l’ajustement global.
 Les **interactions** (p. ex. $x\times\text{quartier}$) autorisent des pentes différentes selon les niveaux.
+
+---
 
 ### Diagnostics approfondis
 - **Linéarité** : résidus vs valeurs ajustées (absence de structure systématique).
@@ -202,6 +214,8 @@ par(mfrow=c(2,2)); plot(m); par(mfrow=c(1,1))
 car::vif(m)
 plot(cooks.distance(m), type="h"); abline(h=4/length(y), col="red", lty=2)
 ```
+
+---
 
 ### Sélection raisonnée & transformations
 - Critères AIC/BIC (pénalisation de la complexité) pour **comparer** des modèles.

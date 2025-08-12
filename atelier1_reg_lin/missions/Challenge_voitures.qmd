@@ -1,5 +1,5 @@
 ---
-title: "Challenge — Prix de voitures (15–"
+title: "Challenge — Prix de voitures"
 format: html
 ---
 

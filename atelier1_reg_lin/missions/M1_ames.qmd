@@ -4,17 +4,17 @@ format: html
 ---
 
 ```{r}
-source("../../utils/requirements.R")
+#source("../../utils/requirements.R")
 library(AmesHousing); library(broom); library(performance); library(car); library(GGally); library(dplyr)
 set.seed(123)
 ames <- make_ames()
 ```
 
 ## Objectifs
-- EDA rapide (5– — comprendre les variables candidates
+- EDA rapide — comprendre les variables candidates
 - Modèle `lm()` — inclure ≤ 6 prédicteurs pertinents
 - Diagnostics — résidus, normalité, homoscédasticité, **VIF**
-- Interprétation des $ \beta $
+- Interprétation des $\beta$
 
 ## Étapes guidées
 
@@ -44,10 +44,10 @@ car::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan (via car)
 ```
 
 ### 5) Interprétation
-- $ \beta_{\text{gr_liv_area}} $ : variation moyenne du prix pour +1 pi², *ceteris paribus*.
+- $\beta_{\text{gr_liv_area}}$ : variation moyenne du prix pour +1 pi², *ceteris paribus*.
 - Pour comparer les effets, essayez un **modèle standardisé**.
 ```{r}
-mod_std <- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(overall_qual) + scale(year_built) + scale(full_bath) + scale(garage_cars),
+mod_std <- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(as.numeric(overall_qual)) + scale(year_built) + scale(full_bath) + scale(garage_cars),
  data = ames)
 broom::tidy(mod_std)
 ```

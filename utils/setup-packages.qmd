@@ -8,6 +8,6 @@ format: html
 :::
 
 ```{r}
-source("utils/requirements.R")
+source("requirements.R")
 sessionInfo()
 ```

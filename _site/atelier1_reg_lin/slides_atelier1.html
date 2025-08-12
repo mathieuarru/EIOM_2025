@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-b719d3d4935f2b08311a76135e2bf442.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.7.28">
 
-  <title>Ateliers EIOM — Régression linéaire multiple &amp; logistique – Atelier 1 — Régression linéaire multiple (3h)</title>
+  <title>Ateliers EIOM — Régression linéaire multiple &amp; logistique – Atelier 1 — Régression linéaire multiple</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -193,7 +193,7 @@
     <div class="slides">
 
 <section id="title-slide" class="quarto-title-block center">
-  <h1 class="title">Atelier 1 — Régression linéaire multiple (3h)</h1>
+  <h1 class="title">Atelier 1 — Régression linéaire multiple</h1>
 
 <div class="quarto-title-authors">
 </div>
@@ -202,64 +202,61 @@
 <nav role="doc-toc"> 
 <h2 id="toc-title">Table of contents</h2>
 <ul>
-
-<li class="fragment"><a href="#/plan-minutage-180-min" id="/toc-plan-minutage-180-min">Plan &amp; minutage (180 min)</a>
+<li class="fragment"><a href="#/plan-minutage" id="/toc-plan-minutage">Plan &amp; minutage</a>
 <ul>
-<li class="fragment"><a href="#/brise-glace-015-min" id="/toc-brise-glace-015-min">Brise-glace <em>(0–15 min)</em></a></li>
-<li class="fragment"><a href="#/rappel-régression-simple-multiple-1520-min" id="/toc-rappel-régression-simple-multiple-1520-min">Rappel : régression simple → multiple <em>(15–20 min)</em></a></li>
-<li class="fragment"><a href="#/écriture-matricielle-2030-min" id="/toc-écriture-matricielle-2030-min">Écriture matricielle <em>(20–30 min)</em></a></li>
-<li class="fragment"><a href="#/hypothèses-conséquences-3040-min" id="/toc-hypothèses-conséquences-3040-min">Hypothèses &amp; conséquences <em>(30–40 min)</em></a></li>
-<li class="fragment"><a href="#/encodage-des-variables-catégorielles-4047-min" id="/toc-encodage-des-variables-catégorielles-4047-min">Encodage des variables catégorielles <em>(40–47 min)</em></a></li>
-<li class="fragment"><a href="#/diagnostics-essentiels-4760-min" id="/toc-diagnostics-essentiels-4760-min">Diagnostics essentiels <em>(47–60 min)</em></a></li>
-<li class="fragment"><a href="#/mission-1-6090-min-construire-le-modèle-sur-ames" id="/toc-mission-1-6090-min-construire-le-modèle-sur-ames">Mission 1 <em>(60–90 min)</em> — Construire le modèle sur Ames</a></li>
-<li class="fragment"><a href="#/mission-2-90120-min-tester-interpréter" id="/toc-mission-2-90120-min-tester-interpréter">Mission 2 <em>(90–120 min)</em> — Tester &amp; interpréter</a></li>
-<li class="fragment"><a href="#/sélection-complexité-120130-min" id="/toc-sélection-complexité-120130-min">Sélection &amp; complexité <em>(120–130 min)</em></a></li>
-<li class="fragment"><a href="#/transformations-non-linéarités-130140-min" id="/toc-transformations-non-linéarités-130140-min">Transformations &amp; non-linéarités <em>(130–140 min)</em></a></li>
-<li class="fragment"><a href="#/prédiction-incertitude-140147-min" id="/toc-prédiction-incertitude-140147-min">Prédiction &amp; incertitude <em>(140–147 min)</em></a></li>
-<li class="fragment"><a href="#/influence-points-atypiques-147150-min" id="/toc-influence-points-atypiques-147150-min">Influence &amp; points atypiques <em>(147–150 min)</em></a></li>
-<li class="fragment"><a href="#/débrief-pièges-fréquents-150180-min" id="/toc-débrief-pièges-fréquents-150180-min">Débrief &amp; pièges fréquents <em>(150–180 min)</em></a></li>
+<li class="fragment"><a href="#/brise-glace" id="/toc-brise-glace">Brise-glace</a></li>
+<li class="fragment"><a href="#/rappel-régression-simple-multiple" id="/toc-rappel-régression-simple-multiple">Rappel : régression simple → multiple</a></li>
+<li class="fragment"><a href="#/écriture-matricielle" id="/toc-écriture-matricielle">Écriture matricielle</a></li>
+<li class="fragment"><a href="#/hypothèses-conséquences" id="/toc-hypothèses-conséquences">Hypothèses &amp; conséquences</a></li>
+<li class="fragment"><a href="#/encodage-des-variables-catégorielles" id="/toc-encodage-des-variables-catégorielles">Encodage des variables catégorielles</a></li>
+<li class="fragment"><a href="#/diagnostics-essentiels" id="/toc-diagnostics-essentiels">Diagnostics essentiels</a></li>
+<li class="fragment"><a href="#/mission-1-construire-le-modèle-sur-ames" id="/toc-mission-1-construire-le-modèle-sur-ames">Mission 1— Construire le modèle sur Ames</a></li>
+<li class="fragment"><a href="#/mission-2-tester-interpréter" id="/toc-mission-2-tester-interpréter">Mission 2 — Tester &amp; interpréter</a></li>
+<li class="fragment"><a href="#/sélection-complexité" id="/toc-sélection-complexité">Sélection &amp; complexité</a></li>
+<li class="fragment"><a href="#/transformations-non-linéarités" id="/toc-transformations-non-linéarités">Transformations &amp; non-linéarités</a></li>
+<li class="fragment"><a href="#/prédiction-incertitude" id="/toc-prédiction-incertitude">Prédiction &amp; incertitude</a></li>
+<li class="fragment"><a href="#/influence-points-atypiques" id="/toc-influence-points-atypiques">Influence &amp; points atypiques</a></li>
+<li class="fragment"><a href="#/débrief-pièges-fréquents" id="/toc-débrief-pièges-fréquents">Débrief &amp; pièges fréquents</a></li>
+<li class="fragment"><a href="#/théorie-supplément-détaillé" id="/toc-théorie-supplément-détaillé">Théorie — supplément détaillé</a></li>
+
+
+
+
+
+<li class="fragment"><a href="#/quiz-interactif-rapide" id="/toc-quiz-interactif-rapide">Quiz interactif (rapide)</a></li>
 </ul></li>
 </ul>
 </nav>
 </section>
-<section class="slide level2 center">
-
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-hidden="true" tabindex="-1"></a><span class="co">#source("utils/requirements.R")</span></span>
-<span id="cb1-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(AmesHousing)</span>
-<span id="cb1-3"><a aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(GGally)</span>
-<span id="cb1-4"><a aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
 <section>
-<section id="plan-minutage-180-min" class="title-slide slide level1 center">
-<h1>Plan &amp; minutage (180 min)</h1>
+<section id="plan-minutage" class="title-slide slide level1 center">
+<h1>Plan &amp; minutage</h1>
 <ul>
-<li class="fragment">(0–15) Brise-glace — <em>Pourquoi plusieurs variables ?</em></li>
-<li class="fragment">(15–60) <strong>Théorie complète</strong> — modèle, estimation, diagnostics, variables catégorielles, interactions</li>
-<li class="fragment">(60–90) <strong>Mission 1</strong> — Modèle sur <code>AmesHousing::ames</code></li>
-<li class="fragment">(90–120) <strong>Mission 2</strong> — Tests &amp; interprétation (RMSE/MAE)</li>
-<li class="fragment">(120–150) <strong>Compléments</strong> — sélection de variables, transformations, influence</li>
-<li class="fragment">(150–180) Débrief &amp; pièges fréquents</li>
+<li class="fragment">Brise-glace — <em>Pourquoi plusieurs variables ?</em></li>
+<li class="fragment"><strong>Théorie complète</strong> — modèle, estimation, diagnostics, variables catégorielles, interactions</li>
+<li class="fragment"><strong>Mission 1</strong> — Modèle sur <code>AmesHousing::ames</code></li>
+<li class="fragment"><strong>Mission 2</strong> — Tests &amp; interprétation (RMSE/MAE)</li>
+<li class="fragment"><strong>Compléments</strong> — sélection de variables, transformations, influence</li>
+<li class="fragment">Débrief &amp; pièges fréquents</li>
 </ul>
 </section>
-<section id="brise-glace-015-min" class="slide level2 center">
-<h2>Brise-glace <em>(0–15 min)</em></h2>
+<section id="brise-glace" class="slide level2 center">
+<h2>Brise-glace</h2>
 <ul>
 <li class="fragment">Visualisation rapide : surface vs prix (nuage de points)</li>
 <li class="fragment">Brainstorm : <em>Quelles autres variables ajouter ?</em></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a>ames <span class="ot">&lt;-</span> AmesHousing<span class="sc">::</span><span class="fu">make_ames</span>()</span>
-<span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>ames <span class="sc">%&gt;%</span></span>
-<span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(Gr_Liv_Area, Sale_Price)) <span class="sc">+</span></span>
-<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha=</span>.<span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb2-5"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Aire habitable (pi²)"</span>, <span class="at">y=</span><span class="st">"Prix de vente ($)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-hidden="true" tabindex="-1"></a>ames <span class="ot">&lt;-</span> AmesHousing<span class="sc">::</span><span class="fu">make_ames</span>()</span>
+<span id="cb1-2"><a aria-hidden="true" tabindex="-1"></a>ames <span class="sc">%&gt;%</span></span>
+<span id="cb1-3"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">ggplot</span>(<span class="fu">aes</span>(Gr_Liv_Area, Sale_Price)) <span class="sc">+</span></span>
+<span id="cb1-4"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_point</span>(<span class="at">alpha=</span>.<span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb1-5"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Aire habitable (pi²)"</span>, <span class="at">y=</span><span class="st">"Prix de vente ($)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 </div>
 <img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-2-1.png" width="960" class="r-stretch"></section>
-<section id="rappel-régression-simple-multiple-1520-min" class="slide level2 center">
-<h2>Rappel : régression simple → multiple <em>(15–20 min)</em></h2>
+<section id="rappel-régression-simple-multiple" class="slide level2 center">
+<h2>Rappel : régression simple → multiple</h2>
 <ul>
 <li class="fragment">Objectif : approximer une relation moyenne entre une réponse <span class="math inline">\(Y\)</span> et des prédicteurs <span class="math inline">\(X\)</span>.</li>
 <li class="fragment">Extension à <span class="math inline">\(p\)</span> prédicteurs : maintenir l’interprétation <strong>ceteris paribus</strong>.</li>
@@ -268,8 +265,8 @@
 Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}[\varepsilon]=0,\ \operatorname{Var}(\varepsilon)=\sigma^2
 \]</span></p>
 </section>
-<section id="écriture-matricielle-2030-min" class="slide level2 center">
-<h2>Écriture matricielle <em>(20–30 min)</em></h2>
+<section id="écriture-matricielle" class="slide level2 center">
+<h2>Écriture matricielle</h2>
 <p>Soit <span class="math inline">\(\mathbf{y}\in\mathbb{R}^n\)</span>, <span class="math inline">\(\mathbf{X}\in\mathbb{R}^{n\times (p+1)}\)</span> (avec colonne d’1), <span class="math inline">\(\boldsymbol{\beta}\in\mathbb{R}^{p+1}\)</span>.</p>
 <p><span class="math display">\[
 \mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}, \quad \widehat{\boldsymbol{\beta}}_{\text{OLS}} = (\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{y}
@@ -279,30 +276,35 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 <li class="fragment"><strong>Résidus</strong> : <span class="math inline">\(\widehat{\boldsymbol{\varepsilon}} = \mathbf{y} - \mathbf{X}\widehat{\boldsymbol{\beta}}\)</span>, somme nulle, orthogonaux aux colonnes de <span class="math inline">\(\mathbf{X}\)</span>.</li>
 </ul>
 </section>
-<section id="hypothèses-conséquences-3040-min" class="slide level2 center">
-<h2>Hypothèses &amp; conséquences <em>(30–40 min)</em></h2>
+<section id="hypothèses-conséquences" class="slide level2 center">
+<h2>Hypothèses &amp; conséquences</h2>
 <ul>
-<li class="fragment">Linéarité de la relation moyenne</li>
-<li class="fragment">Indépendance des erreurs</li>
-<li class="fragment">Homoscédasticité : $(_i)=^2 $</li>
-<li class="fragment">Normalité des erreurs (utile pour intervalles/tests)</li>
-<li class="fragment">Non-colinéarité parfaite ( $^ $ inversible )</li>
+<li class="fragment"><p>Linéarité de la relation moyenne</p></li>
+<li class="fragment"><p>Indépendance des erreurs</p></li>
+<li class="fragment"><p>Homoscédasticité : <span class="math inline">\(\operatorname{Var}(\varepsilon_i)=\sigma^2\)</span></p></li>
+<li class="fragment"><p>Normalité des erreurs (utile pour intervalles/tests)</p></li>
+<li class="fragment"><p>Non-colinéarité parfaite ( <span class="math inline">\(\mathbf{X}^\top \mathbf{X}\)</span> inversible )</p></li>
+<li class="fragment"><p><strong>Conséquences</strong> :</p>
+<ul>
+<li class="fragment"><p>Non-biais <span class="math inline">\(\mathbb{E}[\widehat{\boldsymbol{\beta}}]=\boldsymbol{\beta}\)</span></p></li>
+<li class="fragment"><p>Estimateur de <span class="math inline">\(\sigma^2\)</span> : <span class="math inline">\(\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2\)</span></p></li>
+<li class="fragment"><p>Variance des coefficients : diag<span class="math inline">\((\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})\)</span></p></li>
+</ul></li>
 </ul>
-<p><strong>Conséquences</strong> : - Non-biais $[]= $ - Estimateur de $^2 $ : $^2 = _i^2 $ - Variance des coefficients : diag<span class="math inline">\((\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})\)</span></p>
 </section>
-<section id="encodage-des-variables-catégorielles-4047-min" class="slide level2 center">
-<h2>Encodage des variables catégorielles <em>(40–47 min)</em></h2>
+<section id="encodage-des-variables-catégorielles" class="slide level2 center">
+<h2>Encodage des variables catégorielles</h2>
 <ul>
 <li class="fragment">Si un facteur a <span class="math inline">\(K\)</span> niveaux ⇒ <span class="math inline">\(K-1\)</span> indicatrices.</li>
 <li class="fragment">Attention au <strong>niveau de référence</strong>.</li>
 <li class="fragment">Interactions : <span class="math inline">\(x \times \text{facteur}\)</span> pour effets différentiels.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Exemple : Neighborhood sur Ames (échantillon pour compacité)</span></span>
-<span id="cb3-2"><a aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> ames <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">Neighborhood =</span> <span class="fu">droplevels</span>(Neighborhood))</span>
-<span id="cb3-4"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data=</span>d)</span>
-<span id="cb3-5"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(m_cat) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Exemple : Neighborhood sur Ames (échantillon pour compacité)</span></span>
+<span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> ames <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a> dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">Neighborhood =</span> <span class="fu">droplevels</span>(Neighborhood))</span>
+<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data=</span>d)</span>
+<span id="cb2-5"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(m_cat) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 5
   term                      estimate std.error statistic   p.value
@@ -318,8 +320,8 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 </div>
 </div>
 </section>
-<section id="diagnostics-essentiels-4760-min" class="slide level2 center">
-<h2>Diagnostics essentiels <em>(47–60 min)</em></h2>
+<section id="diagnostics-essentiels" class="slide level2 center">
+<h2>Diagnostics essentiels</h2>
 <ul>
 <li class="fragment">Résidus vs valeurs ajustées (linéarité/homo)</li>
 <li class="fragment">QQ-plot (normalité)</li>
@@ -327,8 +329,8 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 <li class="fragment"><strong>Multicolinéarité</strong> : <strong>VIF</strong></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
-<span id="cb5-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m0); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
+<span id="cb4-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m0); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -336,7 +338,7 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                 GVIF Df GVIF^(1/(2*Df))
 Gr_Liv_Area  2.286185  1        1.512013
@@ -345,7 +347,7 @@ Year_Built   2.003266  1        1.415368
 Full_Bath    2.119535  1        1.455862
 Garage_Cars  1.859696  1        1.363707</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m0), <span class="at">type=</span><span class="st">"h"</span>, <span class="at">main=</span><span class="st">"Distance de Cook"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m0), <span class="at">type=</span><span class="st">"h"</span>, <span class="at">main=</span><span class="st">"Distance de Cook"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -355,24 +357,24 @@ Garage_Cars  1.859696  1        1.363707</code></pre>
 </div>
 </div>
 </section>
-<section id="mission-1-6090-min-construire-le-modèle-sur-ames" class="slide level2 center">
-<h2>Mission 1 <em>(60–90 min)</em> — Construire le modèle sur Ames</h2>
+<section id="mission-1-construire-le-modèle-sur-ames" class="slide level2 center">
+<h2>Mission 1— Construire le modèle sur Ames</h2>
 <p>Ouvrir <strong><code>missions/M1_ames.qmd</code></strong> — EDA → <code>lm()</code> → diagnostics → interprétation.</p>
 </section>
-<section id="mission-2-90120-min-tester-interpréter" class="slide level2 center">
-<h2>Mission 2 <em>(90–120 min)</em> — Tester &amp; interpréter</h2>
+<section id="mission-2-tester-interpréter" class="slide level2 center">
+<h2>Mission 2 — Tester &amp; interpréter</h2>
 <p>Ouvrir <strong><code>missions/M2_interpretation.qmd</code></strong> — Train/Test → RMSE/MAE → discussion.</p>
 </section>
-<section id="sélection-complexité-120130-min" class="slide level2 center">
-<h2>Sélection &amp; complexité <em>(120–130 min)</em></h2>
+<section id="sélection-complexité" class="slide level2 center">
+<h2>Sélection &amp; complexité</h2>
 <ul>
 <li class="fragment">Critères d’information : <strong>AIC</strong>/<strong>BIC</strong> (intuitions)</li>
 <li class="fragment">Pas-à-pas (<code>step</code>) : utile pour <strong>exploration</strong>, mais à prendre avec recul</li>
 <li class="fragment">Préférer une <strong>sélection raisonnée</strong> basée sur le domaine</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-hidden="true" tabindex="-1"></a>m_small <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
-<span id="cb9-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_small)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-hidden="true" tabindex="-1"></a>m_small <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
+<span id="cb8-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_small)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        df      AIC
 m0      15 69530.67
@@ -380,15 +382,15 @@ m_small 13 69662.98</code></pre>
 </div>
 </div>
 </section>
-<section id="transformations-non-linéarités-130140-min" class="slide level2 center">
-<h2>Transformations &amp; non-linéarités <em>(130–140 min)</em></h2>
+<section id="transformations-non-linéarités" class="slide level2 center">
+<h2>Transformations &amp; non-linéarités</h2>
 <ul>
 <li class="fragment">Transformation de <span class="math inline">\(Y\)</span> (log) pour variance non constante</li>
 <li class="fragment">Transformation de <span class="math inline">\(X\)</span> (log, racine) ou <strong>termes quadratiques</strong></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
-<span id="cb11-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
+<span id="cb10-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 12
   r.squared adj.r.squared sigma statistic p.value    df logLik    AIC    BIC
@@ -398,34 +400,141 @@ m_small 13 69662.98</code></pre>
 </div>
 </div>
 </section>
-<section id="prédiction-incertitude-140147-min" class="slide level2 center">
-<h2>Prédiction &amp; incertitude <em>(140–147 min)</em></h2>
+<section id="prédiction-incertitude" class="slide level2 center">
+<h2>Prédiction &amp; incertitude</h2>
 <ul>
 <li class="fragment">Intervalle de <strong>prédiction</strong> vs <strong>confiance</strong></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a aria-hidden="true" tabindex="-1"></a>newd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Gr_Liv_Area=</span><span class="dv">2000</span>, <span class="at">Overall_Qual=</span><span class="st">"Very_Poor"</span>, <span class="at">Year_Built=</span><span class="dv">2000</span>, <span class="at">Full_Bath=</span><span class="dv">2</span>, <span class="at">Garage_Cars=</span><span class="dv">2</span>)</span>
-<span id="cb13-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(m0, newd, <span class="at">interval=</span><span class="st">"prediction"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-hidden="true" tabindex="-1"></a>newd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Gr_Liv_Area=</span><span class="dv">2000</span>, <span class="at">Overall_Qual=</span><span class="st">"Very_Poor"</span>, <span class="at">Year_Built=</span><span class="dv">2000</span>, <span class="at">Full_Bath=</span><span class="dv">2</span>, <span class="at">Garage_Cars=</span><span class="dv">2</span>)</span>
+<span id="cb12-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(m0, newd, <span class="at">interval=</span><span class="st">"prediction"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     fit      lwr      upr
 1 149412 73997.93 224826.1</code></pre>
 </div>
 </div>
 </section>
-<section id="influence-points-atypiques-147150-min" class="slide level2 center">
-<h2>Influence &amp; points atypiques <em>(147–150 min)</em></h2>
+<section id="influence-points-atypiques" class="slide level2 center">
+<h2>Influence &amp; points atypiques</h2>
 <ul>
 <li class="fragment">Leverage élevé + grand résidu ⇒ potentiellement <strong>influents</strong></li>
 <li class="fragment">Vérifier la <strong>qualité des données</strong> avant d’exclure</li>
 </ul>
 </section>
-<section id="débrief-pièges-fréquents-150180-min" class="slide level2 center">
-<h2>Débrief &amp; pièges fréquents <em>(150–180 min)</em></h2>
+<section id="débrief-pièges-fréquents" class="slide level2 center">
+<h2>Débrief &amp; pièges fréquents</h2>
 <ul>
 <li class="fragment">Colinéarité ignorée ⇒ coefficients instables</li>
 <li class="fragment">Facteurs mal encodés ⇒ interprétations erronées</li>
 <li class="fragment">Sur-ajustement ⇒ validation indispensable</li>
 <li class="fragment">Confusion entre <span class="math inline">\(R^2\)</span> et <strong>performance prédictive</strong></li>
+</ul>
+</section>
+<section id="théorie-supplément-détaillé" class="slide level2 center">
+<h2>Théorie — supplément détaillé</h2>
+<h3 id="géométrie-de-lols">Géométrie de l’OLS</h3>
+<p>L’estimation OLS revient à projeter le vecteur des réponses <span class="math inline">\(\mathbf y\)</span> sur l’espace-colonnes de <span class="math inline">\(\mathbf X\)</span>. Le résidu <span class="math inline">\(\hat{\boldsymbol\varepsilon}=\mathbf y-\mathbf X\hat{\boldsymbol\beta}\)</span> est orthogonal à chaque colonne de <span class="math inline">\(\mathbf X\)</span>. On a alors <span class="math display">\[\mathbf X^\top(\mathbf y-\mathbf X\hat{\boldsymbol\beta})=\mathbf 0 \iff \hat{\boldsymbol\beta}=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf y.\]</span></p>
+</section>
+<section class="slide level2 center">
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Schéma: plan de régression (projection) — simple illustration simulée</span></span>
+<span id="cb14-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb14-3"><a aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">60</span></span>
+<span id="cb14-4"><a aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n); x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb14-5"><a aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="fl">1.5</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="fl">0.7</span>)</span>
+<span id="cb14-6"><a aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(x1,x2,y)</span>
+<span id="cb14-7"><a aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, df)</span>
+<span id="cb14-8"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Visualisation des contributions partielles</span></span>
+<span id="cb14-9"><a aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x1, y, <span class="at">color=</span>x2)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">se=</span><span class="cn">FALSE</span>)</span>
+<span id="cb14-10"><a aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x2, <span class="fu">residuals</span>(m))) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">se=</span><span class="cn">FALSE</span>)</span>
+<span id="cb14-11"><a aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
+</div>
+<img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
+<section class="slide level2 center">
+
+<h3 id="gaussmarkov-intuition">Gauss–Markov (intuition)</h3>
+<p>Sous les hypothèses classiques (linéarité, erreurs d’espérance nulle et variance constante, absence de colinéarité parfaite), OLS est le <strong>meilleur estimateur linéaire non-biaisé</strong> (BLUE). L’optimalité porte sur la variance minimale parmi les estimateurs linéaires non-biaisés.</p>
+</section>
+<section class="slide level2 center">
+
+<h3 id="variables-catégorielles-et-contrastes">Variables catégorielles et contrastes</h3>
+<p>Si un facteur a <span class="math inline">\(K\)</span> niveaux, le modèle inclut <span class="math inline">\(K-1\)</span> indicatrices. Le choix du niveau de référence modifie l’interprétation mais pas l’ajustement global. Les <strong>interactions</strong> (p.&nbsp;ex. <span class="math inline">\(x\times\text{quartier}\)</span>) autorisent des pentes différentes selon les niveaux.</p>
+</section>
+<section class="slide level2 center">
+
+<h3 id="diagnostics-approfondis">Diagnostics approfondis</h3>
+<ul>
+<li class="fragment"><strong>Linéarité</strong> : résidus vs valeurs ajustées (absence de structure systématique).</li>
+<li class="fragment"><strong>Homoscédasticité</strong> : variance approximativement constante des résidus (test de Breusch–Pagan comme indicateur).</li>
+<li class="fragment"><strong>Normalité</strong> : QQ-plot pour l’inférence (IC/tests), moins critique pour la prédiction.</li>
+<li class="fragment"><strong>Influence</strong> : distance de Cook, leverage (hat-values).</li>
+<li class="fragment"><strong>Colinéarité</strong> : VIF élevés <span class="math inline">\(\Rightarrow\)</span> coefficients instables, CIs larges, signes erratiques.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Courbes de diagnostic usuelles</span></span>
+<span id="cb15-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-9-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      x1       x2 
+1.001988 1.001988 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m), <span class="at">type=</span><span class="st">"h"</span>); <span class="fu">abline</span>(<span class="at">h=</span><span class="dv">4</span><span class="sc">/</span><span class="fu">length</span>(y), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-9-2.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section class="slide level2 center">
+
+<h3 id="sélection-raisonnée-transformations">Sélection raisonnée &amp; transformations</h3>
+<ul>
+<li class="fragment">Critères AIC/BIC (pénalisation de la complexité) pour <strong>comparer</strong> des modèles.</li>
+<li class="fragment">Préférer une sélection guidée par le <strong>domaine</strong> + validation simple (<em>train/test</em>).</li>
+<li class="fragment">Transformations usuelles : <span class="math inline">\(\log(Y)\)</span> pour réduire l’hétéroscédasticité; termes quadratiques pour capturer une courbure.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
+<span id="cb19-2"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
+<span id="cb19-3"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      df       AIC
+m0    15 69530.669
+m_log 13 -1847.628</code></pre>
+</div>
+</div>
+</section>
+<section id="quiz-interactif-rapide" class="slide level2 center">
+<h2>Quiz interactif (rapide)</h2>
+<ul>
+<li class="fragment"><strong>Vrai/Faux</strong> : Ajouter une variable catégorielle crée autant de colonnes que de niveaux.<br>
+
+<details>
+<summary>
+Réponse
+</summary>
+Faux — on crée <span class="math inline">\(K-1\)</span> indicatrices si le facteur possède <span class="math inline">\(K\)</span> niveaux (référence incluse implicitement).
+</details></li>
+<li class="fragment"><strong>Question</strong> : Pourquoi un <span class="math inline">\(R^2\)</span> plus grand ne garantit-il pas une meilleure <strong>prédiction</strong> ?<br>
+
+<details>
+<summary>
+Réponse
+</summary>
+Un modèle peut sur-ajuster l’échantillon d’entraînement. Il faut juger sur un échantillon test (RMSE/MAE) et non sur l’ajustement seul.
+</details></li>
 </ul>
 
 

@@ -1,0 +1,19 @@
+{
+  "hash": "ef9dc47e7f3183758dd171294ca23f80",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Atelier 2 — Régression logistique (3h)\"\nformat: revealjs\ninclude-before-body: \"utils/timer.html\"\n---\n\n```{=html}\n<script>\n  let start = Date.now();\n  function fmt(t){\n    const m = Math.floor(t/60000), s = Math.floor((t%60000)/1000);\n    return `${m}m ${s.toString().padStart(2,'0')}s`; }\n  const el = document.createElement('div');\n  el.style.position='fixed'; el.style.bottom='10px'; el.style.right='20px';\n  el.style.background='#ffc103'; el.style.color='#000'; el.style.padding='6px 10px';\n  el.style.borderRadius='8px'; el.style.fontSize='14px'; el.style.zIndex=9999;\n  document.addEventListener('DOMContentLoaded', ()=>{\n    document.body.appendChild(el);\n    setInterval(()=>{ el.textContent = '⏱ ' + fmt(Date.now()-start); }, 1000);\n  });\n</script>\n```\n\n\n::: {.cell}\n\n```{.r .cell-code}\n#source(\"utils/requirements.R\")\nlibrary(titanic)\nlibrary(ggplot2)\ntheme_set(ggplot2::theme_minimal())\n```\n:::\n\n\n# Plan & minutage (180 min)\n\n- (0–15) Brise-glace — *Peut-on ajuster une droite ?*\n- (15–45) Mini-théorie — probabilité & logit\n- (45–90) **Mission 1** — `titanic::titanic_train`\n- (90–120) **Mission 2** — ROC, AUC, seuils\n- (120–150) **Challenge** — `ISLR::Default` (défaut de crédit)\n- (150–180) Débrief & pièges fréquents\n\n---\n\n## Mini-théorie *(15–45 min)*\n\n### Modèle\n\n\\[\n\\Pr(Y=1\\mid x) = \\pi(x),\\quad \\text{avec }\\operatorname{logit}(\\pi) = \\log\\frac{\\pi}{1-\\pi} = \\beta_0 + \\sum_{j=1}^p \\beta_j x_j.\n\\]\n\n- Interprétation en **odds ratios** : \\(\\exp(\\beta_j)\\)\n- Estimation par **maximum de vraisemblance**\n- Évaluation : matrice de confusion, **AUC**, sensibilité, spécificité\n- Choix de **seuil** selon le contexte (coûts d’erreur)\n\n> On reste opérationnel: pas de détails d’optimisation (Newton-Raphson, etc.).\n\n---\n\n## Missions\n\n- **Mission 1** *(45–90)* — Titanic: `glm(family = binomial)` et interprétation.\n\n- **Mission 2** *(90–120)* — Courbe ROC/AUC, comparer plusieurs seuils.\n\n- **Challenge** *(120–150)* — `ISLR::Default`: modèle rapide + justification du seuil.\n\n---\n\n## Pièges fréquents (débrief)\n\n- Utiliser \\(R^2\\) classique (non pertinent) au lieu d’AUC ou Brier.\n- Interpréter \\(\\beta\\) sur l’échelle **logit** sans passer par \\(\\exp(\\beta)\\).\n- Oublier l’effet du **seuil** sur faux positifs/négatifs.\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {
+      "include-after-body": [
+        "\n<script>\n  // htmlwidgets need to know to resize themselves when slides are shown/hidden.\n  // Fire the \"slideenter\" event (handled by htmlwidgets.js) when the current\n  // slide changes (different for each slide format).\n  (function () {\n    // dispatch for htmlwidgets\n    function fireSlideEnter() {\n      const event = window.document.createEvent(\"Event\");\n      event.initEvent(\"slideenter\", true, true);\n      window.document.dispatchEvent(event);\n    }\n\n    function fireSlideChanged(previousSlide, currentSlide) {\n      fireSlideEnter();\n\n      // dispatch for shiny\n      if (window.jQuery) {\n        if (previousSlide) {\n          window.jQuery(previousSlide).trigger(\"hidden\");\n        }\n        if (currentSlide) {\n          window.jQuery(currentSlide).trigger(\"shown\");\n        }\n      }\n    }\n\n    // hookup for slidy\n    if (window.w3c_slidy) {\n      window.w3c_slidy.add_observer(function (slide_num) {\n        // slide_num starts at position 1\n        fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);\n      });\n    }\n\n  })();\n</script>\n\n"
+      ]
+    },
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

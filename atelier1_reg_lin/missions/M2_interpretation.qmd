@@ -4,7 +4,7 @@ format: html
 ---
 
 ```{r}
-source("../../utils/requirements.R")
+#source("../../utils/requirements.R")
 library(AmesHousing); set.seed(42); library(dplyr); library(broom)
 ames <- make_ames()
 idx <- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))
