@@ -438,7 +438,7 @@
     "href": "index.html",
     "title": "Accueil",
     "section": "",
-    "text": "Bienvenue sur le site des ateliers EIOM consacrés à la régression linéaire multiple et à la régression logistique.\nVous y trouverez les diapositives et ressources pour chacun des ateliers. Utilisez la barre de navigation pour accéder aux contenus :\n\nAtelier 1 – Linéaire : introduction à la régression linéaire multiple.\nAtelier 2 – Logistique : introduction à la régression logistique.\n\nAvant de commencer, consultez la section Préparation pour installer les dépendances nécessaires."
+    "text": "Bienvenue sur le site des ateliers EIOM consacrés à la régression linéaire multiple et à la régression logistique.\nVous y trouverez les diapositives et ressources pour chacun des ateliers. Utilisez la barre de navigation pour accéder aux contenus :\n\nAtelier 1 – Linéaire : introduction à la régression linéaire multiple.\nAtelier 2 – Logistique : introduction à la régression logistique.\n\nAvant de commencer, consultez la section Préparation pour installer les dépendances nécessaires à l’atelier."
   },
   {
     "objectID": "atelier2_reg_log/missions/Challenge_default.html",

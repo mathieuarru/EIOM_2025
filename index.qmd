@@ -10,5 +10,5 @@ Vous y trouverez les diapositives et ressources pour chacun des ateliers. Utilis
 - **Atelier 1 – Linéaire** : introduction à la régression linéaire multiple.
 - **Atelier 2 – Logistique** : introduction à la régression logistique.
 
-Avant de commencer, consultez la section **Préparation** pour installer les dépendances nécessaires.
+Avant de commencer, consultez la section **Préparation** pour installer les dépendances nécessaires à l'atelier.
 
