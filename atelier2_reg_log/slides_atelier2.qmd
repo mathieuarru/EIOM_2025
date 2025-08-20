@@ -4,7 +4,7 @@ format: revealjs
 ---
 
 ```{r}
-source("utils/requirements.R")
+source("../utils/requirements.R")
 library(titanic)
 theme_set(ggplot2::theme_minimal())
 ```

@@ -4,7 +4,7 @@ format: revealjs
 ---
 
 ```{r echo=FALSE}
-#source("utils/requirements.R")
+#source("../utils/requirements.R")
 library(AmesHousing)
 library(GGally)
 theme_set(ggplot2::theme_minimal())
