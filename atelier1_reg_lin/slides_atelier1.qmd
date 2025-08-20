@@ -1,6 +1,8 @@
 ---
 title: "Atelier 1 — Régression linéaire multiple"
-format: revealjs
+format:
+  revealjs:
+    toc: false
 ---
 
 ```{r echo=FALSE}
@@ -10,7 +12,7 @@ library(GGally)
 theme_set(ggplot2::theme_minimal())
 ```
 
-# Plan & minutage 
+# Plan 
 
 - Brise-glace — *Pourquoi plusieurs variables ?*
 - **Théorie complète** — modèle, estimation, diagnostics, variables catégorielles, interactions
