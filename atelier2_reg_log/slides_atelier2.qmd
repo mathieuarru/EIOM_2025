@@ -7,6 +7,12 @@ format: revealjs
 source("../utils/requirements.R")
 library(titanic)
 theme_set(ggplot2::theme_minimal())
+ library(titanic); data("titanic_train")
+ df <- titanic_train %>% janitor::clean_names() %>%
+ mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
+ tidyr::drop_na(age)
+ mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)
+ df <- df %>% mutate(pi_hat = predict(mod, type="response"))
 ```
 
 # Plan & minutage 
@@ -115,6 +121,8 @@ L’optimum est obtenu numériquement. Les sorties usuelles : estimateurs, erreu
 
 ```{r}
 # Calibration rapide (déciles)
+
+
 dfc <- df |> dplyr::mutate(dec = ntile(pi_hat, 10)) |>
   dplyr::group_by(dec) |>
   dplyr::summarise(obs = mean(as.numeric(as.character(survived))), pred = mean(pi_hat), .groups="drop")
