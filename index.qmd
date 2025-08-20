@@ -1,5 +1,6 @@
 ---
 title: "Accueil"
+format: html
 ---
 
 Bienvenue sur le site des ateliers EIOM consacrés à la régression linéaire multiple et à la régression logistique.

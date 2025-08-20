@@ -17,6 +17,8 @@ website:
         file: utils/setup-packages.qmd
 
 format:
+  html:
+    default: true
   revealjs:
     theme: [default]
     css: styles/ulaval.css
