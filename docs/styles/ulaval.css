@@ -91,3 +91,20 @@ blockquote{
   font-size: 0.6em;
   line-height: 1.3em;
 }
+
+/* Bouton de retour au site sur les slides */
+.home-button{
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: var(--ulaval-red);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  z-index: 1000;
+}
+.home-button:hover{
+  background-color: var(--ulaval-yellow);
+  color: var(--ulaval-black);
+}
