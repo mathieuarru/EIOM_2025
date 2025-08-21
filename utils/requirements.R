@@ -1,7 +1,19 @@
 # Liste de paquets requis (base + données)
 req <- c(
-  "tidyverse", "broom", "janitor", "GGally", "performance", "car",
-  "yardstick", "pROC", "AmesHousing", "titanic", "kableExtra", "patchwork", "ISLR"
+  "tidyverse",
+  "broom",
+  "janitor",
+  "GGally",
+  "performance",
+  "car",
+  "yardstick",
+  "pROC",
+  "AmesHousing",
+  "titanic",
+  "kableExtra",
+  "patchwork",
+  "ISLR",
+  "scales"
 )
 
 inst <- req[!(req %in% installed.packages()[, "Package"])]

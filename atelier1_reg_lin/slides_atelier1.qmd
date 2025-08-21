@@ -6,9 +6,10 @@ format:
 ---
 
 ```{r echo=FALSE}
-#source("../utils/requirements.R")
+source("../utils/requirements.R")
 library(AmesHousing)
 library(GGally)
+library(scales)
 theme_set(ggplot2::theme_minimal())
 ```
 
@@ -27,24 +28,34 @@ theme_set(ggplot2::theme_minimal())
 
 - Visualisation rapide : surface vs prix (nuage de points)
 - Brainstorm : *Quelles autres variables ajouter ?*
+- Prix de vente ~ aire habitable
 
 ```{r}
+
 ames <- AmesHousing::make_ames()
 ames %>%
  ggplot(aes(Gr_Liv_Area, Sale_Price)) +
  geom_point(alpha=.3) +
- labs(x="Aire habitable (pi²)", y="Prix de vente ($)")
+ labs(x="Aire habitable (pi²)", y="Prix de vente ($)")+
+    scale_y_continuous(labels = dollar_format(prefix = "$", big.mark = ","))
+
 ```
 
 ---
 
 ## Rappel : régression simple → multiple 
-- Objectif : approximer une relation moyenne entre une réponse $Y$ et des prédicteurs $X$.
-- Extension à $p$ prédicteurs : maintenir l’interprétation **ceteris paribus**.
 
+::: incremental
+- Objectif : approximer une relation moyenne entre une réponse $Y$ et des prédicteurs $X$.
+- Extension à $p$ prédicteurs 
+:::
+
+::: {.fragment}
 $$
 Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}[\varepsilon]=0,\ \operatorname{Var}(\varepsilon)=\sigma^2
 $$
+:::
+
 
 ---
 
@@ -79,18 +90,25 @@ $$
 ---
 
 ## Encodage des variables catégorielles 
+
+::: incremental
 - Si un facteur a $K$ niveaux ⇒ $K-1$ indicatrices.
 - Attention au **niveau de référence**.
 - Interactions : $x \times \text{facteur}$ pour effets différentiels.
+:::
 
+::: {.fragment}
 ```{r}
-# Exemple : Neighborhood sur Ames (échantillon pour compacité)
-d <- ames |> dplyr::select(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) |>
- dplyr::mutate(Neighborhood = droplevels(Neighborhood))
-m_cat <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Neighborhood, data=d)
-broom::tidy(m_cat) |> dplyr::slice(1:8)
+# Données
+ames <- make_ames()
+# Exemple : Neighborhood sur Ames (petit échantillon pour compacité)
+d <- ames %>%
+  select(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) %>%
+  mutate(Neighborhood = droplevels(Neighborhood))
+m_cat <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Neighborhood, data = d)
+tidy(m_cat) %>% slice(1:8)
 ```
-
+:::
 ---
 
 ## Diagnostics essentiels 

@@ -12,7 +12,7 @@ ames <- make_ames()
 
 ## Objectifs
 - EDA rapide — comprendre les variables candidates
-- Modèle `lm()` — inclure ≤ 6 prédicteurs pertinents
+- Modèle de regression linéaire `lm()` — inclure ≤ 6 prédicteurs pertinents
 - Diagnostics — résidus, normalité, homoscédasticité, **VIF**
 - Interprétation des $\beta$
 

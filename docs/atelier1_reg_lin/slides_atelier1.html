@@ -216,13 +216,15 @@
 <ul>
 <li class="fragment">Visualisation rapide : surface vs prix (nuage de points)</li>
 <li class="fragment">Brainstorm : <em>Quelles autres variables ajouter ?</em></li>
+<li class="fragment">Prix de vente ~ aire habitable</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-hidden="true" tabindex="-1"></a>ames <span class="ot">&lt;-</span> AmesHousing<span class="sc">::</span><span class="fu">make_ames</span>()</span>
 <span id="cb1-2"><a aria-hidden="true" tabindex="-1"></a>ames <span class="sc">%&gt;%</span></span>
 <span id="cb1-3"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">ggplot</span>(<span class="fu">aes</span>(Gr_Liv_Area, Sale_Price)) <span class="sc">+</span></span>
 <span id="cb1-4"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_point</span>(<span class="at">alpha=</span>.<span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb1-5"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Aire habitable (pi²)"</span>, <span class="at">y=</span><span class="st">"Prix de vente ($)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-5"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Aire habitable (pi²)"</span>, <span class="at">y=</span><span class="st">"Prix de vente ($)"</span>)<span class="sc">+</span></span>
+<span id="cb1-6"><a aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">dollar_format</span>(<span class="at">prefix =</span> <span class="st">"$"</span>, <span class="at">big.mark =</span> <span class="st">","</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 </div>
 <img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-2-1.png" width="960" class="r-stretch"></section>
@@ -230,11 +232,13 @@
 <h2>Rappel : régression simple → multiple</h2>
 <ul>
 <li class="fragment">Objectif : approximer une relation moyenne entre une réponse <span class="math inline">\(Y\)</span> et des prédicteurs <span class="math inline">\(X\)</span>.</li>
-<li class="fragment">Extension à <span class="math inline">\(p\)</span> prédicteurs : maintenir l’interprétation <strong>ceteris paribus</strong>.</li>
+<li class="fragment">Extension à <span class="math inline">\(p\)</span> prédicteurs</li>
 </ul>
+<div class="fragment">
 <p><span class="math display">\[
 Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}[\varepsilon]=0,\ \operatorname{Var}(\varepsilon)=\sigma^2
 \]</span></p>
+</div>
 </section>
 <section id="écriture-matricielle" class="slide level2 center">
 <h2>Écriture matricielle</h2>
@@ -270,12 +274,16 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 <li class="fragment">Attention au <strong>niveau de référence</strong>.</li>
 <li class="fragment">Interactions : <span class="math inline">\(x \times \text{facteur}\)</span> pour effets différentiels.</li>
 </ul>
+<div class="fragment">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Exemple : Neighborhood sur Ames (échantillon pour compacité)</span></span>
-<span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> ames <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">select</span>(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) <span class="sc">|&gt;</span></span>
-<span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a> dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">Neighborhood =</span> <span class="fu">droplevels</span>(Neighborhood))</span>
-<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data=</span>d)</span>
-<span id="cb2-5"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(m_cat) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Données</span></span>
+<span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>ames <span class="ot">&lt;-</span> <span class="fu">make_ames</span>()</span>
+<span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Exemple : Neighborhood sur Ames (petit échantillon pour compacité)</span></span>
+<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> ames <span class="sc">%&gt;%</span></span>
+<span id="cb2-5"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) <span class="sc">%&gt;%</span></span>
+<span id="cb2-6"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Neighborhood =</span> <span class="fu">droplevels</span>(Neighborhood))</span>
+<span id="cb2-7"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data =</span> d)</span>
+<span id="cb2-8"><a aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(m_cat) <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 5
   term                      estimate std.error statistic   p.value
@@ -288,6 +296,7 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 6 Overall_QualAverage        59023.   16675.       3.54  4.07e-  4
 7 Overall_QualAbove_Average  71350.   16704.       4.27  2.00e-  5
 8 Overall_QualGood           88325.   16778.       5.26  1.51e-  7</code></pre>
+</div>
 </div>
 </div>
 </section>
