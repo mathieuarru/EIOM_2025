@@ -33,6 +33,7 @@ website:
 format:
   html:
     default: true
+    embed-resources: true
   revealjs:
     theme: [default]
     css: styles/ulaval.css

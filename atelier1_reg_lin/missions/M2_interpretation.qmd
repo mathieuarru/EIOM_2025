@@ -4,51 +4,182 @@ format: html
 ---
 
 ```{r}
-#source("../../utils/requirements.R")
+source("../../utils/requirements.R")
 library(AmesHousing); set.seed(42); library(dplyr); library(broom)
 ames <- make_ames()
 idx <- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))
 train <- ames[idx,]; test <- ames[-idx,]
 mod <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)
-```
-
-## Tâches
-1. **Prédire** `Sale_Price` sur `test` et calculer **RMSE/MAE**.
-```{r}
-pred <- predict(mod, newdata=test)
-rmse <- sqrt(mean((pred - test$Sale_Price)^2))
-mae <- mean(abs(pred - test$Sale_Price))
-knitr::kable(data.frame(RMSE = rmse, MAE = mae), caption = "Performance prédictive sur test")
-```
-
-2. **Comparer** avec un modèle plus simple (3 variables).
-```{r}
 mod_small <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train)
-pred_s <- predict(mod_small, newdata=test)
-rmse_s <- sqrt(mean((pred_s - test$Sale_Price)^2))
-mae_s <- mean(abs(pred_s - test$Sale_Price))
-knitr::kable(data.frame(Model=c("Complet","Simple"),
- RMSE=c(rmse, rmse_s),
- MAE=c(mae, mae_s)))
 ```
 
-3. **Discuter**: biais-variance, sur-ajustement potentiel.
+## Objectifs
 
-## Questions
-- Q1. Le $ R^2 $ plus élevé du grand modèle se traduit-il par un **RMSE** plus faible ?
-- Q2. Quelle variable retireriez-vous pour livrer un modèle *robuste* et *interprétable* ?
+- **Tester** des hypothèses (t-tests sur coefficients, test F global et modèles emboîtés).
 
-## Points de discussion
-- Différence entre qualité d’ajustement et **performance prédictive**
-- Importance du **domaine** dans la sélection des variables
+- **Intervalles** : construire et **interpréter** des intervalles de confiance (IC) et de **prédiction (IP)**.
+
+- **Évaluer** la **calibration** et la **couverture** des IP sur l’échantillon test.
+
+- **Analyser** l’erreur par sous-groupes (robustesse et équité de base).
+
 ---
 
-## Points de discussion — approfondis
-- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
-- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
-- **Éthique & communication** : comment présenter l’incertitude à un public non technique.
-- **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+## 1) Tests d’hypothèses sur les coefficients
+```{r}
+sum_mod <- summary(mod)
+sum_mod$coefficients
+```
 
-## Questions bonus
-1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
-2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).
+::: {.callout-note}
+**Réflexion ciblée :**
+
+- Formulez $H_0$ et $H_1$ pour $\beta_{Year\_Built}$. Interprétez le **t** et la **p-value** au seuil 5%.
+
+- Quelle(s) variable(s) reste(nt) non significative(s)? Les conservez-vous quand même? **Justifiez** (domaine, colinéarité, coût d’erreur, etc.).
+:::
+
+---
+
+## 2) Test global et modèles emboîtés
+```{r}
+# F global (déjà dans summary(mod) via statistic)
+anova(mod_small, mod)
+```
+
+::: {.callout-tip}
+**À faire (équipe) :**
+
+- Interprétez le test **ANOVA** ci-dessus : le modèle complet apporte-t-il un gain **significatif** par rapport au modèle réduit?
+
+- Calculez et comparez **AIC**/**BIC** pour `mod` et `mod_small`. Quel critère privilégieriez-vous ici et pourquoi?
+:::
+
+```{r}
+AIC(mod_small, mod)
+BIC(mod_small, mod)
+```
+
+---
+
+## 3) Intervalles de confiance et de prédiction
+```{r}
+# Moyennes pour les numériques
+num_means <- train %>% summarise(
+  Gr_Liv_Area = mean(Gr_Liv_Area, na.rm = TRUE),
+  Year_Built  = mean(Year_Built,  na.rm = TRUE),
+  Full_Bath   = mean(Full_Bath,   na.rm = TRUE),
+  Garage_Cars = mean(Garage_Cars, na.rm = TRUE)
+)
+
+# Modalité la plus fréquente pour le facteur Overall_Qual
+mode_qual <- train %>% summarise(
+  Overall_Qual = names(which.max(table(Overall_Qual)))
+) %>% mutate(Overall_Qual = factor(Overall_Qual, levels = levels(train$Overall_Qual)))
+
+# Maison type
+new0 <- dplyr::bind_cols(num_means, mode_qual)
+
+# IC
+predict(mod, newdata = new0, interval = "confidence")
+
+
+# IP sur l’échantillon test
+pred_pi <- predict(mod, newdata = test, interval = "prediction")
+head(pred_pi)
+```
+
+::: {.callout-note}
+**Réflexion interprétation :**
+
+- Différence **IC vs IP** : que quantifient-ils, et pourquoi l’IP est-il plus **large**?
+
+- À quoi sert un **IP** pour un décideur (ex. courtier, évaluateur)? Donnez un exemple concret.
+:::
+
+---
+
+## 4) Couverture des IP et calibration
+```{r}
+# Taux de couverture 95% des IP sur test
+inside <- (test$Sale_Price >= pred_pi[ ,"lwr"]) & (test$Sale_Price <= pred_pi[ ,"upr"]) 
+coverage <- mean(inside)
+width <- mean(pred_pi[ ,"upr"] - pred_pi[ ,"lwr"]) 
+knitr::kable(data.frame(Couverture_IP95 = coverage, Largeur_moy_IP = width),
+             caption = "Couverture et largeur moyenne des intervalles de prédiction (test)")
+
+# Plot calibration : observé vs prédit
+plot(pred_pi[ ,"fit"], test$Sale_Price,
+     xlab = "Prix prédit", ylab = "Prix observé", main = "Calibration: observé vs prédit")
+abline(0, 1)
+```
+
+::: {.callout-warning}
+**Analyse critique :**
+
+- La **couverture** est-elle proche de 95%? Si non, quelles raisons possibles (mauvaise spécification, hétéroscédasticité, non-normalité, outliers…)?
+
+- La pente de calibration semble-t-elle proche de 1? Y a-t-il **biais systématique** (sous/sur-prédiction)?
+:::
+
+---
+
+## 5) Erreurs par sous-groupes (robustesse)
+```{r}
+err <- test$Sale_Price - pred_pi[ ,"fit"]
+# Stratification simple : quartiles de surface et niveaux de qualité
+q_area <- cut(test$Gr_Liv_Area, breaks = quantile(test$Gr_Liv_Area, probs = seq(0,1,0.25), na.rm=TRUE), include.lowest=TRUE)
+by_grp <- test %>% mutate(err = err, q_area = q_area) %>%
+  group_by(q_area, Overall_Qual) %>% summarise(MAE = mean(abs(err)), RMSE = sqrt(mean(err^2)), .groups='drop')
+knitr::kable(by_grp, caption = "Erreurs par sous-groupes (aire habitable en quartiles × qualité globale)")
+```
+
+::: {.callout-note}
+**Question d’enquête :**
+
+- Identifiez **un** sous-groupe avec une erreur nettement plus élevée. Donnez **une hypothèse** explicative (non-linéarité, interaction manquante, variable omise…).
+
+- Proposez **une action** concrète (transformation, terme quadratique, interaction, variable additionnelle) pour la Mission 3.
+:::
+
+---
+
+## 6) Comparaison de modèles
+```{r}
+# Performance globale simple (pour mémoire) :
+pred <- pred_pi[ ,"fit"]
+rmse <- sqrt(mean((pred - test$Sale_Price)^2))
+mae  <- mean(abs(pred - test$Sale_Price))
+knitr::kable(data.frame(Model=c("Complet","Simple"),
+                        RMSE=c(rmse, sqrt(mean((predict(mod_small, test) - test$Sale_Price)^2))),
+                        MAE =c(mae,  mean(abs(predict(mod_small, test) - test$Sale_Price)))),
+             caption = "Comparaison rapide de performance (test)")
+```
+
+::: {.callout-tip}
+**Décision modèle :**
+
+- Utilisez **ANOVA + AIC/BIC + calibration/couverture** (pas seulement RMSE/MAE) pour trancher entre `mod` et `mod_small`. Justifiez la **traçabilité** de votre choix.
+:::
+
+---
+
+## Questions 
+
+- Q1. Testez $H_0\!:\;\beta_{Year\_Built}=0$ (5%). Concluez et **interprétez** dans le contexte.
+
+- Q2. Le test **ANOVA** conclut-il à un apport significatif de `Full_Bath` et `Garage_Cars` pris ensemble? Décision?
+
+- Q3. La **couverture** empirique des IP95 est-elle satisfaisante? Si non, quelle **modification** du modèle proposeriez-vous?
+
+- Q4. Identifiez un **sous-groupe** à erreur élevée et proposez une **amélioration**.
+
+---
+
+## Pour aller plus loin
+
+- Calculez un **IC** pour la moyenne conditionnelle d’une maison type (définissez explicitement la maison) et **expliquez** la différence avec un **IP** pour cette même maison.
+
+- Montrez un **exemple** où AIC préfère `mod` mais BIC préfère `mod_small`. Laquelle des deux décisions retiendriez-vous ici et pourquoi (taille d’échantillon, parcimonie, objectif)?
+
+- Implémentez une **validation croisée K-fold** *maison* (sans nouveaux packages) et comparez RMSE moyen de `mod` vs `mod_small`.

@@ -204,10 +204,13 @@
 <h1>Plan</h1>
 <ul>
 <li class="fragment">Brise-glace — <em>Pourquoi plusieurs variables ?</em></li>
-<li class="fragment"><strong>Théorie complète</strong> — modèle, estimation, diagnostics, variables catégorielles, interactions</li>
+<li class="fragment">Rappel régression simple → multiple</li>
+<li class="fragment">Théorie complète — écriture matricielle, hypothèses, variables catégorielles, standardisation</li>
+<li class="fragment">Diagnostics essentiels</li>
 <li class="fragment"><strong>Mission 1</strong> — Modèle sur <code>AmesHousing::ames</code></li>
-<li class="fragment"><strong>Mission 2</strong> — Tests &amp; interprétation (RMSE/MAE)</li>
-<li class="fragment"><strong>Compléments</strong> — sélection de variables, transformations, influence</li>
+<li class="fragment">Tests &amp; incertitude — tests t/F, intervalles, calibration, biais-variance</li>
+<li class="fragment"><strong>Mission 2</strong> — Tester &amp; interpréter</li>
+<li class="fragment">Compléments — sélection de variables, transformations, influence</li>
 <li class="fragment">Débrief &amp; pièges fréquents</li>
 </ul>
 </section>
@@ -223,8 +226,8 @@
 <span id="cb1-2"><a aria-hidden="true" tabindex="-1"></a>ames <span class="sc">%&gt;%</span></span>
 <span id="cb1-3"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">ggplot</span>(<span class="fu">aes</span>(Gr_Liv_Area, Sale_Price)) <span class="sc">+</span></span>
 <span id="cb1-4"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">geom_point</span>(<span class="at">alpha=</span>.<span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb1-5"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Aire habitable (pi²)"</span>, <span class="at">y=</span><span class="st">"Prix de vente ($)"</span>)<span class="sc">+</span></span>
-<span id="cb1-6"><a aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">dollar_format</span>(<span class="at">prefix =</span> <span class="st">"$"</span>, <span class="at">big.mark =</span> <span class="st">","</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-5"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Aire habitable (pi²)"</span>, <span class="at">y=</span><span class="st">"Prix de vente ($)"</span> )<span class="sc">+</span> </span>
+<span id="cb1-6"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">dollar_format</span>(<span class="at">prefix =</span> <span class="st">"$"</span>, <span class="at">big.mark =</span> <span class="st">","</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 </div>
 <img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-2-1.png" width="960" class="r-stretch"></section>
@@ -232,13 +235,16 @@
 <h2>Rappel : régression simple → multiple</h2>
 <ul>
 <li class="fragment">Objectif : approximer une relation moyenne entre une réponse <span class="math inline">\(Y\)</span> et des prédicteurs <span class="math inline">\(X\)</span>.</li>
-<li class="fragment">Extension à <span class="math inline">\(p\)</span> prédicteurs</li>
+<li class="fragment">Extension à <span class="math inline">\(p\)</span> prédicteurs : tenir compte simultanément de plusieurs effets.</li>
 </ul>
 <div class="fragment">
 <p><span class="math display">\[
 Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}[\varepsilon]=0,\ \operatorname{Var}(\varepsilon)=\sigma^2
 \]</span></p>
 </div>
+<ul>
+<li class="fragment"><strong>Idée clé</strong> : chaque <span class="math inline">\(\beta_j\)</span> mesure l’effet de <span class="math inline">\(x_j\)</span> <em>toutes choses égales par ailleurs</em>.</li>
+</ul>
 </section>
 <section id="écriture-matricielle" class="slide level2 center">
 <h2>Écriture matricielle</h2>
@@ -247,43 +253,35 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 \mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}, \quad \widehat{\boldsymbol{\beta}}_{\text{OLS}} = (\mathbf{X}^\top \mathbf{X})^{-1}\mathbf{X}^\top \mathbf{y}
 \]</span></p>
 <ul>
-<li class="fragment"><strong>Interprétation</strong> : projection orthogonale de <span class="math inline">\(\mathbf{y}\)</span> sur l’espace colonnes de <span class="math inline">\(\mathbf{X}\)</span>.</li>
+<li class="fragment"><strong>Projection géométrique</strong> : <span class="math inline">\(\widehat{\mathbf{y}}\)</span> est la projection orthogonale de <span class="math inline">\(\mathbf{y}\)</span> sur l’espace colonnes de <span class="math inline">\(\mathbf{X}\)</span>.</li>
 <li class="fragment"><strong>Résidus</strong> : <span class="math inline">\(\widehat{\boldsymbol{\varepsilon}} = \mathbf{y} - \mathbf{X}\widehat{\boldsymbol{\beta}}\)</span>, somme nulle, orthogonaux aux colonnes de <span class="math inline">\(\mathbf{X}\)</span>.</li>
 </ul>
 </section>
 <section id="hypothèses-conséquences" class="slide level2 center">
 <h2>Hypothèses &amp; conséquences</h2>
 <ul>
-<li class="fragment"><p>Linéarité de la relation moyenne</p></li>
-<li class="fragment"><p>Indépendance des erreurs</p></li>
-<li class="fragment"><p>Homoscédasticité : <span class="math inline">\(\operatorname{Var}(\varepsilon_i)=\sigma^2\)</span></p></li>
-<li class="fragment"><p>Normalité des erreurs (utile pour intervalles/tests)</p></li>
-<li class="fragment"><p>Non-colinéarité parfaite ( <span class="math inline">\(\mathbf{X}^\top \mathbf{X}\)</span> inversible )</p></li>
-<li class="fragment"><p><strong>Conséquences</strong> :</p>
-<ul>
-<li class="fragment"><p>Non-biais <span class="math inline">\(\mathbb{E}[\widehat{\boldsymbol{\beta}}]=\boldsymbol{\beta}\)</span></p></li>
-<li class="fragment"><p>Estimateur de <span class="math inline">\(\sigma^2\)</span> : <span class="math inline">\(\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2\)</span></p></li>
-<li class="fragment"><p>Variance des coefficients : diag<span class="math inline">\((\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})\)</span></p></li>
-</ul></li>
+<li class="fragment"><strong>Linéarité</strong> : la relation moyenne est linéaire.</li>
+<li class="fragment"><strong>Indépendance</strong> des erreurs.</li>
+<li class="fragment"><strong>Homoscédasticité</strong> : <span class="math inline">\(\operatorname{Var}(\varepsilon_i)=\sigma^2\)</span>.</li>
+<li class="fragment"><strong>Normalité</strong> des erreurs (utile pour IC/tests).</li>
+<li class="fragment"><strong>Pas de colinéarité parfaite</strong> : <span class="math inline">\(\mathbf{X}^\top \mathbf{X}\)</span> inversible.</li>
 </ul>
+<p>Conséquences : - Estimateurs non biaisés <span class="math inline">\(\mathbb{E}[\widehat{\beta}]=\beta\)</span>. - Estimateur de <span class="math inline">\(\sigma^2\)</span>: <span class="math inline">\(\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2\)</span>. - Variance des coefficients : diag<span class="math inline">\((\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})\)</span>.</p>
 </section>
 <section id="encodage-des-variables-catégorielles" class="slide level2 center">
 <h2>Encodage des variables catégorielles</h2>
 <ul>
-<li class="fragment">Si un facteur a <span class="math inline">\(K\)</span> niveaux ⇒ <span class="math inline">\(K-1\)</span> indicatrices.</li>
-<li class="fragment">Attention au <strong>niveau de référence</strong>.</li>
-<li class="fragment">Interactions : <span class="math inline">\(x \times \text{facteur}\)</span> pour effets différentiels.</li>
+<li class="fragment">Facteur à <span class="math inline">\(K\)</span> niveaux ⇒ <span class="math inline">\(K-1\)</span> indicatrices.</li>
+<li class="fragment">Choix du <strong>niveau de référence</strong> = base de comparaison.</li>
+<li class="fragment">Interactions : <span class="math inline">\(x \times \text{facteur}\)</span> pour des pentes différentes.</li>
 </ul>
 <div class="fragment">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Données</span></span>
-<span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>ames <span class="ot">&lt;-</span> <span class="fu">make_ames</span>()</span>
-<span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Exemple : Neighborhood sur Ames (petit échantillon pour compacité)</span></span>
-<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> ames <span class="sc">%&gt;%</span></span>
-<span id="cb2-5"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) <span class="sc">%&gt;%</span></span>
-<span id="cb2-6"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Neighborhood =</span> <span class="fu">droplevels</span>(Neighborhood))</span>
-<span id="cb2-7"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data =</span> d)</span>
-<span id="cb2-8"><a aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(m_cat) <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> ames <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) <span class="sc">%&gt;%</span></span>
+<span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Neighborhood =</span> <span class="fu">droplevels</span>(Neighborhood))</span>
+<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data =</span> d)</span>
+<span id="cb2-5"><a aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(m_cat) <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 5
   term                      estimate std.error statistic   p.value
@@ -300,25 +298,45 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 </div>
 </div>
 </section>
+<section id="standardisation-des-variables" class="slide level2 center">
+<h2>Standardisation des variables</h2>
+<ul>
+<li class="fragment">Utile pour comparer l’importance relative des prédicteurs.</li>
+<li class="fragment">Les coefficients sont exprimés en écart-types.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-hidden="true" tabindex="-1"></a>mod_std <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">scale</span>(Sale_Price) <span class="sc">~</span> <span class="fu">scale</span>(Gr_Liv_Area) <span class="sc">+</span> <span class="fu">scale</span>(<span class="fu">as.numeric</span>(Overall_Qual)) <span class="sc">+</span> <span class="fu">scale</span>(Year_Built), <span class="at">data=</span>ames)</span>
+<span id="cb4-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(mod_std)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 5
+  term                            estimate std.error statistic    p.value
+  &lt;chr&gt;                              &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+1 (Intercept)                     5.61e-16   0.00916  6.13e-14 1.000e+  0
+2 scale(Gr_Liv_Area)              3.99e- 1   0.0113   3.54e+ 1 1.71 e-228
+3 scale(as.numeric(Overall_Qual)) 4.59e- 1   0.0137   3.36e+ 1 4.17 e-210
+4 scale(Year_Built)               1.88e- 1   0.0116   1.62e+ 1 8.10 e- 57</code></pre>
+</div>
+</div>
+</section>
 <section id="diagnostics-essentiels" class="slide level2 center">
 <h2>Diagnostics essentiels</h2>
 <ul>
-<li class="fragment">Résidus vs valeurs ajustées (linéarité/homo)</li>
-<li class="fragment">QQ-plot (normalité)</li>
-<li class="fragment">Leverage &amp; influence : <strong>distance de Cook</strong></li>
-<li class="fragment"><strong>Multicolinéarité</strong> : <strong>VIF</strong></li>
+<li class="fragment"><strong>Résidus vs valeurs ajustées</strong> : vérifier linéarité &amp; homogénéité.</li>
+<li class="fragment"><strong>QQ-plot</strong> : vérifier normalité.</li>
+<li class="fragment"><strong>Leverage &amp; influence</strong> : points qui « tirent » le modèle (distance de Cook, seuil 4/n).</li>
+<li class="fragment"><strong>Multicolinéarité</strong> : VIF (Variance Inflation Factor).</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
-<span id="cb4-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m0); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
+<span id="cb6-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m0); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-4-1.png" width="960"></p>
+<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-5-1.png" width="960"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                 GVIF Df GVIF^(1/(2*Df))
 Gr_Liv_Area  2.286185  1        1.512013
@@ -327,34 +345,146 @@ Year_Built   2.003266  1        1.415368
 Full_Bath    2.119535  1        1.455862
 Garage_Cars  1.859696  1        1.363707</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m0), <span class="at">type=</span><span class="st">"h"</span>, <span class="at">main=</span><span class="st">"Distance de Cook"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m0), <span class="at">type=</span><span class="st">"h"</span>, <span class="at">main=</span><span class="st">"Distance de Cook"</span>)</span>
+<span id="cb9-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="dv">4</span><span class="sc">/</span><span class="fu">nrow</span>(ames), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-4-2.png" width="960"></p>
+<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-5-2.png" width="960"></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
+<section id="transition-mission-1" class="slide level2 center">
+<h2>🚀 Transition — Mission 1</h2>
+<p><strong>Objectifs de Mission 1 :</strong></p>
+<ul>
+<li class="fragment"><p>Explorer rapidement les données (EDA).</p></li>
+<li class="fragment"><p>Construire un modèle multiple (≤ 6 prédicteurs).</p></li>
+<li class="fragment"><p>Vérifier les diagnostics (résidus, normalité, homoscédasticité, VIF).</p></li>
+<li class="fragment"><p>Interpréter les coefficients bruts et standardisés.</p></li>
+</ul>
+</section>
 <section id="mission-1-construire-le-modèle-sur-ames" class="slide level2 center">
-<h2>Mission 1— Construire le modèle sur Ames</h2>
+<h2>Mission 1 — Construire le modèle sur Ames</h2>
 <p>Ouvrir <strong><code>missions/M1_ames.qmd</code></strong> — EDA → <code>lm()</code> → diagnostics → interprétation.</p>
+</section>
+<section id="tests-dhypothèses-mission-2" class="slide level2 center">
+<h2>Tests d’hypothèses (Mission 2)</h2>
+<ul>
+<li class="fragment"><strong>Test individuel</strong> : <span class="math inline">\(H_0: \beta_j = 0\)</span> vs <span class="math inline">\(H_1: \beta_j \neq 0\)</span> (t, p-value).</li>
+<li class="fragment"><strong>Test global</strong> : <span class="math inline">\(H_0: \beta_1=\cdots=\beta_p=0\)</span> (F).</li>
+<li class="fragment"><strong>Modèles emboîtés</strong> : comparaison via ANOVA.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-hidden="true" tabindex="-1"></a>sum_mod <span class="ot">&lt;-</span> <span class="fu">summary</span>(m0)</span>
+<span id="cb10-2"><a aria-hidden="true" tabindex="-1"></a>sum_mod<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                Estimate   Std. Error    t value      Pr(&gt;|t|)
+(Intercept)                -918983.82499 60126.904644 -15.284070  8.626304e-51
+Gr_Liv_Area                     56.89863     1.897063  29.993006 1.688970e-172
+Overall_QualPoor             19646.67574 19644.417625   1.000115  3.173379e-01
+Overall_QualFair             29056.59069 18023.314346   1.612167  1.070338e-01
+Overall_QualBelow_Average    38083.07049 17328.264741   2.197743  2.804579e-02
+Overall_QualAverage          53484.07312 17226.898426   3.104684  1.923109e-03
+Overall_QualAbove_Average    60700.87933 17267.237666   3.515379  4.458173e-04
+Overall_QualGood             78584.49732 17346.088155   4.530387  6.124121e-06
+Overall_QualVery_Good       123042.00090 17444.871733   7.053190  2.174938e-12
+Overall_QualExcellent       201328.51656 17729.284430  11.355705  2.835849e-29
+Overall_QualVery_Excellent  242443.60954 18617.333600  13.022467  1.007262e-37
+Year_Built                     468.61296    29.680111  15.788787  5.995079e-54
+Full_Bath                    -4495.70977  1669.924447  -2.692164  7.139586e-03
+Garage_Cars                  13182.03643  1136.353120  11.600299  1.894129e-30</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(<span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames), m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Model 1: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built
+Model 2: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + 
+    Garage_Cars
+  Res.Df        RSS Df  Sum of Sq      F    Pr(&gt;F)    
+1   2918 3.5993e+12                                   
+2   2916 3.4357e+12  2 1.6361e+11 69.431 &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+</section>
+<section id="intervalles-de-confiance-vs-prédiction" class="slide level2 center">
+<h2>Intervalles de confiance vs prédiction</h2>
+<ul>
+<li class="fragment"><strong>IC</strong> : incertitude sur la <strong>moyenne conditionnelle</strong> <span class="math inline">\(E[Y|X]\)</span>.</li>
+<li class="fragment"><strong>IP</strong> : incertitude sur une <strong>nouvelle observation</strong>.</li>
+<li class="fragment">IP toujours plus large que IC.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-hidden="true" tabindex="-1"></a>newd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Gr_Liv_Area=</span><span class="dv">2000</span>, <span class="at">Overall_Qual=</span><span class="st">"Very_Poor"</span>, <span class="at">Year_Built=</span><span class="dv">2000</span>, <span class="at">Full_Bath=</span><span class="dv">2</span>, <span class="at">Garage_Cars=</span><span class="dv">2</span>)</span>
+<span id="cb14-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(m0, newd, <span class="at">interval=</span><span class="st">"confidence"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     fit      lwr      upr
+1 149412 115391.3 183432.7</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(m0, newd, <span class="at">interval=</span><span class="st">"prediction"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     fit      lwr      upr
+1 149412 73997.93 224826.1</code></pre>
+</div>
+</div>
+</section>
+<section id="calibration-et-couverture-des-ip" class="slide level2 center">
+<h2>Calibration et couverture des IP</h2>
+<ul>
+<li class="fragment">IP95 ≈ 95% de couverture si le modèle est bien spécifié.</li>
+<li class="fragment">Vérification empirique possible sur échantillon test.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb18-2"><a aria-hidden="true" tabindex="-1"></a>idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(ames)), <span class="at">size =</span> <span class="fu">floor</span>(.<span class="dv">8</span><span class="sc">*</span><span class="fu">nrow</span>(ames)))</span>
+<span id="cb18-3"><a aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> ames[idx,]; test <span class="ot">&lt;-</span> ames[<span class="sc">-</span>idx,]</span>
+<span id="cb18-4"><a aria-hidden="true" tabindex="-1"></a>mod_train <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>train)</span>
+<span id="cb18-5"><a aria-hidden="true" tabindex="-1"></a>pred_pi <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod_train, <span class="at">newdata=</span>test, <span class="at">interval=</span><span class="st">"prediction"</span>)</span>
+<span id="cb18-6"><a aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(test<span class="sc">$</span>Sale_Price <span class="sc">&gt;=</span> pred_pi[,<span class="st">"lwr"</span>] <span class="sc">&amp;</span> test<span class="sc">$</span>Sale_Price <span class="sc">&lt;=</span> pred_pi[,<span class="st">"upr"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9624573</code></pre>
+</div>
+</div>
+</section>
+<section id="compromis-biais-variance" class="slide level2 center">
+<h2>Compromis biais-variance</h2>
+<ul>
+<li class="fragment">Modèle trop simple : biais élevé.</li>
+<li class="fragment">Modèle trop complexe : variance élevée.</li>
+<li class="fragment">Objectif : équilibre pour minimiser l’erreur test.</li>
+</ul>
+
+<img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
+<section id="transition-mission-2" class="slide level2 center">
+<h2>🚀 Transition — Mission 2</h2>
+<p><strong>Objectifs de Mission 2 :</strong></p>
+<ul>
+<li class="fragment"><p>Comparer modèles simple vs complet.</p></li>
+<li class="fragment"><p>Évaluer performance prédictive (RMSE/MAE).</p></li>
+<li class="fragment"><p>Tester les coefficients et comparer via ANOVA.</p></li>
+<li class="fragment"><p>Construire et interpréter IC et IP.</p></li>
+<li class="fragment"><p>Vérifier calibration et couverture.</p></li>
+</ul>
 </section>
 <section id="mission-2-tester-interpréter" class="slide level2 center">
 <h2>Mission 2 — Tester &amp; interpréter</h2>
-<p>Ouvrir <strong><code>missions/M2_interpretation.qmd</code></strong> — Train/Test → RMSE/MAE → discussion.</p>
+<p>Ouvrir <strong><code>missions/M2_interpretation.qmd</code></strong> — Train/Test → RMSE/MAE → tests → intervalles → calibration.</p>
 </section>
 <section id="sélection-complexité" class="slide level2 center">
 <h2>Sélection &amp; complexité</h2>
 <ul>
-<li class="fragment">Critères d’information : <strong>AIC</strong>/<strong>BIC</strong> (intuitions)</li>
-<li class="fragment">Pas-à-pas (<code>step</code>) : utile pour <strong>exploration</strong>, mais à prendre avec recul</li>
-<li class="fragment">Préférer une <strong>sélection raisonnée</strong> basée sur le domaine</li>
+<li class="fragment">Critères d’information : <strong>AIC</strong>/<strong>BIC</strong> (intuition : équilibre ajustement/complexité).</li>
+<li class="fragment"><code>step()</code> : exploration mais à manier avec recul.</li>
+<li class="fragment">Préférer une sélection raisonnée, guidée par le domaine.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-hidden="true" tabindex="-1"></a>m_small <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
-<span id="cb8-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_small)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-hidden="true" tabindex="-1"></a>m_small <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
+<span id="cb20-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_small)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        df      AIC
 m0      15 69530.67
@@ -365,12 +495,12 @@ m_small 13 69662.98</code></pre>
 <section id="transformations-non-linéarités" class="slide level2 center">
 <h2>Transformations &amp; non-linéarités</h2>
 <ul>
-<li class="fragment">Transformation de <span class="math inline">\(Y\)</span> (log) pour variance non constante</li>
-<li class="fragment">Transformation de <span class="math inline">\(X\)</span> (log, racine) ou <strong>termes quadratiques</strong></li>
+<li class="fragment">Transformation de <span class="math inline">\(Y\)</span> (log) pour variance non constante.</li>
+<li class="fragment">Transformation de <span class="math inline">\(X\)</span> (log, racine) ou <strong>termes quadratiques</strong>.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
-<span id="cb10-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
+<span id="cb22-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 12
   r.squared adj.r.squared sigma statistic p.value    df logLik    AIC    BIC
@@ -380,121 +510,21 @@ m_small 13 69662.98</code></pre>
 </div>
 </div>
 </section>
-<section id="prédiction-incertitude" class="slide level2 center">
-<h2>Prédiction &amp; incertitude</h2>
-<ul>
-<li class="fragment">Intervalle de <strong>prédiction</strong> vs <strong>confiance</strong></li>
-</ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-hidden="true" tabindex="-1"></a>newd <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Gr_Liv_Area=</span><span class="dv">2000</span>, <span class="at">Overall_Qual=</span><span class="st">"Very_Poor"</span>, <span class="at">Year_Built=</span><span class="dv">2000</span>, <span class="at">Full_Bath=</span><span class="dv">2</span>, <span class="at">Garage_Cars=</span><span class="dv">2</span>)</span>
-<span id="cb12-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(m0, newd, <span class="at">interval=</span><span class="st">"prediction"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>     fit      lwr      upr
-1 149412 73997.93 224826.1</code></pre>
-</div>
-</div>
-</section>
 <section id="influence-points-atypiques" class="slide level2 center">
 <h2>Influence &amp; points atypiques</h2>
 <ul>
-<li class="fragment">Leverage élevé + grand résidu ⇒ potentiellement <strong>influents</strong></li>
-<li class="fragment">Vérifier la <strong>qualité des données</strong> avant d’exclure</li>
+<li class="fragment">Leverage élevé + grand résidu ⇒ potentiellement influents.</li>
+<li class="fragment">Toujours vérifier la <strong>qualité des données</strong> avant exclusion.</li>
 </ul>
 </section>
 <section id="débrief-pièges-fréquents" class="slide level2 center">
 <h2>Débrief &amp; pièges fréquents</h2>
 <ul>
-<li class="fragment">Colinéarité ignorée ⇒ coefficients instables</li>
-<li class="fragment">Facteurs mal encodés ⇒ interprétations erronées</li>
-<li class="fragment">Sur-ajustement ⇒ validation indispensable</li>
-<li class="fragment">Confusion entre <span class="math inline">\(R^2\)</span> et <strong>performance prédictive</strong></li>
+<li class="fragment">Colinéarité ignorée ⇒ coefficients instables.</li>
+<li class="fragment">Facteurs mal encodés ⇒ interprétations erronées.</li>
+<li class="fragment">Sur-ajustement ⇒ validation indispensable.</li>
+<li class="fragment">Confusion entre <span class="math inline">\(R^2\)</span> et <strong>performance prédictive</strong>.</li>
 </ul>
-</section>
-<section id="théorie-supplément-détaillé" class="slide level2 center">
-<h2>Théorie — supplément détaillé</h2>
-<h3 id="géométrie-de-lols">Géométrie de l’OLS</h3>
-<p>L’estimation OLS revient à projeter le vecteur des réponses <span class="math inline">\(\mathbf y\)</span> sur l’espace-colonnes de <span class="math inline">\(\mathbf X\)</span>. Le résidu <span class="math inline">\(\hat{\boldsymbol\varepsilon}=\mathbf y-\mathbf X\hat{\boldsymbol\beta}\)</span> est orthogonal à chaque colonne de <span class="math inline">\(\mathbf X\)</span>. On a alors <span class="math display">\[\mathbf X^\top(\mathbf y-\mathbf X\hat{\boldsymbol\beta})=\mathbf 0 \iff \hat{\boldsymbol\beta}=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf y.\]</span></p>
-</section>
-<section class="slide level2 center">
-
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Schéma: plan de régression (projection) — simple illustration simulée</span></span>
-<span id="cb14-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb14-3"><a aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">60</span></span>
-<span id="cb14-4"><a aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n); x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb14-5"><a aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>x1 <span class="sc">-</span> <span class="fl">1.5</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="fl">0.7</span>)</span>
-<span id="cb14-6"><a aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(x1,x2,y)</span>
-<span id="cb14-7"><a aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">lm</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, df)</span>
-<span id="cb14-8"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Visualisation des contributions partielles</span></span>
-<span id="cb14-9"><a aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x1, y, <span class="at">color=</span>x2)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">se=</span><span class="cn">FALSE</span>)</span>
-<span id="cb14-10"><a aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(x2, <span class="fu">residuals</span>(m))) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">"lm"</span>, <span class="at">se=</span><span class="cn">FALSE</span>)</span>
-<span id="cb14-11"><a aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-
-</div>
-<img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
-<section class="slide level2 center">
-
-<h3 id="gaussmarkov-intuition">Gauss–Markov (intuition)</h3>
-<p>Sous les hypothèses classiques (linéarité, erreurs d’espérance nulle et variance constante, absence de colinéarité parfaite), OLS est le <strong>meilleur estimateur linéaire non-biaisé</strong> (BLUE). L’optimalité porte sur la variance minimale parmi les estimateurs linéaires non-biaisés.</p>
-</section>
-<section class="slide level2 center">
-
-<h3 id="variables-catégorielles-et-contrastes">Variables catégorielles et contrastes</h3>
-<p>Si un facteur a <span class="math inline">\(K\)</span> niveaux, le modèle inclut <span class="math inline">\(K-1\)</span> indicatrices. Le choix du niveau de référence modifie l’interprétation mais pas l’ajustement global. Les <strong>interactions</strong> (p.&nbsp;ex. <span class="math inline">\(x\times\text{quartier}\)</span>) autorisent des pentes différentes selon les niveaux.</p>
-</section>
-<section class="slide level2 center">
-
-<h3 id="diagnostics-approfondis">Diagnostics approfondis</h3>
-<ul>
-<li class="fragment"><strong>Linéarité</strong> : résidus vs valeurs ajustées (absence de structure systématique).</li>
-<li class="fragment"><strong>Homoscédasticité</strong> : variance approximativement constante des résidus (test de Breusch–Pagan comme indicateur).</li>
-<li class="fragment"><strong>Normalité</strong> : QQ-plot pour l’inférence (IC/tests), moins critique pour la prédiction.</li>
-<li class="fragment"><strong>Influence</strong> : distance de Cook, leverage (hat-values).</li>
-<li class="fragment"><strong>Colinéarité</strong> : VIF élevés <span class="math inline">\(\Rightarrow\)</span> coefficients instables, CIs larges, signes erratiques.</li>
-</ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Courbes de diagnostic usuelles</span></span>
-<span id="cb15-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-9-1.png" width="960"></p>
-</figure>
-</div>
-</div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      x1       x2 
-1.001988 1.001988 </code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m), <span class="at">type=</span><span class="st">"h"</span>); <span class="fu">abline</span>(<span class="at">h=</span><span class="dv">4</span><span class="sc">/</span><span class="fu">length</span>(y), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-9-2.png" width="960"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section class="slide level2 center">
-
-<h3 id="sélection-raisonnée-transformations">Sélection raisonnée &amp; transformations</h3>
-<ul>
-<li class="fragment">Critères AIC/BIC (pénalisation de la complexité) pour <strong>comparer</strong> des modèles.</li>
-<li class="fragment">Préférer une sélection guidée par le <strong>domaine</strong> + validation simple (<em>train/test</em>).</li>
-<li class="fragment">Transformations usuelles : <span class="math inline">\(\log(Y)\)</span> pour réduire l’hétéroscédasticité; termes quadratiques pour capturer une courbure.</li>
-</ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
-<span id="cb19-2"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
-<span id="cb19-3"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      df       AIC
-m0    15 69530.669
-m_log 13 -1847.628</code></pre>
-</div>
-</div>
 </section>
 <section id="quiz-interactif-rapide" class="slide level2 center">
 <h2>Quiz interactif (rapide)</h2>

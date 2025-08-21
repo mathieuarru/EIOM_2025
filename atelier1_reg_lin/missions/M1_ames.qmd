@@ -4,17 +4,17 @@ format: html
 ---
 
 ```{r}
-#source("../../utils/requirements.R")
+source("../../utils/requirements.R")
 library(AmesHousing); library(broom); library(performance); library(car); library(GGally); library(dplyr)
 set.seed(123)
 ames <- make_ames()
 ```
 
 ## Objectifs
-- EDA rapide — comprendre les variables candidates
-- Modèle de regression linéaire `lm()` — inclure ≤ 6 prédicteurs pertinents
-- Diagnostics — résidus, normalité, homoscédasticité, **VIF**
-- Interprétation des $\beta$
+- Réaliser une EDA rapide — identifier les variables candidates
+- Construire un modèle de régression linéaire `lm()` avec ≤ 6 prédicteurs pertinents
+- Vérifier les diagnostics — résidus, normalité, homoscédasticité, **VIF**
+- Interpréter les coefficients $\beta$
 
 ## Étapes guidées
 
@@ -23,51 +23,131 @@ ames <- make_ames()
 ames <- ames %>% janitor::clean_names()
 ```
 
+::: {.callout-note}
+**Réflexion :** Pourquoi est-il important de nettoyer les noms de variables avant de travailler? Quels problèmes cela pourrait-il éviter?
+:::
+
+---
+
 ### 2) EDA éclair
 ```{r}
 GGally::ggpairs(ames %>% dplyr::select(sale_price, gr_liv_area, year_built, overall_qual, full_bath, garage_cars))
 ```
 
+::: {.callout-note}
+**À faire (équipe):**
+
+- Quelles variables semblent corrélées avec `sale_price`? Notez les plus pertinentes.
+
+- Quelles relations semblent linéaires? Lesquelles paraissent non linéaires?
+
+- Identifiez au moins une variable qui pourrait nécessiter une transformation.
+:::
+
 > Astuce : pensez aux **transformations** si une relation paraît non linéaire (p. ex. `log(sale_price)`).
 
+---
+
 ### 3) Modèle de base
+Essayez de construire votre premier modèle à partir de 4 à 6 variables qui vous semblent pertinentes.
+
 ```{r}
 mod <- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)
 summary(mod)
 ```
 
+::: {.callout-note}
+**Réflexion :**
+
+- Quels sont les coefficients estimés? Que signifient-ils dans le contexte du prix des maisons?
+
+- Quels prédicteurs sont significatifs? Comment l’interprétez-vous?
+
+- Quelle est la valeur du $R^2$? Est-elle satisfaisante?
+:::
+
+---
+
 ### 4) Diagnostics
 ```{r}
 par(mfrow=c(2,2)); plot(mod); par(mfrow=c(1,1))
 performance::check_collinearity(mod)
-car::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan (via car)
+car::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan
 ```
 
+::: {.callout-note}
+**Questions de réflexion :**
+
+1. Que remarquez-vous sur le QQ-plot? Les résidus sont-ils approximativement normaux?
+
+2. Y a-t-il des indices de variance non constante? Quelles en seraient les conséquences?
+
+3. Le VIF suggère-t-il de la multicolinéarité?
+:::
+
+---
+
 ### 5) Interprétation
-- $\beta_{\text{gr_liv_area}}$ : variation moyenne du prix pour +1 pi², *ceteris paribus*.
-- Pour comparer les effets, essayez un **modèle standardisé**.
+
+- Exemple : $\beta_{gr\_liv\_area}$ indique la variation moyenne du prix pour +1 pi².
+- Pour comparer les effets entre variables, testez un **modèle standardisé**.
+
 ```{r}
 mod_std <- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(as.numeric(overall_qual)) + scale(year_built) + scale(full_bath) + scale(garage_cars),
  data = ames)
 broom::tidy(mod_std)
 ```
 
-## Questions à résoudre (équipe)
+::: {.callout-note}
+
+**Réflexion :**
+
+- Quelle variable a le plus grand effet relatif? Est-ce cohérent avec vos attentes?
+
+- Comment interprétez-vous les coefficients standardisés?
+
+- Y a-t-il des signes inattendus? Comment les expliqueriez-vous?
+:::
+
+---
+
+## Travail d’équipe
+
 1. Quelle variable a l’effet **le plus fort** ? Justifiez via les coefficients standardisés.
+
 2. Y a-t-il des **signes inattendus** ? Proposez une explication.
+
 3. Que raconte le **QQ-plot** des résidus ?
 
-## Points de discussion (retour groupe)
-- Sélection manuelle raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)
+4. Proposez une variable que vous auriez pu inclure mais que vous avez laissée de côté. Pourquoi?
+
+---
+
+## Discussion collective
+
+- Sélection raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)
+
 - Variables corrélées et VIF: seuils et bons réflexes
+
+- Comment présenter un modèle imparfait à un non-spécialiste?
+
 ---
 
 ## Points de discussion — approfondis
-- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
-- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
+
+- **Justification avec un expert** des variables incluses ou exclues (au-delà des p-valeurs).
+
+- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (validation).
+
 - **Éthique & communication** : comment présenter l’incertitude à un public non technique.
+
 - **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+
+---
 
 ## Questions bonus
 1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
+
 2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).
+
+3. Imaginez un scénario où une variable est très significative statistiquement mais peu pertinente dans la réalité. Que faites-vous?

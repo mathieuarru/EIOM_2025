@@ -179,42 +179,70 @@
     "href": "atelier1_reg_lin/missions/M2_interpretation.html",
     "title": "Mission 2 — Tester & interpréter",
     "section": "",
-    "text": "#source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); set.seed(42); library(dplyr); library(broom)\names &lt;- make_ames()\nidx &lt;- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))\ntrain &lt;- ames[idx,]; test &lt;- ames[-idx,]\nmod &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)"
+    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); set.seed(42); library(dplyr); library(broom)\names &lt;- make_ames()\nidx &lt;- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))\ntrain &lt;- ames[idx,]; test &lt;- ames[-idx,]\nmod &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)\nmod_small &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train)"
   },
   {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#tâches",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#tâches",
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#objectifs",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#objectifs",
     "title": "Mission 2 — Tester & interpréter",
-    "section": "Tâches",
-    "text": "Tâches\n\nPrédire Sale_Price sur test et calculer RMSE/MAE.\n\n\npred &lt;- predict(mod, newdata=test)\nrmse &lt;- sqrt(mean((pred - test$Sale_Price)^2))\nmae &lt;- mean(abs(pred - test$Sale_Price))\nknitr::kable(data.frame(RMSE = rmse, MAE = mae), caption = \"Performance prédictive sur test\")\n\n\nPerformance prédictive sur test\n\n\nRMSE\nMAE\n\n\n\n\n34713.31\n22622.28\n\n\n\n\n\n\nComparer avec un modèle plus simple (3 variables).\n\n\nmod_small &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train)\npred_s &lt;- predict(mod_small, newdata=test)\nrmse_s &lt;- sqrt(mean((pred_s - test$Sale_Price)^2))\nmae_s &lt;- mean(abs(pred_s - test$Sale_Price))\nknitr::kable(data.frame(Model=c(\"Complet\",\"Simple\"),\n RMSE=c(rmse, rmse_s),\n MAE=c(mae, mae_s)))\n\n\n\n\nModel\nRMSE\nMAE\n\n\n\n\nComplet\n34713.31\n22622.28\n\n\nSimple\n35150.98\n23088.00\n\n\n\n\n\n\nDiscuter: biais-variance, sur-ajustement potentiel."
+    "section": "Objectifs",
+    "text": "Objectifs\n\nTester des hypothèses (t-tests sur coefficients, test F global et modèles emboîtés).\nIntervalles : construire et interpréter des intervalles de confiance (IC) et de prédiction (IP).\nÉvaluer la calibration et la couverture des IP sur l’échantillon test.\nAnalyser l’erreur par sous-groupes (robustesse et équité de base)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#tests-dhypothèses-sur-les-coefficients",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#tests-dhypothèses-sur-les-coefficients",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "1) Tests d’hypothèses sur les coefficients",
+    "text": "1) Tests d’hypothèses sur les coefficients\n\nsum_mod &lt;- summary(mod)\nsum_mod$coefficients\n\n                                Estimate   Std. Error    t value      Pr(&gt;|t|)\n(Intercept)                -881183.00199 66913.101296 -13.169065  2.967990e-38\nGr_Liv_Area                     56.74416     2.104504  26.963206 1.341430e-139\nOverall_QualPoor             23909.61553 20290.439629   1.178369  2.387700e-01\nOverall_QualFair             26465.61196 18198.854053   1.454246  1.460128e-01\nOverall_QualBelow_Average    38511.36847 17334.313212   2.221684  2.640040e-02\nOverall_QualAverage          51976.79659 17211.078719   3.019962  2.555518e-03\nOverall_QualAbove_Average    58489.05809 17263.901408   3.387940  7.159023e-04\nOverall_QualGood             78020.81605 17366.424861   4.492624  7.378771e-06\nOverall_QualVery_Good       120614.34000 17487.957022   6.896994  6.816907e-12\nOverall_QualExcellent       199510.31713 17861.122971  11.170088  2.941930e-28\nOverall_QualVery_Excellent  242212.29392 18922.086251  12.800507  2.641965e-36\nYear_Built                     448.30307    33.296147  13.464112  7.550363e-40\nFull_Bath                    -2792.26431  1878.872594  -1.486138  1.373779e-01\nGarage_Cars                  13870.75392  1257.341923  11.031807  1.278968e-27\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion ciblée :\n\nFormulez \\(H_0\\) et \\(H_1\\) pour \\(\\beta_{Year\\_Built}\\). Interprétez le t et la p-value au seuil 5%.\nQuelle(s) variable(s) reste(nt) non significative(s)? Les conservez-vous quand même? Justifiez (domaine, colinéarité, coût d’erreur, etc.)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#test-global-et-modèles-emboîtés",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#test-global-et-modèles-emboîtés",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "2) Test global et modèles emboîtés",
+    "text": "2) Test global et modèles emboîtés\n\n# F global (déjà dans summary(mod) via statistic)\nanova(mod_small, mod)\n\nAnalysis of Variance Table\n\nModel 1: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built\nModel 2: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + \n    Garage_Cars\n  Res.Df        RSS Df  Sum of Sq      F    Pr(&gt;F)    \n1   2332 2.8789e+12                                   \n2   2330 2.7348e+12  2 1.4413e+11 61.401 &lt; 2.2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\n\n\n\n\n\nTip\n\n\n\nÀ faire (équipe) :\n\nInterprétez le test ANOVA ci-dessus : le modèle complet apporte-t-il un gain significatif par rapport au modèle réduit?\nCalculez et comparez AIC/BIC pour mod et mod_small. Quel critère privilégieriez-vous ici et pourquoi?\n\n\n\n\nAIC(mod_small, mod)\n\n          df      AIC\nmod_small 13 55735.13\nmod       15 55618.74\n\nBIC(mod_small, mod)\n\n          df      BIC\nmod_small 13 55810.00\nmod       15 55705.13"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#intervalles-de-confiance-et-de-prédiction",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#intervalles-de-confiance-et-de-prédiction",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "3) Intervalles de confiance et de prédiction",
+    "text": "3) Intervalles de confiance et de prédiction\n\n# Moyennes pour les numériques\nnum_means &lt;- train %&gt;% summarise(\n  Gr_Liv_Area = mean(Gr_Liv_Area, na.rm = TRUE),\n  Year_Built  = mean(Year_Built,  na.rm = TRUE),\n  Full_Bath   = mean(Full_Bath,   na.rm = TRUE),\n  Garage_Cars = mean(Garage_Cars, na.rm = TRUE)\n)\n\n# Modalité la plus fréquente pour le facteur Overall_Qual\nmode_qual &lt;- train %&gt;% summarise(\n  Overall_Qual = names(which.max(table(Overall_Qual)))\n) %&gt;% mutate(Overall_Qual = factor(Overall_Qual, levels = levels(train$Overall_Qual)))\n\n# Maison type\nnew0 &lt;- dplyr::bind_cols(num_means, mode_qual)\n\n# IC\npredict(mod, newdata = new0, interval = \"confidence\")\n\n       fit      lwr      upr\n1 160220.6 157199.6 163241.7\n\n# IP sur l’échantillon test\npred_pi &lt;- predict(mod, newdata = test, interval = \"prediction\")\nhead(pred_pi)\n\n       fit      lwr      upr\n1 180648.2 113338.9 247957.5\n2 170506.0 103198.6 237813.3\n3 271895.4 204579.2 339211.5\n4 405288.4 337646.4 472930.3\n5 300636.2 233315.5 367956.8\n6 231996.0 164646.9 299345.1\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion interprétation :\n\nDifférence IC vs IP : que quantifient-ils, et pourquoi l’IP est-il plus large?\nÀ quoi sert un IP pour un décideur (ex. courtier, évaluateur)? Donnez un exemple concret."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#couverture-des-ip-et-calibration",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#couverture-des-ip-et-calibration",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "4) Couverture des IP et calibration",
+    "text": "4) Couverture des IP et calibration\n\n# Taux de couverture 95% des IP sur test\ninside &lt;- (test$Sale_Price &gt;= pred_pi[ ,\"lwr\"]) & (test$Sale_Price &lt;= pred_pi[ ,\"upr\"]) \ncoverage &lt;- mean(inside)\nwidth &lt;- mean(pred_pi[ ,\"upr\"] - pred_pi[ ,\"lwr\"]) \nknitr::kable(data.frame(Couverture_IP95 = coverage, Largeur_moy_IP = width),\n             caption = \"Couverture et largeur moyenne des intervalles de prédiction (test)\")\n\n\nCouverture et largeur moyenne des intervalles de prédiction (test)\n\n\nCouverture_IP95\nLargeur_moy_IP\n\n\n\n\n0.9624573\n134744.5\n\n\n\n\n# Plot calibration : observé vs prédit\nplot(pred_pi[ ,\"fit\"], test$Sale_Price,\n     xlab = \"Prix prédit\", ylab = \"Prix observé\", main = \"Calibration: observé vs prédit\")\nabline(0, 1)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWarning\n\n\n\nAnalyse critique :\n\nLa couverture est-elle proche de 95%? Si non, quelles raisons possibles (mauvaise spécification, hétéroscédasticité, non-normalité, outliers…)?\nLa pente de calibration semble-t-elle proche de 1? Y a-t-il biais systématique (sous/sur-prédiction)?"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#erreurs-par-sous-groupes-robustesse",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#erreurs-par-sous-groupes-robustesse",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "5) Erreurs par sous-groupes (robustesse)",
+    "text": "5) Erreurs par sous-groupes (robustesse)\n\nerr &lt;- test$Sale_Price - pred_pi[ ,\"fit\"]\n# Stratification simple : quartiles de surface et niveaux de qualité\nq_area &lt;- cut(test$Gr_Liv_Area, breaks = quantile(test$Gr_Liv_Area, probs = seq(0,1,0.25), na.rm=TRUE), include.lowest=TRUE)\nby_grp &lt;- test %&gt;% mutate(err = err, q_area = q_area) %&gt;%\n  group_by(q_area, Overall_Qual) %&gt;% summarise(MAE = mean(abs(err)), RMSE = sqrt(mean(err^2)), .groups='drop')\nknitr::kable(by_grp, caption = \"Erreurs par sous-groupes (aire habitable en quartiles × qualité globale)\")\n\n\nErreurs par sous-groupes (aire habitable en quartiles × qualité globale)\n\n\nq_area\nOverall_Qual\nMAE\nRMSE\n\n\n\n\n[520,1.13e+03]\nPoor\n30364.570\n38651.540\n\n\n[520,1.13e+03]\nFair\n13414.979\n17555.484\n\n\n[520,1.13e+03]\nBelow_Average\n13564.462\n18418.238\n\n\n[520,1.13e+03]\nAverage\n13883.661\n17991.222\n\n\n[520,1.13e+03]\nAbove_Average\n13903.862\n17361.991\n\n\n[520,1.13e+03]\nGood\n20736.199\n21570.278\n\n\n(1.13e+03,1.42e+03]\nFair\n16939.169\n19902.571\n\n\n(1.13e+03,1.42e+03]\nBelow_Average\n21017.884\n24903.919\n\n\n(1.13e+03,1.42e+03]\nAverage\n13765.626\n17648.594\n\n\n(1.13e+03,1.42e+03]\nAbove_Average\n14439.528\n17670.036\n\n\n(1.13e+03,1.42e+03]\nGood\n14201.040\n17231.101\n\n\n(1.13e+03,1.42e+03]\nVery_Good\n31862.465\n37032.937\n\n\n(1.42e+03,1.72e+03]\nBelow_Average\n33394.954\n39938.912\n\n\n(1.42e+03,1.72e+03]\nAverage\n21226.006\n27886.582\n\n\n(1.42e+03,1.72e+03]\nAbove_Average\n16698.841\n24631.618\n\n\n(1.42e+03,1.72e+03]\nGood\n23702.029\n29274.231\n\n\n(1.42e+03,1.72e+03]\nVery_Good\n29526.155\n41360.485\n\n\n(1.42e+03,1.72e+03]\nExcellent\n32939.308\n33972.903\n\n\n(1.72e+03,4.68e+03]\nFair\n2609.718\n2609.718\n\n\n(1.72e+03,4.68e+03]\nBelow_Average\n58601.132\n58601.456\n\n\n(1.72e+03,4.68e+03]\nAverage\n30841.210\n39331.843\n\n\n(1.72e+03,4.68e+03]\nAbove_Average\n24321.604\n30690.056\n\n\n(1.72e+03,4.68e+03]\nGood\n28348.812\n35079.171\n\n\n(1.72e+03,4.68e+03]\nVery_Good\n37801.170\n50260.929\n\n\n(1.72e+03,4.68e+03]\nExcellent\n52026.385\n63023.133\n\n\n(1.72e+03,4.68e+03]\nVery_Excellent\n132702.685\n178022.285\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestion d’enquête :\n\nIdentifiez un sous-groupe avec une erreur nettement plus élevée. Donnez une hypothèse explicative (non-linéarité, interaction manquante, variable omise…).\nProposez une action concrète (transformation, terme quadratique, interaction, variable additionnelle) pour la Mission 3."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#comparaison-de-modèles",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#comparaison-de-modèles",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "6) Comparaison de modèles",
+    "text": "6) Comparaison de modèles\n\n# Performance globale simple (pour mémoire) :\npred &lt;- pred_pi[ ,\"fit\"]\nrmse &lt;- sqrt(mean((pred - test$Sale_Price)^2))\nmae  &lt;- mean(abs(pred - test$Sale_Price))\nknitr::kable(data.frame(Model=c(\"Complet\",\"Simple\"),\n                        RMSE=c(rmse, sqrt(mean((predict(mod_small, test) - test$Sale_Price)^2))),\n                        MAE =c(mae,  mean(abs(predict(mod_small, test) - test$Sale_Price)))),\n             caption = \"Comparaison rapide de performance (test)\")\n\n\nComparaison rapide de performance (test)\n\n\nModel\nRMSE\nMAE\n\n\n\n\nComplet\n34713.31\n22622.28\n\n\nSimple\n35150.98\n23088.00\n\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nDécision modèle :\n\nUtilisez ANOVA + AIC/BIC + calibration/couverture (pas seulement RMSE/MAE) pour trancher entre mod et mod_small. Justifiez la traçabilité de votre choix."
   },
   {
     "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#questions",
     "href": "atelier1_reg_lin/missions/M2_interpretation.html#questions",
     "title": "Mission 2 — Tester & interpréter",
     "section": "Questions",
-    "text": "Questions\n\nQ1. Le $ R^2 $ plus élevé du grand modèle se traduit-il par un RMSE plus faible ?\nQ2. Quelle variable retireriez-vous pour livrer un modèle robuste et interprétable ?"
+    "text": "Questions\n\nQ1. Testez \\(H_0\\!:\\;\\beta_{Year\\_Built}=0\\) (5%). Concluez et interprétez dans le contexte.\nQ2. Le test ANOVA conclut-il à un apport significatif de Full_Bath et Garage_Cars pris ensemble? Décision?\nQ3. La couverture empirique des IP95 est-elle satisfaisante? Si non, quelle modification du modèle proposeriez-vous?\nQ4. Identifiez un sous-groupe à erreur élevée et proposez une amélioration."
   },
   {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#points-de-discussion",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#points-de-discussion",
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#pour-aller-plus-loin",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#pour-aller-plus-loin",
     "title": "Mission 2 — Tester & interpréter",
-    "section": "Points de discussion",
-    "text": "Points de discussion\n\nDifférence entre qualité d’ajustement et performance prédictive\nImportance du domaine dans la sélection des variables"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#points-de-discussion-approfondis",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#points-de-discussion-approfondis",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "Points de discussion — approfondis",
-    "text": "Points de discussion — approfondis\n\nJustification métier des variables incluses ou exclues (au-delà des p-valeurs).\nStabilité des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).\nÉthique & communication : comment présenter l’incertitude à un public non technique.\nReproductibilité : graine aléatoire, sessionInfo(), versionnage du code."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#questions-bonus",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#questions-bonus",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "Questions bonus",
-    "text": "Questions bonus\n\nProposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.\nIdentifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi)."
+    "section": "Pour aller plus loin",
+    "text": "Pour aller plus loin\n\nCalculez un IC pour la moyenne conditionnelle d’une maison type (définissez explicitement la maison) et expliquez la différence avec un IP pour cette même maison.\nMontrez un exemple où AIC préfère mod mais BIC préfère mod_small. Laquelle des deux décisions retiendriez-vous ici et pourquoi (taille d’échantillon, parcimonie, objectif)?\nImplémentez une validation croisée K-fold maison (sans nouveaux packages) et comparez RMSE moyen de mod vs mod_small."
   },
   {
     "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html",
@@ -263,147 +291,182 @@
     "href": "atelier1_reg_lin/missions/M1_ames.html",
     "title": "Mission 1 — Ames: modéliser le prix",
     "section": "",
-    "text": "#source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); library(broom); library(performance); library(car); library(GGally); library(dplyr)\nset.seed(123)\names &lt;- make_ames()"
+    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); library(broom); library(performance); library(car); library(GGally); library(dplyr)\nset.seed(123)\names &lt;- make_ames()"
   },
   {
     "objectID": "atelier1_reg_lin/missions/M1_ames.html#objectifs",
     "href": "atelier1_reg_lin/missions/M1_ames.html#objectifs",
     "title": "Mission 1 — Ames: modéliser le prix",
     "section": "Objectifs",
-    "text": "Objectifs\n\nEDA rapide — comprendre les variables candidates\nModèle de regression linéaire lm() — inclure ≤ 6 prédicteurs pertinents\nDiagnostics — résidus, normalité, homoscédasticité, VIF\nInterprétation des \\(\\beta\\)"
+    "text": "Objectifs\n\nRéaliser une EDA rapide — identifier les variables candidates\nConstruire un modèle de régression linéaire lm() avec ≤ 6 prédicteurs pertinents\nVérifier les diagnostics — résidus, normalité, homoscédasticité, VIF\nInterpréter les coefficients \\(\\beta\\)"
   },
   {
     "objectID": "atelier1_reg_lin/missions/M1_ames.html#étapes-guidées",
     "href": "atelier1_reg_lin/missions/M1_ames.html#étapes-guidées",
     "title": "Mission 1 — Ames: modéliser le prix",
     "section": "Étapes guidées",
-    "text": "Étapes guidées\n\n1) Nettoyage minimal\n\names &lt;- ames %&gt;% janitor::clean_names()\n\n\n\n2) EDA éclair\n\nGGally::ggpairs(ames %&gt;% dplyr::select(sale_price, gr_liv_area, year_built, overall_qual, full_bath, garage_cars))\n\n\n\n\n\n\n\n\n\nAstuce : pensez aux transformations si une relation paraît non linéaire (p. ex. log(sale_price)).\n\n\n\n3) Modèle de base\n\nmod &lt;- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)\nsummary(mod)\n\n\nCall:\nlm(formula = sale_price ~ gr_liv_area + overall_qual + year_built + \n    full_bath + garage_cars, data = ames)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-442829  -17192    -901   14649  225492 \n\nCoefficients:\n                             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)                -9.190e+05  6.013e+04 -15.284  &lt; 2e-16 ***\ngr_liv_area                 5.690e+01  1.897e+00  29.993  &lt; 2e-16 ***\noverall_qualPoor            1.965e+04  1.964e+04   1.000 0.317338    \noverall_qualFair            2.906e+04  1.802e+04   1.612 0.107034    \noverall_qualBelow_Average   3.808e+04  1.733e+04   2.198 0.028046 *  \noverall_qualAverage         5.348e+04  1.723e+04   3.105 0.001923 ** \noverall_qualAbove_Average   6.070e+04  1.727e+04   3.515 0.000446 ***\noverall_qualGood            7.858e+04  1.735e+04   4.530 6.12e-06 ***\noverall_qualVery_Good       1.230e+05  1.744e+04   7.053 2.17e-12 ***\noverall_qualExcellent       2.013e+05  1.773e+04  11.356  &lt; 2e-16 ***\noverall_qualVery_Excellent  2.424e+05  1.862e+04  13.022  &lt; 2e-16 ***\nyear_built                  4.686e+02  2.968e+01  15.789  &lt; 2e-16 ***\nfull_bath                  -4.496e+03  1.670e+03  -2.692 0.007140 ** \ngarage_cars                 1.318e+04  1.136e+03  11.600  &lt; 2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 34330 on 2916 degrees of freedom\nMultiple R-squared:  0.8162,    Adjusted R-squared:  0.8154 \nF-statistic: 996.1 on 13 and 2916 DF,  p-value: &lt; 2.2e-16\n\n\n\n\n4) Diagnostics\n\npar(mfrow=c(2,2)); plot(mod); par(mfrow=c(1,1))\n\n\n\n\n\n\n\nperformance::check_collinearity(mod)\n\n# Check for Multicollinearity\n\nLow Correlation\n\n         Term  VIF   VIF 95% CI adj. VIF Tolerance Tolerance 95% CI\n  gr_liv_area 2.29 [2.16, 2.42]     1.51      0.44     [0.41, 0.46]\n overall_qual 2.63 [2.48, 2.79]     1.06      0.38     [0.36, 0.40]\n   year_built 2.00 [1.90, 2.12]     1.42      0.50     [0.47, 0.53]\n    full_bath 2.12 [2.01, 2.24]     1.46      0.47     [0.45, 0.50]\n  garage_cars 1.86 [1.77, 1.96]     1.36      0.54     [0.51, 0.57]\n\ncar::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan (via car)\n\nNon-constant Variance Score Test \nVariance formula: ~ fitted.values \nChisquare = 4219.156, Df = 1, p = &lt; 2.22e-16\n\n\n\n\n5) Interprétation\n\n\\(\\beta_{\\text{gr_liv_area}}\\) : variation moyenne du prix pour +1 pi², ceteris paribus.\nPour comparer les effets, essayez un modèle standardisé.\n\n\nmod_std &lt;- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(as.numeric(overall_qual)) + scale(year_built) + scale(full_bath) + scale(garage_cars),\n data = ames)\nbroom::tidy(mod_std)\n\n# A tibble: 6 × 5\n  term                             estimate std.error statistic    p.value\n  &lt;chr&gt;                               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;\n1 (Intercept)                      5.63e-16   0.00891  6.32e-14 1.000e+  0\n2 scale(gr_liv_area)               4.03e- 1   0.0132   3.04e+ 1 9.73 e-177\n3 scale(as.numeric(overall_qual))  4.24e- 1   0.0136   3.11e+ 1 2.55 e-183\n4 scale(year_built)                1.67e- 1   0.0125   1.33e+ 1 3.21 e- 39\n5 scale(full_bath)                -7.63e- 2   0.0127  -6.02e+ 0 1.92 e-  9\n6 scale(garage_cars)               1.44e- 1   0.0121   1.19e+ 1 6.12 e- 32"
+    "text": "Étapes guidées\n\n1) Nettoyage minimal\n\names &lt;- ames %&gt;% janitor::clean_names()\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion : Pourquoi est-il important de nettoyer les noms de variables avant de travailler? Quels problèmes cela pourrait-il éviter?\n\n\n\n\n\n2) EDA éclair\n\nGGally::ggpairs(ames %&gt;% dplyr::select(sale_price, gr_liv_area, year_built, overall_qual, full_bath, garage_cars))\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nÀ faire (équipe):\n\nQuelles variables semblent corrélées avec sale_price? Notez les plus pertinentes.\nQuelles relations semblent linéaires? Lesquelles paraissent non linéaires?\nIdentifiez au moins une variable qui pourrait nécessiter une transformation.\n\n\n\n\nAstuce : pensez aux transformations si une relation paraît non linéaire (p. ex. log(sale_price)).\n\n\n\n\n3) Modèle de base\nEssayez de construire votre premier modèle à partir de 4 à 6 variables qui vous semblent pertinentes.\n\nmod &lt;- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)\nsummary(mod)\n\n\nCall:\nlm(formula = sale_price ~ gr_liv_area + overall_qual + year_built + \n    full_bath + garage_cars, data = ames)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-442829  -17192    -901   14649  225492 \n\nCoefficients:\n                             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)                -9.190e+05  6.013e+04 -15.284  &lt; 2e-16 ***\ngr_liv_area                 5.690e+01  1.897e+00  29.993  &lt; 2e-16 ***\noverall_qualPoor            1.965e+04  1.964e+04   1.000 0.317338    \noverall_qualFair            2.906e+04  1.802e+04   1.612 0.107034    \noverall_qualBelow_Average   3.808e+04  1.733e+04   2.198 0.028046 *  \noverall_qualAverage         5.348e+04  1.723e+04   3.105 0.001923 ** \noverall_qualAbove_Average   6.070e+04  1.727e+04   3.515 0.000446 ***\noverall_qualGood            7.858e+04  1.735e+04   4.530 6.12e-06 ***\noverall_qualVery_Good       1.230e+05  1.744e+04   7.053 2.17e-12 ***\noverall_qualExcellent       2.013e+05  1.773e+04  11.356  &lt; 2e-16 ***\noverall_qualVery_Excellent  2.424e+05  1.862e+04  13.022  &lt; 2e-16 ***\nyear_built                  4.686e+02  2.968e+01  15.789  &lt; 2e-16 ***\nfull_bath                  -4.496e+03  1.670e+03  -2.692 0.007140 ** \ngarage_cars                 1.318e+04  1.136e+03  11.600  &lt; 2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 34330 on 2916 degrees of freedom\nMultiple R-squared:  0.8162,    Adjusted R-squared:  0.8154 \nF-statistic: 996.1 on 13 and 2916 DF,  p-value: &lt; 2.2e-16\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion :\n\nQuels sont les coefficients estimés? Que signifient-ils dans le contexte du prix des maisons?\nQuels prédicteurs sont significatifs? Comment l’interprétez-vous?\nQuelle est la valeur du \\(R^2\\)? Est-elle satisfaisante?\n\n\n\n\n\n\n4) Diagnostics\n\npar(mfrow=c(2,2)); plot(mod); par(mfrow=c(1,1))\n\n\n\n\n\n\n\nperformance::check_collinearity(mod)\n\n# Check for Multicollinearity\n\nLow Correlation\n\n         Term  VIF   VIF 95% CI adj. VIF Tolerance Tolerance 95% CI\n  gr_liv_area 2.29 [2.16, 2.42]     1.51      0.44     [0.41, 0.46]\n overall_qual 2.63 [2.48, 2.79]     1.06      0.38     [0.36, 0.40]\n   year_built 2.00 [1.90, 2.12]     1.42      0.50     [0.47, 0.53]\n    full_bath 2.12 [2.01, 2.24]     1.46      0.47     [0.45, 0.50]\n  garage_cars 1.86 [1.77, 1.96]     1.36      0.54     [0.51, 0.57]\n\ncar::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan\n\nNon-constant Variance Score Test \nVariance formula: ~ fitted.values \nChisquare = 4219.156, Df = 1, p = &lt; 2.22e-16\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestions de réflexion :\n\nQue remarquez-vous sur le QQ-plot? Les résidus sont-ils approximativement normaux?\nY a-t-il des indices de variance non constante? Quelles en seraient les conséquences?\nLe VIF suggère-t-il de la multicolinéarité?\n\n\n\n\n\n\n5) Interprétation\n\nExemple : \\(\\beta_{gr\\_liv\\_area}\\) indique la variation moyenne du prix pour +1 pi².\nPour comparer les effets entre variables, testez un modèle standardisé.\n\n\nmod_std &lt;- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(as.numeric(overall_qual)) + scale(year_built) + scale(full_bath) + scale(garage_cars),\n data = ames)\nbroom::tidy(mod_std)\n\n# A tibble: 6 × 5\n  term                             estimate std.error statistic    p.value\n  &lt;chr&gt;                               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;\n1 (Intercept)                      5.63e-16   0.00891  6.32e-14 1.000e+  0\n2 scale(gr_liv_area)               4.03e- 1   0.0132   3.04e+ 1 9.73 e-177\n3 scale(as.numeric(overall_qual))  4.24e- 1   0.0136   3.11e+ 1 2.55 e-183\n4 scale(year_built)                1.67e- 1   0.0125   1.33e+ 1 3.21 e- 39\n5 scale(full_bath)                -7.63e- 2   0.0127  -6.02e+ 0 1.92 e-  9\n6 scale(garage_cars)               1.44e- 1   0.0121   1.19e+ 1 6.12 e- 32\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion :\n\nQuelle variable a le plus grand effet relatif? Est-ce cohérent avec vos attentes?\nComment interprétez-vous les coefficients standardisés?\nY a-t-il des signes inattendus? Comment les expliqueriez-vous?"
   },
   {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#questions-à-résoudre-équipe",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#questions-à-résoudre-équipe",
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#travail-déquipe",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#travail-déquipe",
     "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Questions à résoudre (équipe)",
-    "text": "Questions à résoudre (équipe)\n\nQuelle variable a l’effet le plus fort ? Justifiez via les coefficients standardisés.\nY a-t-il des signes inattendus ? Proposez une explication.\nQue raconte le QQ-plot des résidus ?"
+    "section": "Travail d’équipe",
+    "text": "Travail d’équipe\n\nQuelle variable a l’effet le plus fort ? Justifiez via les coefficients standardisés.\nY a-t-il des signes inattendus ? Proposez une explication.\nQue raconte le QQ-plot des résidus ?\nProposez une variable que vous auriez pu inclure mais que vous avez laissée de côté. Pourquoi?"
   },
   {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-retour-groupe",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-retour-groupe",
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#discussion-collective",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#discussion-collective",
     "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Points de discussion (retour groupe)",
-    "text": "Points de discussion (retour groupe)\n\nSélection manuelle raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)\nVariables corrélées et VIF: seuils et bons réflexes"
+    "section": "Discussion collective",
+    "text": "Discussion collective\n\nSélection raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)\nVariables corrélées et VIF: seuils et bons réflexes\nComment présenter un modèle imparfait à un non-spécialiste?"
   },
   {
     "objectID": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-approfondis",
     "href": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-approfondis",
     "title": "Mission 1 — Ames: modéliser le prix",
     "section": "Points de discussion — approfondis",
-    "text": "Points de discussion — approfondis\n\nJustification métier des variables incluses ou exclues (au-delà des p-valeurs).\nStabilité des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).\nÉthique & communication : comment présenter l’incertitude à un public non technique.\nReproductibilité : graine aléatoire, sessionInfo(), versionnage du code."
+    "text": "Points de discussion — approfondis\n\nJustification avec un expert des variables incluses ou exclues (au-delà des p-valeurs).\nStabilité des coefficients : colinéarité, sous-échantillonnage répété (validation).\nÉthique & communication : comment présenter l’incertitude à un public non technique.\nReproductibilité : graine aléatoire, sessionInfo(), versionnage du code."
   },
   {
     "objectID": "atelier1_reg_lin/missions/M1_ames.html#questions-bonus",
     "href": "atelier1_reg_lin/missions/M1_ames.html#questions-bonus",
     "title": "Mission 1 — Ames: modéliser le prix",
     "section": "Questions bonus",
-    "text": "Questions bonus\n\nProposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.\nIdentifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi)."
+    "text": "Questions bonus\n\nProposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.\nIdentifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).\nImaginez un scénario où une variable est très significative statistiquement mais peu pertinente dans la réalité. Que faites-vous?"
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#brise-glace",
     "href": "atelier1_reg_lin/slides_atelier1.html#brise-glace",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Brise-glace",
-    "text": "Brise-glace\n\nVisualisation rapide : surface vs prix (nuage de points)\nBrainstorm : Quelles autres variables ajouter ?\nPrix de vente ~ aire habitable\n\n\names &lt;- AmesHousing::make_ames()\names %&gt;%\n ggplot(aes(Gr_Liv_Area, Sale_Price)) +\n geom_point(alpha=.3) +\n labs(x=\"Aire habitable (pi²)\", y=\"Prix de vente ($)\")+\n    scale_y_continuous(labels = dollar_format(prefix = \"$\", big.mark = \",\"))"
+    "text": "Brise-glace\n\nVisualisation rapide : surface vs prix (nuage de points)\nBrainstorm : Quelles autres variables ajouter ?\nPrix de vente ~ aire habitable\n\n\names &lt;- AmesHousing::make_ames()\names %&gt;%\n ggplot(aes(Gr_Liv_Area, Sale_Price)) +\n geom_point(alpha=.3) +\n labs(x=\"Aire habitable (pi²)\", y=\"Prix de vente ($)\" )+ \n scale_y_continuous(labels = dollar_format(prefix = \"$\", big.mark = \",\"))"
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#rappel-régression-simple-multiple",
     "href": "atelier1_reg_lin/slides_atelier1.html#rappel-régression-simple-multiple",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Rappel : régression simple → multiple",
-    "text": "Rappel : régression simple → multiple\n\nObjectif : approximer une relation moyenne entre une réponse \\(Y\\) et des prédicteurs \\(X\\).\nExtension à \\(p\\) prédicteurs\n\n\n\\[\nY = \\beta_0 + \\beta_1 x_1 + \\cdots + \\beta_p x_p + \\varepsilon,\\qquad \\mathbb{E}[\\varepsilon]=0,\\ \\operatorname{Var}(\\varepsilon)=\\sigma^2\n\\]"
+    "text": "Rappel : régression simple → multiple\n\nObjectif : approximer une relation moyenne entre une réponse \\(Y\\) et des prédicteurs \\(X\\).\nExtension à \\(p\\) prédicteurs : tenir compte simultanément de plusieurs effets.\n\n\n\\[\nY = \\beta_0 + \\beta_1 x_1 + \\cdots + \\beta_p x_p + \\varepsilon,\\qquad \\mathbb{E}[\\varepsilon]=0,\\ \\operatorname{Var}(\\varepsilon)=\\sigma^2\n\\]\n\n\nIdée clé : chaque \\(\\beta_j\\) mesure l’effet de \\(x_j\\) toutes choses égales par ailleurs."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#écriture-matricielle",
     "href": "atelier1_reg_lin/slides_atelier1.html#écriture-matricielle",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Écriture matricielle",
-    "text": "Écriture matricielle\nSoit \\(\\mathbf{y}\\in\\mathbb{R}^n\\), \\(\\mathbf{X}\\in\\mathbb{R}^{n\\times (p+1)}\\) (avec colonne d’1), \\(\\boldsymbol{\\beta}\\in\\mathbb{R}^{p+1}\\).\n\\[\n\\mathbf{y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon}, \\quad \\widehat{\\boldsymbol{\\beta}}_{\\text{OLS}} = (\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{y}\n\\]\n\nInterprétation : projection orthogonale de \\(\\mathbf{y}\\) sur l’espace colonnes de \\(\\mathbf{X}\\).\nRésidus : \\(\\widehat{\\boldsymbol{\\varepsilon}} = \\mathbf{y} - \\mathbf{X}\\widehat{\\boldsymbol{\\beta}}\\), somme nulle, orthogonaux aux colonnes de \\(\\mathbf{X}\\)."
+    "text": "Écriture matricielle\nSoit \\(\\mathbf{y}\\in\\mathbb{R}^n\\), \\(\\mathbf{X}\\in\\mathbb{R}^{n\\times (p+1)}\\) (avec colonne d’1), \\(\\boldsymbol{\\beta}\\in\\mathbb{R}^{p+1}\\).\n\\[\n\\mathbf{y} = \\mathbf{X}\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon}, \\quad \\widehat{\\boldsymbol{\\beta}}_{\\text{OLS}} = (\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top \\mathbf{y}\n\\]\n\nProjection géométrique : \\(\\widehat{\\mathbf{y}}\\) est la projection orthogonale de \\(\\mathbf{y}\\) sur l’espace colonnes de \\(\\mathbf{X}\\).\nRésidus : \\(\\widehat{\\boldsymbol{\\varepsilon}} = \\mathbf{y} - \\mathbf{X}\\widehat{\\boldsymbol{\\beta}}\\), somme nulle, orthogonaux aux colonnes de \\(\\mathbf{X}\\)."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#hypothèses-conséquences",
     "href": "atelier1_reg_lin/slides_atelier1.html#hypothèses-conséquences",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Hypothèses & conséquences",
-    "text": "Hypothèses & conséquences\n\nLinéarité de la relation moyenne\nIndépendance des erreurs\nHomoscédasticité : \\(\\operatorname{Var}(\\varepsilon_i)=\\sigma^2\\)\nNormalité des erreurs (utile pour intervalles/tests)\nNon-colinéarité parfaite ( \\(\\mathbf{X}^\\top \\mathbf{X}\\) inversible )\nConséquences :\n\nNon-biais \\(\\mathbb{E}[\\widehat{\\boldsymbol{\\beta}}]=\\boldsymbol{\\beta}\\)\nEstimateur de \\(\\sigma^2\\) : \\(\\widehat{\\sigma}^2 = \\frac{1}{n-p-1}\\sum \\widehat{\\varepsilon}_i^2\\)\nVariance des coefficients : diag\\((\\widehat{\\sigma}^2 (\\mathbf{X}^\\top \\mathbf{X})^{-1})\\)"
+    "text": "Hypothèses & conséquences\n\nLinéarité : la relation moyenne est linéaire.\nIndépendance des erreurs.\nHomoscédasticité : \\(\\operatorname{Var}(\\varepsilon_i)=\\sigma^2\\).\nNormalité des erreurs (utile pour IC/tests).\nPas de colinéarité parfaite : \\(\\mathbf{X}^\\top \\mathbf{X}\\) inversible.\n\nConséquences : - Estimateurs non biaisés \\(\\mathbb{E}[\\widehat{\\beta}]=\\beta\\). - Estimateur de \\(\\sigma^2\\): \\(\\widehat{\\sigma}^2 = \\frac{1}{n-p-1}\\sum \\widehat{\\varepsilon}_i^2\\). - Variance des coefficients : diag\\((\\widehat{\\sigma}^2 (\\mathbf{X}^\\top \\mathbf{X})^{-1})\\)."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#encodage-des-variables-catégorielles",
     "href": "atelier1_reg_lin/slides_atelier1.html#encodage-des-variables-catégorielles",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Encodage des variables catégorielles",
-    "text": "Encodage des variables catégorielles\n\nSi un facteur a \\(K\\) niveaux ⇒ \\(K-1\\) indicatrices.\nAttention au niveau de référence.\nInteractions : \\(x \\times \\text{facteur}\\) pour effets différentiels.\n\n\n\n# Données\names &lt;- make_ames()\n# Exemple : Neighborhood sur Ames (petit échantillon pour compacité)\nd &lt;- ames %&gt;%\n  select(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) %&gt;%\n  mutate(Neighborhood = droplevels(Neighborhood))\nm_cat &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Neighborhood, data = d)\ntidy(m_cat) %&gt;% slice(1:8)\n\n# A tibble: 8 × 5\n  term                      estimate std.error statistic   p.value\n  &lt;chr&gt;                        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;\n1 (Intercept)                14165.   16778.       0.844 3.99e-  1\n2 Gr_Liv_Area                   52.1      1.61    32.3   4.14e-196\n3 Overall_QualPoor           28242.   19005.       1.49  1.37e-  1\n4 Overall_QualFair           33761.   17412.       1.94  5.26e-  2\n5 Overall_QualBelow_Average  46906.   16770.       2.80  5.19e-  3\n6 Overall_QualAverage        59023.   16675.       3.54  4.07e-  4\n7 Overall_QualAbove_Average  71350.   16704.       4.27  2.00e-  5\n8 Overall_QualGood           88325.   16778.       5.26  1.51e-  7"
+    "text": "Encodage des variables catégorielles\n\nFacteur à \\(K\\) niveaux ⇒ \\(K-1\\) indicatrices.\nChoix du niveau de référence = base de comparaison.\nInteractions : \\(x \\times \\text{facteur}\\) pour des pentes différentes.\n\n\n\nd &lt;- ames %&gt;%\n  select(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) %&gt;%\n  mutate(Neighborhood = droplevels(Neighborhood))\nm_cat &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Neighborhood, data = d)\ntidy(m_cat) %&gt;% slice(1:8)\n\n# A tibble: 8 × 5\n  term                      estimate std.error statistic   p.value\n  &lt;chr&gt;                        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;\n1 (Intercept)                14165.   16778.       0.844 3.99e-  1\n2 Gr_Liv_Area                   52.1      1.61    32.3   4.14e-196\n3 Overall_QualPoor           28242.   19005.       1.49  1.37e-  1\n4 Overall_QualFair           33761.   17412.       1.94  5.26e-  2\n5 Overall_QualBelow_Average  46906.   16770.       2.80  5.19e-  3\n6 Overall_QualAverage        59023.   16675.       3.54  4.07e-  4\n7 Overall_QualAbove_Average  71350.   16704.       4.27  2.00e-  5\n8 Overall_QualGood           88325.   16778.       5.26  1.51e-  7"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#standardisation-des-variables",
+    "href": "atelier1_reg_lin/slides_atelier1.html#standardisation-des-variables",
+    "title": "Atelier 1 — Régression linéaire multiple",
+    "section": "Standardisation des variables",
+    "text": "Standardisation des variables\n\nUtile pour comparer l’importance relative des prédicteurs.\nLes coefficients sont exprimés en écart-types.\n\n\nmod_std &lt;- lm(scale(Sale_Price) ~ scale(Gr_Liv_Area) + scale(as.numeric(Overall_Qual)) + scale(Year_Built), data=ames)\nbroom::tidy(mod_std)\n\n# A tibble: 4 × 5\n  term                            estimate std.error statistic    p.value\n  &lt;chr&gt;                              &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;\n1 (Intercept)                     5.61e-16   0.00916  6.13e-14 1.000e+  0\n2 scale(Gr_Liv_Area)              3.99e- 1   0.0113   3.54e+ 1 1.71 e-228\n3 scale(as.numeric(Overall_Qual)) 4.59e- 1   0.0137   3.36e+ 1 4.17 e-210\n4 scale(Year_Built)               1.88e- 1   0.0116   1.62e+ 1 8.10 e- 57"
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#diagnostics-essentiels",
     "href": "atelier1_reg_lin/slides_atelier1.html#diagnostics-essentiels",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Diagnostics essentiels",
-    "text": "Diagnostics essentiels\n\nRésidus vs valeurs ajustées (linéarité/homo)\nQQ-plot (normalité)\nLeverage & influence : distance de Cook\nMulticolinéarité : VIF\n\n\nm0 &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=ames)\npar(mfrow=c(2,2)); plot(m0); par(mfrow=c(1,1))\n\n\n\n\n\n\n\ncar::vif(m0)\n\n                 GVIF Df GVIF^(1/(2*Df))\nGr_Liv_Area  2.286185  1        1.512013\nOverall_Qual 2.628358  9        1.055154\nYear_Built   2.003266  1        1.415368\nFull_Bath    2.119535  1        1.455862\nGarage_Cars  1.859696  1        1.363707\n\nplot(cooks.distance(m0), type=\"h\", main=\"Distance de Cook\")"
+    "text": "Diagnostics essentiels\n\nRésidus vs valeurs ajustées : vérifier linéarité & homogénéité.\nQQ-plot : vérifier normalité.\nLeverage & influence : points qui « tirent » le modèle (distance de Cook, seuil 4/n).\nMulticolinéarité : VIF (Variance Inflation Factor).\n\n\nm0 &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=ames)\npar(mfrow=c(2,2)); plot(m0); par(mfrow=c(1,1))\n\n\n\n\n\n\n\ncar::vif(m0)\n\n                 GVIF Df GVIF^(1/(2*Df))\nGr_Liv_Area  2.286185  1        1.512013\nOverall_Qual 2.628358  9        1.055154\nYear_Built   2.003266  1        1.415368\nFull_Bath    2.119535  1        1.455862\nGarage_Cars  1.859696  1        1.363707\n\nplot(cooks.distance(m0), type=\"h\", main=\"Distance de Cook\")\nabline(h=4/nrow(ames), col=\"red\", lty=2)"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#transition-mission-1",
+    "href": "atelier1_reg_lin/slides_atelier1.html#transition-mission-1",
+    "title": "Atelier 1 — Régression linéaire multiple",
+    "section": "🚀 Transition — Mission 1",
+    "text": "🚀 Transition — Mission 1\nObjectifs de Mission 1 :\n\nExplorer rapidement les données (EDA).\nConstruire un modèle multiple (≤ 6 prédicteurs).\nVérifier les diagnostics (résidus, normalité, homoscédasticité, VIF).\nInterpréter les coefficients bruts et standardisés."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#mission-1-construire-le-modèle-sur-ames",
     "href": "atelier1_reg_lin/slides_atelier1.html#mission-1-construire-le-modèle-sur-ames",
     "title": "Atelier 1 — Régression linéaire multiple",
-    "section": "Mission 1— Construire le modèle sur Ames",
-    "text": "Mission 1— Construire le modèle sur Ames\nOuvrir missions/M1_ames.qmd — EDA → lm() → diagnostics → interprétation."
+    "section": "Mission 1 — Construire le modèle sur Ames",
+    "text": "Mission 1 — Construire le modèle sur Ames\nOuvrir missions/M1_ames.qmd — EDA → lm() → diagnostics → interprétation."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#tests-dhypothèses-mission-2",
+    "href": "atelier1_reg_lin/slides_atelier1.html#tests-dhypothèses-mission-2",
+    "title": "Atelier 1 — Régression linéaire multiple",
+    "section": "Tests d’hypothèses (Mission 2)",
+    "text": "Tests d’hypothèses (Mission 2)\n\nTest individuel : \\(H_0: \\beta_j = 0\\) vs \\(H_1: \\beta_j \\neq 0\\) (t, p-value).\nTest global : \\(H_0: \\beta_1=\\cdots=\\beta_p=0\\) (F).\nModèles emboîtés : comparaison via ANOVA.\n\n\nsum_mod &lt;- summary(m0)\nsum_mod$coefficients\n\n                                Estimate   Std. Error    t value      Pr(&gt;|t|)\n(Intercept)                -918983.82499 60126.904644 -15.284070  8.626304e-51\nGr_Liv_Area                     56.89863     1.897063  29.993006 1.688970e-172\nOverall_QualPoor             19646.67574 19644.417625   1.000115  3.173379e-01\nOverall_QualFair             29056.59069 18023.314346   1.612167  1.070338e-01\nOverall_QualBelow_Average    38083.07049 17328.264741   2.197743  2.804579e-02\nOverall_QualAverage          53484.07312 17226.898426   3.104684  1.923109e-03\nOverall_QualAbove_Average    60700.87933 17267.237666   3.515379  4.458173e-04\nOverall_QualGood             78584.49732 17346.088155   4.530387  6.124121e-06\nOverall_QualVery_Good       123042.00090 17444.871733   7.053190  2.174938e-12\nOverall_QualExcellent       201328.51656 17729.284430  11.355705  2.835849e-29\nOverall_QualVery_Excellent  242443.60954 18617.333600  13.022467  1.007262e-37\nYear_Built                     468.61296    29.680111  15.788787  5.995079e-54\nFull_Bath                    -4495.70977  1669.924447  -2.692164  7.139586e-03\nGarage_Cars                  13182.03643  1136.353120  11.600299  1.894129e-30\n\nanova(lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=ames), m0)\n\nAnalysis of Variance Table\n\nModel 1: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built\nModel 2: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + \n    Garage_Cars\n  Res.Df        RSS Df  Sum of Sq      F    Pr(&gt;F)    \n1   2918 3.5993e+12                                   \n2   2916 3.4357e+12  2 1.6361e+11 69.431 &lt; 2.2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#intervalles-de-confiance-vs-prédiction",
+    "href": "atelier1_reg_lin/slides_atelier1.html#intervalles-de-confiance-vs-prédiction",
+    "title": "Atelier 1 — Régression linéaire multiple",
+    "section": "Intervalles de confiance vs prédiction",
+    "text": "Intervalles de confiance vs prédiction\n\nIC : incertitude sur la moyenne conditionnelle \\(E[Y|X]\\).\nIP : incertitude sur une nouvelle observation.\nIP toujours plus large que IC.\n\n\nnewd &lt;- data.frame(Gr_Liv_Area=2000, Overall_Qual=\"Very_Poor\", Year_Built=2000, Full_Bath=2, Garage_Cars=2)\npredict(m0, newd, interval=\"confidence\")\n\n     fit      lwr      upr\n1 149412 115391.3 183432.7\n\npredict(m0, newd, interval=\"prediction\")\n\n     fit      lwr      upr\n1 149412 73997.93 224826.1"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#calibration-et-couverture-des-ip",
+    "href": "atelier1_reg_lin/slides_atelier1.html#calibration-et-couverture-des-ip",
+    "title": "Atelier 1 — Régression linéaire multiple",
+    "section": "Calibration et couverture des IP",
+    "text": "Calibration et couverture des IP\n\nIP95 ≈ 95% de couverture si le modèle est bien spécifié.\nVérification empirique possible sur échantillon test.\n\n\nset.seed(42)\nidx &lt;- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))\ntrain &lt;- ames[idx,]; test &lt;- ames[-idx,]\nmod_train &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train)\npred_pi &lt;- predict(mod_train, newdata=test, interval=\"prediction\")\nmean(test$Sale_Price &gt;= pred_pi[,\"lwr\"] & test$Sale_Price &lt;= pred_pi[,\"upr\"])\n\n[1] 0.9624573"
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#compromis-biais-variance",
+    "href": "atelier1_reg_lin/slides_atelier1.html#compromis-biais-variance",
+    "title": "Atelier 1 — Régression linéaire multiple",
+    "section": "Compromis biais-variance",
+    "text": "Compromis biais-variance\n\nModèle trop simple : biais élevé.\nModèle trop complexe : variance élevée.\nObjectif : équilibre pour minimiser l’erreur test."
+  },
+  {
+    "objectID": "atelier1_reg_lin/slides_atelier1.html#transition-mission-2",
+    "href": "atelier1_reg_lin/slides_atelier1.html#transition-mission-2",
+    "title": "Atelier 1 — Régression linéaire multiple",
+    "section": "🚀 Transition — Mission 2",
+    "text": "🚀 Transition — Mission 2\nObjectifs de Mission 2 :\n\nComparer modèles simple vs complet.\nÉvaluer performance prédictive (RMSE/MAE).\nTester les coefficients et comparer via ANOVA.\nConstruire et interpréter IC et IP.\nVérifier calibration et couverture."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#mission-2-tester-interpréter",
     "href": "atelier1_reg_lin/slides_atelier1.html#mission-2-tester-interpréter",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Mission 2 — Tester & interpréter",
-    "text": "Mission 2 — Tester & interpréter\nOuvrir missions/M2_interpretation.qmd — Train/Test → RMSE/MAE → discussion."
+    "text": "Mission 2 — Tester & interpréter\nOuvrir missions/M2_interpretation.qmd — Train/Test → RMSE/MAE → tests → intervalles → calibration."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#sélection-complexité",
     "href": "atelier1_reg_lin/slides_atelier1.html#sélection-complexité",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Sélection & complexité",
-    "text": "Sélection & complexité\n\nCritères d’information : AIC/BIC (intuitions)\nPas-à-pas (step) : utile pour exploration, mais à prendre avec recul\nPréférer une sélection raisonnée basée sur le domaine\n\n\nm_small &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=ames)\nAIC(m0, m_small)\n\n        df      AIC\nm0      15 69530.67\nm_small 13 69662.98"
+    "text": "Sélection & complexité\n\nCritères d’information : AIC/BIC (intuition : équilibre ajustement/complexité).\nstep() : exploration mais à manier avec recul.\nPréférer une sélection raisonnée, guidée par le domaine.\n\n\nm_small &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=ames)\nAIC(m0, m_small)\n\n        df      AIC\nm0      15 69530.67\nm_small 13 69662.98"
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#transformations-non-linéarités",
     "href": "atelier1_reg_lin/slides_atelier1.html#transformations-non-linéarités",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Transformations & non-linéarités",
-    "text": "Transformations & non-linéarités\n\nTransformation de \\(Y\\) (log) pour variance non constante\nTransformation de \\(X\\) (log, racine) ou termes quadratiques\n\n\nm_log &lt;- lm(log(Sale_Price) ~ log(Gr_Liv_Area) + Overall_Qual + Year_Built, data=ames)\nbroom::glance(m_log)\n\n# A tibble: 1 × 12\n  r.squared adj.r.squared sigma statistic p.value    df logLik    AIC    BIC\n      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;\n1     0.814         0.813 0.176     1161.       0    11   937. -1848. -1770.\n# ℹ 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;"
-  },
-  {
-    "objectID": "atelier1_reg_lin/slides_atelier1.html#prédiction-incertitude",
-    "href": "atelier1_reg_lin/slides_atelier1.html#prédiction-incertitude",
-    "title": "Atelier 1 — Régression linéaire multiple",
-    "section": "Prédiction & incertitude",
-    "text": "Prédiction & incertitude\n\nIntervalle de prédiction vs confiance\n\n\nnewd &lt;- data.frame(Gr_Liv_Area=2000, Overall_Qual=\"Very_Poor\", Year_Built=2000, Full_Bath=2, Garage_Cars=2)\npredict(m0, newd, interval=\"prediction\")\n\n     fit      lwr      upr\n1 149412 73997.93 224826.1"
+    "text": "Transformations & non-linéarités\n\nTransformation de \\(Y\\) (log) pour variance non constante.\nTransformation de \\(X\\) (log, racine) ou termes quadratiques.\n\n\nm_log &lt;- lm(log(Sale_Price) ~ log(Gr_Liv_Area) + Overall_Qual + Year_Built, data=ames)\nbroom::glance(m_log)\n\n# A tibble: 1 × 12\n  r.squared adj.r.squared sigma statistic p.value    df logLik    AIC    BIC\n      &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;\n1     0.814         0.813 0.176     1161.       0    11   937. -1848. -1770.\n# ℹ 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;"
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#influence-points-atypiques",
     "href": "atelier1_reg_lin/slides_atelier1.html#influence-points-atypiques",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Influence & points atypiques",
-    "text": "Influence & points atypiques\n\nLeverage élevé + grand résidu ⇒ potentiellement influents\nVérifier la qualité des données avant d’exclure"
+    "text": "Influence & points atypiques\n\nLeverage élevé + grand résidu ⇒ potentiellement influents.\nToujours vérifier la qualité des données avant exclusion."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#débrief-pièges-fréquents",
     "href": "atelier1_reg_lin/slides_atelier1.html#débrief-pièges-fréquents",
     "title": "Atelier 1 — Régression linéaire multiple",
     "section": "Débrief & pièges fréquents",
-    "text": "Débrief & pièges fréquents\n\nColinéarité ignorée ⇒ coefficients instables\nFacteurs mal encodés ⇒ interprétations erronées\nSur-ajustement ⇒ validation indispensable\nConfusion entre \\(R^2\\) et performance prédictive"
-  },
-  {
-    "objectID": "atelier1_reg_lin/slides_atelier1.html#théorie-supplément-détaillé",
-    "href": "atelier1_reg_lin/slides_atelier1.html#théorie-supplément-détaillé",
-    "title": "Atelier 1 — Régression linéaire multiple",
-    "section": "Théorie — supplément détaillé",
-    "text": "Théorie — supplément détaillé\nGéométrie de l’OLS\nL’estimation OLS revient à projeter le vecteur des réponses \\(\\mathbf y\\) sur l’espace-colonnes de \\(\\mathbf X\\). Le résidu \\(\\hat{\\boldsymbol\\varepsilon}=\\mathbf y-\\mathbf X\\hat{\\boldsymbol\\beta}\\) est orthogonal à chaque colonne de \\(\\mathbf X\\). On a alors \\[\\mathbf X^\\top(\\mathbf y-\\mathbf X\\hat{\\boldsymbol\\beta})=\\mathbf 0 \\iff \\hat{\\boldsymbol\\beta}=(\\mathbf X^\\top\\mathbf X)^{-1}\\mathbf X^\\top\\mathbf y.\\]"
+    "text": "Débrief & pièges fréquents\n\nColinéarité ignorée ⇒ coefficients instables.\nFacteurs mal encodés ⇒ interprétations erronées.\nSur-ajustement ⇒ validation indispensable.\nConfusion entre \\(R^2\\) et performance prédictive."
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#quiz-interactif-rapide",
