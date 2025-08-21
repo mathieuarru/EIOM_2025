@@ -1,6 +1,7 @@
 ---
 title: "Atelier 2 — Régression logistique (3h)"
 format: revealjs
+include-after-body: ../utils/return-site.html
 ---
 
 ```{r}

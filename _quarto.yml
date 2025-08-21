@@ -9,12 +9,26 @@ website:
       - text: "Accueil"
         file: index.qmd
       - text: "Atelier 1 — Linéaire"
-        file: atelier1_reg_lin/slides_atelier1.qmd
+        menu:
+          - text: "Slides"
+            file: atelier1_reg_lin/slides_atelier1.qmd
+          - text: "Mission 1 — Ames"
+            file: atelier1_reg_lin/missions/M1_ames.qmd
+          - text: "Mission 2 — Interprétation"
+            file: atelier1_reg_lin/missions/M2_interpretation.qmd
       - text: "Atelier 2 — Logistique"
-        file: atelier2_reg_log/slides_atelier2.qmd
+        menu:
+          - text: "Slides"
+            file: atelier2_reg_log/slides_atelier2.qmd
+          - text: "Mission 1 — Titanic"
+            file: atelier2_reg_log/missions/M1_titanic.qmd
+          - text: "Mission 2 — ROC & seuils"
+            file: atelier2_reg_log/missions/M2_roc_seuils.qmd
     right:
       - text: "Préparation"
         file: utils/setup-packages.qmd
+      - icon: github
+        href: https://github.com/AurelienNicosiaULaval/EIOM_2025
 
 format:
   html:

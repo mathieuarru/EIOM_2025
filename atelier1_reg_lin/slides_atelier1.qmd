@@ -3,6 +3,7 @@ title: "Atelier 1 — Régression linéaire multiple"
 format:
   revealjs:
     toc: false
+include-after-body: ../utils/return-site.html
 ---
 
 ```{r echo=FALSE}
