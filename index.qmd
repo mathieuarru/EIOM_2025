@@ -3,12 +3,30 @@ title: "Accueil"
 format: html
 ---
 
-Bienvenue sur le site des ateliers EIOM consacrés à la régression linéaire multiple et à la régression logistique.
+# 👋 Bienvenue
 
-Vous y trouverez les diapositives et ressources pour chacun des ateliers. Utilisez la barre de navigation pour accéder aux contenus :
+Bienvenue sur le site des **Ateliers EIOM 2025**, consacrés à la découverte et à la pratique de la **régression linéaire multiple** et de la **régression logistique**.  
 
-- **Atelier 1 – Linéaire** : introduction à la régression linéaire multiple.
-- **Atelier 2 – Logistique** : introduction à la régression logistique.
+Ici, vous trouverez :  
+- des **diapositives** claires pour la théorie,  
+- des **missions pratiques** pas à pas,  
+- et des **ressources complémentaires** pour aller plus loin.
 
-Avant de commencer, consultez la section **Préparation** pour installer les dépendances nécessaires à l'atelier.
+---
+
+## 📂 Contenus des ateliers
+
+- **Atelier 1 — Régression linéaire multiple**  
+  Explorer les relations entre une variable quantitative et plusieurs prédicteurs.  
+  👉 Modélisation avec `lm()`, diagnostics, interprétation des coefficients.  
+
+- **Atelier 2 — Régression logistique**  
+  Modéliser une réponse binaire (Oui/Non).  
+  👉 Modélisation avec `glm()`, interprétation en termes d’odds ratio, ROC, AUC et choix de seuils.  
+
+---
+
+## 🚀 Avant de commencer
+
+Consultez la section **Préparation** pour installer les librairies nécessaires en R et configurer votre environnement.  
 

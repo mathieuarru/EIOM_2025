@@ -266,7 +266,6 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 <li class="fragment"><strong>Normalité</strong> des erreurs (utile pour IC/tests).</li>
 <li class="fragment"><strong>Pas de colinéarité parfaite</strong> : <span class="math inline">\(\mathbf{X}^\top \mathbf{X}\)</span> inversible.</li>
 </ul>
-<p>Conséquences : - Estimateurs non biaisés <span class="math inline">\(\mathbb{E}[\widehat{\beta}]=\beta\)</span>. - Estimateur de <span class="math inline">\(\sigma^2\)</span>: <span class="math inline">\(\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2\)</span>. - Variance des coefficients : diag<span class="math inline">\((\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})\)</span>.</p>
 </section>
 <section id="encodage-des-variables-catégorielles" class="slide level2 center">
 <h2>Encodage des variables catégorielles</h2>
@@ -280,8 +279,14 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> ames <span class="sc">%&gt;%</span></span>
 <span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) <span class="sc">%&gt;%</span></span>
 <span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Neighborhood =</span> <span class="fu">droplevels</span>(Neighborhood))</span>
-<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data =</span> d)</span>
-<span id="cb2-5"><a aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(m_cat) <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(d<span class="sc">$</span>Overall_Qual)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Very_Poor"      "Poor"           "Fair"           "Below_Average" 
+ [5] "Average"        "Above_Average"  "Good"           "Very_Good"     
+ [9] "Excellent"      "Very_Excellent"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-hidden="true" tabindex="-1"></a>m_cat <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Neighborhood, <span class="at">data =</span> d)</span>
+<span id="cb4-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(m_cat) <span class="sc">%&gt;%</span> <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 5
   term                      estimate std.error statistic   p.value
@@ -305,8 +310,8 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 <li class="fragment">Les coefficients sont exprimés en écart-types.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-hidden="true" tabindex="-1"></a>mod_std <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">scale</span>(Sale_Price) <span class="sc">~</span> <span class="fu">scale</span>(Gr_Liv_Area) <span class="sc">+</span> <span class="fu">scale</span>(<span class="fu">as.numeric</span>(Overall_Qual)) <span class="sc">+</span> <span class="fu">scale</span>(Year_Built), <span class="at">data=</span>ames)</span>
-<span id="cb4-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(mod_std)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-hidden="true" tabindex="-1"></a>mod_std <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">scale</span>(Sale_Price) <span class="sc">~</span> <span class="fu">scale</span>(Gr_Liv_Area) <span class="sc">+</span> <span class="fu">scale</span>(<span class="fu">as.numeric</span>(Overall_Qual)) <span class="sc">+</span> <span class="fu">scale</span>(Year_Built), <span class="at">data=</span>ames)</span>
+<span id="cb6-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(mod_std)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 5
   term                            estimate std.error statistic    p.value
@@ -327,8 +332,8 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 <li class="fragment"><strong>Multicolinéarité</strong> : VIF (Variance Inflation Factor).</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
-<span id="cb6-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m0); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-hidden="true" tabindex="-1"></a>m0 <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built <span class="sc">+</span> Full_Bath <span class="sc">+</span> Garage_Cars, <span class="at">data=</span>ames)</span>
+<span id="cb8-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m0); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -336,7 +341,7 @@ Y = \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p + \varepsilon,\qquad \mathbb{E}
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                 GVIF Df GVIF^(1/(2*Df))
 Gr_Liv_Area  2.286185  1        1.512013
@@ -345,8 +350,8 @@ Year_Built   2.003266  1        1.415368
 Full_Bath    2.119535  1        1.455862
 Garage_Cars  1.859696  1        1.363707</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m0), <span class="at">type=</span><span class="st">"h"</span>, <span class="at">main=</span><span class="st">"Distance de Cook"</span>)</span>
-<span id="cb9-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="dv">4</span><span class="sc">/</span><span class="fu">nrow</span>(ames), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m0), <span class="at">type=</span><span class="st">"h"</span>, <span class="at">main=</span><span class="st">"Distance de Cook"</span>)</span>
+<span id="cb11-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="dv">4</span><span class="sc">/</span><span class="fu">nrow</span>(ames), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lty=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -375,40 +380,41 @@ Garage_Cars  1.859696  1        1.363707</code></pre>
 <ul>
 <li class="fragment"><strong>Test individuel</strong> : <span class="math inline">\(H_0: \beta_j = 0\)</span> vs <span class="math inline">\(H_1: \beta_j \neq 0\)</span> (t, p-value).</li>
 <li class="fragment"><strong>Test global</strong> : <span class="math inline">\(H_0: \beta_1=\cdots=\beta_p=0\)</span> (F).</li>
-<li class="fragment"><strong>Modèles emboîtés</strong> : comparaison via ANOVA.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a aria-hidden="true" tabindex="-1"></a>sum_mod <span class="ot">&lt;-</span> <span class="fu">summary</span>(m0)</span>
-<span id="cb10-2"><a aria-hidden="true" tabindex="-1"></a>sum_mod<span class="sc">$</span>coefficients</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                                Estimate   Std. Error    t value      Pr(&gt;|t|)
-(Intercept)                -918983.82499 60126.904644 -15.284070  8.626304e-51
-Gr_Liv_Area                     56.89863     1.897063  29.993006 1.688970e-172
-Overall_QualPoor             19646.67574 19644.417625   1.000115  3.173379e-01
-Overall_QualFair             29056.59069 18023.314346   1.612167  1.070338e-01
-Overall_QualBelow_Average    38083.07049 17328.264741   2.197743  2.804579e-02
-Overall_QualAverage          53484.07312 17226.898426   3.104684  1.923109e-03
-Overall_QualAbove_Average    60700.87933 17267.237666   3.515379  4.458173e-04
-Overall_QualGood             78584.49732 17346.088155   4.530387  6.124121e-06
-Overall_QualVery_Good       123042.00090 17444.871733   7.053190  2.174938e-12
-Overall_QualExcellent       201328.51656 17729.284430  11.355705  2.835849e-29
-Overall_QualVery_Excellent  242443.60954 18617.333600  13.022467  1.007262e-37
-Year_Built                     468.61296    29.680111  15.788787  5.995079e-54
-Full_Bath                    -4495.70977  1669.924447  -2.692164  7.139586e-03
-Garage_Cars                  13182.03643  1136.353120  11.600299  1.894129e-30</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(<span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames), m0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Variance Table
+<pre><code>
+Call:
+lm(formula = Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + 
+    Full_Bath + Garage_Cars, data = ames)
 
-Model 1: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built
-Model 2: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + 
-    Garage_Cars
-  Res.Df        RSS Df  Sum of Sq      F    Pr(&gt;F)    
-1   2918 3.5993e+12                                   
-2   2916 3.4357e+12  2 1.6361e+11 69.431 &lt; 2.2e-16 ***
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-442829  -17192    -901   14649  225492 
+
+Coefficients:
+                             Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                -9.190e+05  6.013e+04 -15.284  &lt; 2e-16 ***
+Gr_Liv_Area                 5.690e+01  1.897e+00  29.993  &lt; 2e-16 ***
+Overall_QualPoor            1.965e+04  1.964e+04   1.000 0.317338    
+Overall_QualFair            2.906e+04  1.802e+04   1.612 0.107034    
+Overall_QualBelow_Average   3.808e+04  1.733e+04   2.198 0.028046 *  
+Overall_QualAverage         5.348e+04  1.723e+04   3.105 0.001923 ** 
+Overall_QualAbove_Average   6.070e+04  1.727e+04   3.515 0.000446 ***
+Overall_QualGood            7.858e+04  1.735e+04   4.530 6.12e-06 ***
+Overall_QualVery_Good       1.230e+05  1.744e+04   7.053 2.17e-12 ***
+Overall_QualExcellent       2.013e+05  1.773e+04  11.356  &lt; 2e-16 ***
+Overall_QualVery_Excellent  2.424e+05  1.862e+04  13.022  &lt; 2e-16 ***
+Year_Built                  4.686e+02  2.968e+01  15.789  &lt; 2e-16 ***
+Full_Bath                  -4.496e+03  1.670e+03  -2.692 0.007140 ** 
+Garage_Cars                 1.318e+04  1.136e+03  11.600  &lt; 2e-16 ***
 ---
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 34330 on 2916 degrees of freedom
+Multiple R-squared:  0.8162,    Adjusted R-squared:  0.8154 
+F-statistic: 996.1 on 13 and 2916 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 </section>
@@ -433,23 +439,20 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
 </section>
-<section id="calibration-et-couverture-des-ip" class="slide level2 center">
-<h2>Calibration et couverture des IP</h2>
-<ul>
-<li class="fragment">IP95 ≈ 95% de couverture si le modèle est bien spécifié.</li>
-<li class="fragment">Vérification empirique possible sur échantillon test.</li>
-</ul>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb18-2"><a aria-hidden="true" tabindex="-1"></a>idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(ames)), <span class="at">size =</span> <span class="fu">floor</span>(.<span class="dv">8</span><span class="sc">*</span><span class="fu">nrow</span>(ames)))</span>
-<span id="cb18-3"><a aria-hidden="true" tabindex="-1"></a>train <span class="ot">&lt;-</span> ames[idx,]; test <span class="ot">&lt;-</span> ames[<span class="sc">-</span>idx,]</span>
-<span id="cb18-4"><a aria-hidden="true" tabindex="-1"></a>mod_train <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>train)</span>
-<span id="cb18-5"><a aria-hidden="true" tabindex="-1"></a>pred_pi <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod_train, <span class="at">newdata=</span>test, <span class="at">interval=</span><span class="st">"prediction"</span>)</span>
-<span id="cb18-6"><a aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(test<span class="sc">$</span>Sale_Price <span class="sc">&gt;=</span> pred_pi[,<span class="st">"lwr"</span>] <span class="sc">&amp;</span> test<span class="sc">$</span>Sale_Price <span class="sc">&lt;=</span> pred_pi[,<span class="st">"upr"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.9624573</code></pre>
-</div>
-</div>
+<section class="slide level2 center">
+
+<!-- ## Calibration et couverture des IP -->
+<!-- - IP95 ≈ 95% de couverture si le modèle est bien spécifié. -->
+<!-- - Vérification empirique possible sur échantillon test. -->
+<!-- ```{r} -->
+<!-- set.seed(42) -->
+<!-- idx <- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames))) -->
+<!-- train <- ames[idx,]; test <- ames[-idx,] -->
+<!-- mod_train <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train) -->
+<!-- pred_pi <- predict(mod_train, newdata=test, interval="prediction") -->
+<!-- mean(test$Sale_Price >= pred_pi[,"lwr"] & test$Sale_Price <= pred_pi[,"upr"]) -->
+<!-- ``` -->
+<!-- --- -->
 </section>
 <section id="compromis-biais-variance" class="slide level2 center">
 <h2>Compromis biais-variance</h2>
@@ -459,7 +462,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <li class="fragment">Objectif : équilibre pour minimiser l’erreur test.</li>
 </ul>
 
-<img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
+<img data-src="slides_atelier1_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
 <section id="transition-mission-2" class="slide level2 center">
 <h2>🚀 Transition — Mission 2</h2>
 <p><strong>Objectifs de Mission 2 :</strong></p>
@@ -483,8 +486,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <li class="fragment">Préférer une sélection raisonnée, guidée par le domaine.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-hidden="true" tabindex="-1"></a>m_small <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
-<span id="cb20-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_small)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a aria-hidden="true" tabindex="-1"></a>m_small <span class="ot">&lt;-</span> <span class="fu">lm</span>(Sale_Price <span class="sc">~</span> Gr_Liv_Area <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
+<span id="cb18-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(m0, m_small)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        df      AIC
 m0      15 69530.67
@@ -499,8 +502,8 @@ m_small 13 69662.98</code></pre>
 <li class="fragment">Transformation de <span class="math inline">\(X\)</span> (log, racine) ou <strong>termes quadratiques</strong>.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
-<span id="cb22-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a aria-hidden="true" tabindex="-1"></a>m_log <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Sale_Price) <span class="sc">~</span> <span class="fu">log</span>(Gr_Liv_Area) <span class="sc">+</span> Overall_Qual <span class="sc">+</span> Year_Built, <span class="at">data=</span>ames)</span>
+<span id="cb20-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(m_log)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 12
   r.squared adj.r.squared sigma statistic p.value    df logLik    AIC    BIC
@@ -526,9 +529,16 @@ m_small 13 69662.98</code></pre>
 <li class="fragment">Confusion entre <span class="math inline">\(R^2\)</span> et <strong>performance prédictive</strong>.</li>
 </ul>
 </section>
-<section id="quiz-interactif-rapide" class="slide level2 center">
-<h2>Quiz interactif (rapide)</h2>
+<section id="quiz-interactif" class="slide level2 center">
+<h2>Quiz interactif</h2>
 <ul>
+<li class="fragment"><strong>Vrai/Faux</strong> : En régression linéaire multiple, chaque coefficient <span class="math inline">\(\beta_j\)</span> mesure l’effet de <span class="math inline">\(x_j\)</span> en tenant compte des autres variables.
+<details>
+<summary>
+Réponse
+</summary>
+Vrai — c’est l’idée clé de la régression multiple.
+</details></li>
 <li class="fragment"><strong>Vrai/Faux</strong> : Ajouter une variable catégorielle crée autant de colonnes que de niveaux.<br>
 
 <details>
@@ -546,6 +556,10 @@ Réponse
 Un modèle peut sur-ajuster l’échantillon d’entraînement. Il faut juger sur un échantillon test (RMSE/MAE) et non sur l’ajustement seul.
 </details></li>
 </ul>
+</section>
+<section id="allez-plus-loin" class="slide level2 center">
+<h2>Allez plus loin</h2>
+<p>Ouvrir <strong><code>missions/Challenge_voitures.qmd</code></strong></p>
 
 
 </section></section>

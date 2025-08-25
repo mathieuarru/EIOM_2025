@@ -1,62 +1,133 @@
 ---
-title: "Mission 1 — Titanic: construire un glm()"
+title: "Mission 1 — Titanic: modéliser la survie (logistique)"
 format: html
 ---
 
 ```{r}
 source("../../utils/requirements.R")
-library(titanic); library(dplyr); library(broom); library(ggplot2)
+library(titanic); library(dplyr); library(broom); library(ggplot2); library(janitor)
 data("titanic_train")
 df <- titanic_train %>%
- janitor::clean_names() %>%
- mutate(survived = factor(survived),
- sex = factor(sex),
- pclass = factor(pclass)) %>%
- tidyr::drop_na(age)
+  clean_names() %>%
+  mutate(
+    survived = factor(survived, levels=c(0,1), labels=c("No","Yes")),
+    sex = factor(sex),
+    pclass = factor(pclass),
+    embarked = factor(embarked)
+  ) %>%
+  select(survived, pclass, sex, age, sib_sp, parch, fare, embarked)
+set.seed(123)
 ```
 
-## Étapes
+## Objectifs
+- EDA rapide — comprendre les prédicteurs clés et le **sens attendu** des effets
+- Modèle de **régression logistique** `glm(..., family = binomial)`
+- Interprétation des coefficients via **odds ratios** (rapports de cotes)
+- Évaluation de base : **prédictions**, **matrice de confusion** (seuil 0.5), **sensibilité/spécificité**
+- Préparer le terrain pour M2 (ROC, AUC, **choix de seuil**)
 
-### 1) EDA rapide : taux de survie par `sex` et `pclass`
-```{r}
-df %>% count(sex, survived) %>% group_by(sex) %>% mutate(p = n/sum(n)) %>%
- knitr::kable()
-```
-
-### 2) Modèle logistique
-```{r}
-mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare,
- family = binomial, data = df)
-summary(mod)
-exp(coef(mod)) # odds ratios bruts
-```
-
-### 3) Probabilités prédites
-```{r}
-df <- df %>% mutate(pi_hat = predict(mod, type="response"))
-ggplot(df, aes(pi_hat, fill = survived)) + geom_histogram(bins=40, alpha=.6, position="identity")
-```
-
-## Questions
-- Q1. Interprétez $ \exp(\beta_{\text{sexMale}}) $ en mots simples.
-- Q2. Quel est l’effet de l’âge (par 10 ans) ? Recalibrez le prédicteur et ré-estimez.
-```{r}
-df <- df %>% mutate(age10 = age/10)
-mod2 <- glm(survived ~ sex + pclass + age10 + sib_sp + parch + fare, family=binomial, data=df)
-exp(coef(mod2))["age10"]
-```
-
-## Points de discussion
-- Choix de la **référence** pour `sex` et `pclass`
-- Interactions plausibles (`sex:pclass`) et impact sur l'interprétation
 ---
 
-## Points de discussion — approfondis
-- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
-- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
-- **Éthique & communication** : comment présenter l’incertitude à un public non technique.
-- **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+### 1) EDA éclair
+```{r}
+summary(df)
+ggplot(df, aes(sex, fill=survived)) + geom_bar(position="fill") + labs(y="Proportion", title="Survie par sexe")
+ggplot(df, aes(pclass, fill=survived)) + geom_bar(position="fill") + labs(y="Proportion", title="Survie par classe")
+ggplot(df, aes(age, fill=survived)) + geom_histogram(alpha=.6, bins=30, position="identity") + labs(title="Âge: distribution par statut de survie")
+```
+
+::: {.callout-note}
+**À faire (équipe)**  
+- Quelles variables semblent **fortement associées** à la survie ?  
+- Y a-t-il des **valeurs manquantes** importantes (ex. *age*) ? Comment les géreriez-vous pour un premier modèle simple (supprimer lignes manquantes vs imputation grossière) ?  
+:::
+
+> Astuce : pour aller vite, on peut **filtrer** les `NA` dans un premier temps, puis discuter des alternatives plus rigoureuses plus tard.
+
+```{r}
+df_complete <- df %>% tidyr::drop_na()
+```
+
+---
+
+### 2) Modèle logistique de base
+```{r}
+mod0 <- glm(survived ~ sex + pclass + age + fare, data=df_complete, family=binomial())
+summary(mod0)
+```
+
+::: {.callout-tip}
+**Interprétation rapide**  
+- Le signe de $\\beta$ indique si la variable **augmente** ou **diminue** l’odds de survie.  
+- Pour une interprétation **multiplicative**, calculez $\\exp(\\beta)$ : c’est le **odds ratio**.  
+:::
+
+```{r}
+tidy(mod0, exponentiate = TRUE, conf.int = TRUE) %>%
+  mutate(across(c(estimate, conf.low, conf.high), round, 3)) %>%
+  knitr::kable(caption="Odds ratios (exp(coefficients)) avec IC à 95%")
+```
+
+::: {.callout-note}
+**Réflexion**  
+- Interprétez l’odds ratio de `sex` et `pclass`. Est-ce cohérent avec le contexte historique ?  
+- `age` est-il *cliniquement* important même si son effet paraît plus faible ?  
+:::
+
+---
+
+### 3) Prédictions et matrice de confusion (seuil 0.5)
+```{r}
+df_complete <- df_complete %>% mutate(prob = predict(mod0, type="response"),
+                                      pred = ifelse(prob >= 0.5, "Yes", "No") %>% factor(levels=c("No","Yes")))
+tab <- table(Truth = df_complete$survived, Pred = df_complete$pred)
+acc <- sum(diag(tab))/sum(tab)
+sens <- tab["Yes","Yes"]/sum(tab[,"Yes"])        # Sensibilité (rappel des 'Yes')
+spec <- tab["No","No"]/sum(tab[,"No"])           # Spécificité
+knitr::kable(as.data.frame.matrix(tab), caption=sprintf("Matrice de confusion (seuil 0.5) — Acc=%.3f, Sens=%.3f, Spec=%.3f", acc, sens, spec))
+```
+
+::: {.callout-warning}
+**Attention — piège classique**  
+Le **seuil 0.5** n’est pas toujours pertinent. Sa pertinence dépend : (i) de la **prévalence** des classes, (ii) des **coûts d’erreurs** (faux positifs/négatifs).  
+:::
+
+::: {.callout-note}
+**Question**  
+- Si **rater un survivant** (faux négatif) coûte plus cher que **classer à tort comme survivant** (faux positif), voudriez-vous un seuil **plus bas** ou **plus haut** ? Expliquez.  
+:::
+
+---
+
+### 4) Effets non linéaires et interactions (aperçu)
+```{r}
+mod1 <- glm(survived ~ sex * pclass + splines::ns(age, df = 3) + fare, data=df_complete, family=binomial())
+broom::glance(mod0); broom::glance(mod1)
+```
+
+::: {.callout-tip}
+**À discuter**  
+- Pourquoi une **spline** sur `age` ? (relation non linéaire plausible)  
+- L’interaction `sex:pclass` a-t-elle un **sens** ?  
+:::
+
+---
+
+## Travail d’équipe
+1. Rédigez **deux interprétations** d’odds ratios (une pour une variable binaire, une pour `age` continu).  
+2. Donnez **un argument** pour/contre l’inclusion de l’interaction `sex:pclass`.  
+3. Proposez **une modification** du modèle (transformation, interaction, variable) et justifiez-la.
+
+---
+
+## Points de discussion (retour groupe)
+- Différence **probabilité** vs **odds** vs **log-odds**.  
+- Pourquoi l’odds ratio est **multiplicatif** et dépend du **niveau de référence**.  
+- Limites : séparation quasi-parfaite, classes rares, gestion des `NA`.
+
+---
 
 ## Questions bonus
-1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
-2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).
+1. Montrez que $\\text{logit}(p)=\\log\\frac{p}{1-p}$ est une fonction croissante de $p$.  
+2. Calculez la variation d’odds pour +10 ans d’âge (utilisez $\\exp(10\\beta_\\text{age})$).  
+3. Donnez un exemple où un coefficient est significatif statistiquement mais **peu utile** pour la **décision** au seuil 0.5.

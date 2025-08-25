@@ -9,7 +9,7 @@
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-b719d3d4935f2b08311a76135e2bf442.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.7.28">
 
-  <title>Ateliers EIOM — Régression linéaire multiple &amp; logistique – Atelier 2 — Régression logistique (3h)</title>
+  <title>Ateliers EIOM — Régression linéaire multiple &amp; logistique – Atelier 2 — Régression logistique</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -94,7 +94,7 @@
     code span.vs { color: #20794d; } /* VerbatimString */
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-864c5404f4710dceefb0a9fe440f50a1.css">
+  <link rel="stylesheet" href="../site_libs/revealjs/dist/theme/quarto-ee9ab3830bbe7759b42dda8416faf5cd.css">
   <link rel="stylesheet" href="../styles/ulaval.css">
   <link href="../site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="../site_libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
@@ -193,119 +193,31 @@
     <div class="slides">
 
 <section id="title-slide" class="quarto-title-block center">
-  <h1 class="title">Atelier 2 — Régression logistique (3h)</h1>
+  <h1 class="title">Atelier 2 — Régression logistique</h1>
 
 <div class="quarto-title-authors">
 </div>
 
 </section>
-<section class="slide level2 center">
-
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"../utils/requirements.R"</span>)</span>
-<span id="cb1-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(titanic)</span>
-<span id="cb1-3"><a aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>())</span>
-<span id="cb1-4"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">library</span>(titanic); <span class="fu">data</span>(<span class="st">"titanic_train"</span>)</span>
-<span id="cb1-5"><a aria-hidden="true" tabindex="-1"></a> df <span class="ot">&lt;-</span> titanic_train <span class="sc">%&gt;%</span> janitor<span class="sc">::</span><span class="fu">clean_names</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-6"><a aria-hidden="true" tabindex="-1"></a> <span class="fu">mutate</span>(<span class="at">survived =</span> <span class="fu">factor</span>(survived), <span class="at">sex=</span><span class="fu">factor</span>(sex), <span class="at">pclass=</span><span class="fu">factor</span>(pclass)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-7"><a aria-hidden="true" tabindex="-1"></a> tidyr<span class="sc">::</span><span class="fu">drop_na</span>(age)</span>
-<span id="cb1-8"><a aria-hidden="true" tabindex="-1"></a> mod <span class="ot">&lt;-</span> <span class="fu">glm</span>(survived <span class="sc">~</span> sex <span class="sc">+</span> pclass <span class="sc">+</span> age <span class="sc">+</span> sib_sp <span class="sc">+</span> parch <span class="sc">+</span> fare, <span class="at">family =</span> binomial, <span class="at">data=</span>df)</span>
-<span id="cb1-9"><a aria-hidden="true" tabindex="-1"></a> df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">pi_hat =</span> <span class="fu">predict</span>(mod, <span class="at">type=</span><span class="st">"response"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
 <section>
-<section id="plan-minutage" class="title-slide slide level1 center">
-<h1>Plan &amp; minutage</h1>
+<section id="plan" class="title-slide slide level1 center">
+<h1>Plan</h1>
 <ul>
-<li class="fragment">(0–15) Brise-glace — <em>Pourquoi pas une droite ?</em></li>
-<li class="fragment">(15–65) <strong>Théorie complète</strong> — lien logit, vraisemblance, OR, GOF, calibration, seuils</li>
-<li class="fragment">(65–95) <strong>Mission 1</strong> — <code>titanic::titanic_train</code></li>
-<li class="fragment">(95–125) <strong>Mission 2</strong> — ROC, AUC, seuils, coût d’erreur</li>
-<li class="fragment">(125–150) <strong>Compléments</strong> — pseudo-<span class="math inline">\(R^2\)</span>, tests, séparation, interactions</li>
-<li class="fragment">(150–180) Débrief &amp; pièges fréquents</li>
+<li class="fragment">Brise-glace — <em>Pourquoi une proba et pas une droite ?</em></li>
+<li class="fragment"><strong>Théorie</strong> — logit/odds, estimation, interprétation, diagnostics de base</li>
+<li class="fragment">🚀 <strong>Mission 1</strong> — Modèle logistique sur Titanic</li>
+<li class="fragment"><strong>Évaluation</strong> — confusion, sens/spec, ROC/AUC, calibration, seuils &amp; coûts</li>
+<li class="fragment">🚀 <strong>Mission 2</strong> — ROC, AUC &amp; choix de seuil</li>
+<li class="fragment"><strong>Compléments</strong> — interactions, non-linéarités, séparation, régularisation (aperçu)</li>
+<li class="fragment">Débrief &amp; pièges fréquents</li>
 </ul>
 </section>
-<section id="motivation-0" class="slide level2 center">
-<h2>Motivation <em>(0–</em></h2>
-<ul>
-<li class="fragment">Réponse binaire <span class="math inline">\(Y\in\{0,1\}\)</span> ⇒ l’échelle naturelle est <strong>la probabilité</strong> $ (x) $</li>
-<li class="fragment">Une droite peut prédire &lt;0 ou &gt;1 ⇒ inadéquat</li>
-</ul>
-</section>
-<section id="modèle-et-lien-logit-15" class="slide level2 center">
-<h2>Modèle et lien logit <em>(15–</em></h2>
-<p>$$ (Y=1x) = (x),()==<em>0+</em>{j=1}^p _j x_j. $$</p>
-<ul>
-<li class="fragment">Interprétation : pour +1 unité de <span class="math inline">\(x_j\)</span>, les <strong>log-odds</strong> changent de <span class="math inline">\(\beta_j\)</span></li>
-<li class="fragment"><strong>Odds ratio (OR)</strong> : $ (_j) $ — multiplicateur sur les odds</li>
-</ul>
-</section>
-<section id="estimation-par-maximum-de-vraisemblance-25" class="slide level2 center">
-<h2>Estimation par maximum de vraisemblance <em>(25–</em></h2>
-<ul>
-<li class="fragment">Vraisemblance : $ L()=_i _i^{y_i}(1-_i)^{1-y_i} $</li>
-<li class="fragment">Log-vraisemblance concave ⇒ optimum unique (sauf séparation)</li>
-<li class="fragment">Sorties : estimateurs, erreurs types, tests Wald</li>
-</ul>
-</section>
-<section id="interprétation-des-coefficients-35" class="slide level2 center">
-<h2>Interprétation des coefficients <em>(35–</em></h2>
-<ul>
-<li class="fragment">Facteurs : choix de <strong>référence</strong> critique</li>
-<li class="fragment">Continus : penser à <strong>recaler</strong> (ex.: par 10 ans)</li>
-<li class="fragment"><strong>Effets marginaux</strong> (idée) : impact sur la proba, dépendant de <span class="math inline">\(x\)</span></li>
-</ul>
-</section>
-<section id="qualité-dajustement-45" class="slide level2 center">
-<h2>Qualité d’ajustement <em>(45–</em></h2>
-<ul>
-<li class="fragment"><strong>Deviance</strong> (null, residuelle)</li>
-<li class="fragment"><strong>Pseudo-<span class="math inline">\(R^2\)</span></strong> (McFadden, Cox–Snell) — à interpréter prudemment</li>
-<li class="fragment"><strong>Calibration</strong> : courbe de calibration, <strong>Brier score</strong> (idée)</li>
-</ul>
-</section>
-<section id="seuils-et-métriques-55" class="slide level2 center">
-<h2>Seuils et métriques <em>(55–</em></h2>
-<ul>
-<li class="fragment">Matrice de confusion dépend d’un <strong>seuil</strong></li>
-<li class="fragment"><strong>AUC</strong> (ROC) : indépendance du seuil</li>
-<li class="fragment">Contexte ⇒ coût d’erreur ⇒ sélection du seuil</li>
-</ul>
-</section>
-<section id="mission-1-65-titanic" class="slide level2 center">
-<h2>Mission 1 <em>(65–</em> — Titanic</h2>
-<p>Voir <strong><code>missions/M1_titanic.qmd</code></strong> — <code>glm(family=binomial)</code> + interprétation + proba.</p>
-</section>
-<section id="mission-2-95-rocauc-seuils" class="slide level2 center">
-<h2>Mission 2 <em>(95–</em> — ROC/AUC, seuils</h2>
-<p>Voir <strong><code>missions/M2_roc_seuils.qmd</code></strong> — comparer seuils, Youden vs.&nbsp;coût.</p>
-</section>
-<section id="compléments-125" class="slide level2 center">
-<h2>Compléments <em>(125–</em></h2>
-<ul>
-<li class="fragment"><strong>Tests</strong> globaux (rapport de vraisemblance) et partiels (Wald)</li>
-<li class="fragment"><strong>Séparation</strong> (quasi/parfaite) : coefficients qui explosent → alerte</li>
-<li class="fragment"><strong>Interactions</strong> et non-linéarité (splines polynomiales légères)</li>
-</ul>
-</section>
-<section id="débrief-pièges-fréquents-150" class="slide level2 center">
-<h2>Débrief &amp; pièges fréquents <em>(150–</em></h2>
-<ul>
-<li class="fragment">Utiliser <span class="math inline">\(R^2\)</span> classique (non pertinent)</li>
-<li class="fragment">Lire directement <span class="math inline">\(\beta\)</span> sans passer par <span class="math inline">\(\exp(\beta)\)</span></li>
-<li class="fragment">Oublier le <strong>seuil</strong> et son impact opérationnel</li>
-<li class="fragment">Ignorer <strong>calibration</strong> et <strong>déséquilibre de classes</strong></li>
-</ul>
-</section>
-<section id="théorie-supplément-détaillé" class="slide level2 center">
-<h2>Théorie — supplément détaillé</h2>
-<h3 id="lien-logit-et-odds-ratio">Lien logit et odds ratio</h3>
-<p>La probabilité <span class="math inline">\(\pi(x)\)</span> est transformée par le <strong>logit</strong>: <span class="math display">\[\operatorname{logit}(\pi)=\log\frac{\pi}{1-\pi}.\]</span> Un accroissement d’une unité de <span class="math inline">\(x_j\)</span> modifie les log-odds de <span class="math inline">\(\beta_j\)</span>; l’<strong>odds ratio</strong> est <span class="math inline">\(\exp(\beta_j)\)</span>.</p>
+<section id="brise-glace" class="slide level2 center">
+<h2>Brise-glace</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Courbe logistique — visualisation simple</span></span>
-<span id="cb2-2"><a aria-hidden="true" tabindex="-1"></a>xx <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">6</span>,<span class="dv">6</span>,<span class="at">length.out=</span><span class="dv">200</span>)</span>
-<span id="cb2-3"><a aria-hidden="true" tabindex="-1"></a>pi <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(<span class="sc">-</span>xx))</span>
-<span id="cb2-4"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(xx, pi, <span class="at">type=</span><span class="st">"l"</span>, <span class="at">xlab=</span><span class="st">"log-odds (étendue simulée)"</span>, <span class="at">ylab=</span><span class="st">"probabilité"</span>, <span class="at">main=</span><span class="st">"Lien logit → probabilité"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(sex, <span class="at">fill=</span>survived)) <span class="sc">+</span> <span class="fu">geom_bar</span>(<span class="at">position=</span><span class="st">"fill"</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">y=</span><span class="st">"Proportion"</span>, <span class="at">title=</span><span class="st">"Survie par sexe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -314,22 +226,9 @@
 </div>
 </div>
 </div>
-<h3 id="estimation-vraisemblance-tests">Estimation (vraisemblance) &amp; tests</h3>
-<p>La log-vraisemblance s’écrit <span class="math display">\[\ell(\boldsymbol\beta)=\sum_i \big[ y_i\log\pi_i + (1-y_i)\log(1-\pi_i) \big].\]</span> L’optimum est obtenu numériquement. Les sorties usuelles : estimateurs, erreurs types, tests de Wald, rapport de vraisemblance.</p>
-<h3 id="qualité-dajustement-et-calibration">Qualité d’ajustement et calibration</h3>
-<ul>
-<li class="fragment"><strong>Deviance</strong> : comparer modèle nul vs modèle ajusté.</li>
-<li class="fragment"><strong>Pseudo-<span class="math inline">\(R^2\)</span></strong> (McFadden) comme indicateur global, à interpréter prudemment.</li>
-<li class="fragment"><strong>Calibration</strong> : probas prédites vs observées (ex.: par déciles) ; <strong>Brier score</strong> (erreur quadratique moyenne).</li>
-</ul>
+</div><div class="column" style="width:50%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a aria-hidden="true" tabindex="-1"></a><span class="co"># Calibration rapide (déciles)</span></span>
-<span id="cb3-2"><a aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a aria-hidden="true" tabindex="-1"></a>dfc <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">dec =</span> <span class="fu">ntile</span>(pi_hat, <span class="dv">10</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb3-5"><a aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">group_by</span>(dec) <span class="sc">|&gt;</span></span>
-<span id="cb3-6"><a aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="at">obs =</span> <span class="fu">mean</span>(<span class="fu">as.numeric</span>(<span class="fu">as.character</span>(survived))), <span class="at">pred =</span> <span class="fu">mean</span>(pi_hat), <span class="at">.groups=</span><span class="st">"drop"</span>)</span>
-<span id="cb3-7"><a aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dfc, <span class="fu">aes</span>(pred, obs)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_abline</span>(<span class="at">lty=</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Calibration par déciles"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(pclass, <span class="at">fill=</span>survived)) <span class="sc">+</span> <span class="fu">geom_bar</span>(<span class="at">position=</span><span class="st">"fill"</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">y=</span><span class="st">"Proportion"</span>, <span class="at">title=</span><span class="st">"Survie par classe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -338,53 +237,217 @@
 </div>
 </div>
 </div>
-<h3 id="seuils-rocauc-et-coût-derreur">Seuils, ROC/AUC et coût d’erreur</h3>
+</div></div>
 <ul>
-<li class="fragment">ROC/AUC : performance indépendante du seuil.</li>
-<li class="fragment"><strong>Seuil</strong> : doit refléter les coûts opérationnels (faux négatifs vs faux positifs). Le meilleur seuil statistique (Youden) n’est pas toujours optimal opérationnellement.</li>
+<li class="fragment">Discussion : Pourquoi <strong>une probabilité bornée</strong> entre 0 et 1 ? Pourquoi pas une droite comme en régression linéaire ?</li>
+</ul>
+</section>
+<section id="logistique-de-la-probabilité-aux-log-odds" class="slide level2 center">
+<h2>Logistique : de la probabilité aux log-odds</h2>
+<ul>
+<li class="fragment">Probabilité <span class="math inline">\(p \in (0,1)\)</span></li>
+<li class="fragment"><strong>Odds</strong> <span class="math inline">\(= \dfrac{p}{1-p}\)</span> (rapport de chances)</li>
+<li class="fragment"><strong>Logit</strong> <span class="math inline">\(= \log\dfrac{p}{1-p}\)</span> (fonction <em>croissante</em>)</li>
+</ul>
+<p><span class="math display">\[
+{\log\frac{p}{1-p}}= \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p
+\]</span></p>
+<ul>
+<li class="fragment">Interprétation : <span class="math inline">\(\exp(\beta_j)\)</span> = <strong>odds ratio</strong> (OR) pour <span class="math inline">\(x_j\)</span> (+1 unité ou changement de niveau).</li>
+</ul>
+</section>
+<section id="estimation-sortie-r" class="slide level2 center">
+<h2>Estimation &amp; sortie R</h2>
+<ul>
+<li class="fragment">Fonction : <code>glm(y ~ x, family=binomial, data=...)</code></li>
+<li class="fragment"><code>summary()</code> fournit les coefficients (log-odds)</li>
+<li class="fragment"><code>broom::tidy(..., exponentiate=TRUE)</code> donne les <strong>OR</strong> et <strong>IC</strong></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a aria-hidden="true" tabindex="-1"></a>roc_obj <span class="ot">&lt;-</span> pROC<span class="sc">::</span><span class="fu">roc</span>(df<span class="sc">$</span>survived, df<span class="sc">$</span>pi_hat)</span>
-<span id="cb4-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(roc_obj, <span class="at">print.auc=</span><span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">glm</span>(survived <span class="sc">~</span> sex <span class="sc">+</span> pclass <span class="sc">+</span> age <span class="sc">+</span> fare, <span class="at">data=</span>df <span class="sc">%&gt;%</span> tidyr<span class="sc">::</span><span class="fu">drop_na</span>(), <span class="at">family=</span><span class="fu">binomial</span>())</span>
+<span id="cb3-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(m, <span class="at">exponentiate=</span><span class="cn">TRUE</span>, <span class="at">conf.int=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(estimate, conf.low, conf.high), round, <span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 7
+  term        estimate std.error statistic  p.value conf.low conf.high
+  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+1 (Intercept)   41.4     0.465       8.01  1.11e-15   16.9     105.   
+2 sexmale        0.081   0.208     -12.1   1.10e-33    0.053     0.12 
+3 pclass2        0.279   0.313      -4.08  4.44e- 5    0.15      0.512
+4 pclass3        0.079   0.328      -7.75  8.89e-15    0.041     0.148
+5 age            0.964   0.00773    -4.75  2.03e- 6    0.949     0.978
+6 fare           1.00    0.00226     0.231 8.17e- 1    0.996     1.00 </code></pre>
+</div>
+</div>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Note</strong></p>
+</div>
+<div class="callout-content">
+<p><strong>Réflexion :</strong> - Que signifie un OR supérieur à 1 ? inférieur à 1 ? - Pourquoi présenter des OR plutôt que des coefficients bruts ?</p>
+</div>
+</div>
+</div>
+</section>
+<section id="diagnostics-base" class="slide level2 center">
+<h2>Diagnostics (base)</h2>
+<ul>
+<li class="fragment">Résidus déviance/pearson (idée générale)</li>
+<li class="fragment">Points influents (Cook)</li>
+<li class="fragment">Problème de <strong>séparation quasi-parfaite</strong></li>
+<li class="fragment">Multicolinéarité : mêmes réflexes que pour la régression linéaire</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="slides_atelier2_files/figure-revealjs/unnamed-chunk-4-1.png" width="960"></p>
+<p><img data-src="slides_atelier2_files/figure-revealjs/unnamed-chunk-5-1.png" width="960"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-hidden="true" tabindex="-1"></a>pROC<span class="sc">::</span><span class="fu">coords</span>(roc_obj, <span class="at">x =</span> <span class="st">"best"</span>, <span class="at">best.method=</span><span class="st">"youden"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>  threshold specificity sensitivity
-1 0.4296214   0.8231132   0.7724138</code></pre>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m), <span class="at">type=</span><span class="st">"h"</span>); <span class="fu">abline</span>(<span class="at">h=</span><span class="dv">4</span><span class="sc">/</span><span class="fu">nrow</span>(df), <span class="at">lty=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="slides_atelier2_files/figure-revealjs/unnamed-chunk-5-2.png" width="960"></p>
+</figure>
 </div>
 </div>
-<h3 id="séparation-interactions-non-linéarités">Séparation, interactions, non-linéarités</h3>
+</div>
+</section>
+<section id="transition-mission-1" class="slide level2 center">
+<h2>🚀 Transition — Mission 1</h2>
+<p><strong>Objectifs pédagogiques :</strong><br>
+- Construire un premier modèle logistique sur Titanic<br>
+- Lire et interpréter des <strong>odds ratios</strong><br>
+- Tester un <strong>seuil simple (0.5)</strong> et discuter ses limites</p>
+<p>👉 Ouvrir <code>missions/M1_titanic.qmd</code></p>
+</section>
+<section id="de-la-probabilité-à-la-décision-seuil" class="slide level2 center">
+<h2>De la probabilité à la décision : <strong>seuil</strong></h2>
 <ul>
-<li class="fragment"><strong>Séparation</strong> (quasi/parfaite) : coefficients qui explosent, avertissement sur l’interprétation; envisager régularisation ou regrouper niveaux rares.</li>
-<li class="fragment"><strong>Interactions</strong> : effets différenciés selon un facteur (ex. <code>sex:pclass</code> sur Titanic).</li>
-<li class="fragment"><strong>Non-linéarité</strong> : transformer un prédicteur continu (ex.: centrer/standardiser, termes quadratiques).</li>
+<li class="fragment">Prédire <span class="math inline">\(\hat p\)</span> ne suffit pas ⇒ il faut un <strong>seuil</strong> pour décider (Yes/No)</li>
+<li class="fragment"><strong>Seuil 0.5</strong> : simple mais rarement optimal</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-hidden="true" tabindex="-1"></a>df_fit <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> tidyr<span class="sc">::</span><span class="fu">drop_na</span>()</span>
+<span id="cb7-2"><a aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(m, <span class="at">newdata =</span> df_fit, <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb7-4"><a aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">ifelse</span>(prob <span class="sc">&gt;=</span> <span class="fl">0.5</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>,<span class="st">"Yes"</span>))</span>
+<span id="cb7-5"><a aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="at">Truth =</span> df_fit<span class="sc">$</span>survived, <span class="at">Pred =</span> pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     Pred
+Truth  No Yes
+  No  357  67
+  Yes  81 209</code></pre>
+</div>
+</div>
+<div class="callout callout-note callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Note</strong></p>
+</div>
+<div class="callout-content">
+<p><strong>Réflexion :</strong><br>
+- Que se passe-t-il si l’on prend un seuil très bas (0.1) ? Très haut (0.9) ?<br>
+- Quels types d’erreurs (FP/FN) cela favorise-t-il ?</p>
+</div>
+</div>
+</div>
+</section>
+<section id="mesures-de-performance" class="slide level2 center">
+<h2>Mesures de performance</h2>
+<ul>
+<li class="fragment"><strong>Accuracy</strong> = proportion bien classée<br>
+</li>
+<li class="fragment"><strong>Sensibilité</strong> = rappel des <em>Yes</em> (TPR)<br>
+</li>
+<li class="fragment"><strong>Spécificité</strong> = proportion de vrais <em>No</em> (TNR)<br>
+</li>
+<li class="fragment"><strong>ROC</strong> = performance sur tous les seuils possibles<br>
+</li>
+<li class="fragment"><strong>AUC</strong> = capacité de discrimination (0.5 = hasard, 1 = parfait)<br>
+</li>
+<li class="fragment"><strong>Calibration</strong> = probas bien calibrées (observé ≈ prédit)</li>
 </ul>
 </section>
-<section id="quiz-interactif-rapide" class="slide level2 center">
-<h2>Quiz interactif (rapide)</h2>
+<section id="transition-mission-2" class="slide level2 center">
+<h2>🚀 Transition — Mission 2</h2>
+<p><strong>Objectifs pédagogiques :</strong><br>
+- Tracer une <strong>courbe ROC</strong> et calculer l’<strong>AUC</strong><br>
+- Choisir un <strong>seuil adapté au contexte</strong> (coûts FP/FN)<br>
+- Explorer la <strong>calibration</strong> du modèle</p>
+<p>👉 Ouvrir <code>missions/M2_roc_seuils.qmd</code></p>
+</section>
+<section id="roc-auc-rappels-utiles" class="slide level2 center">
+<h2>ROC &amp; AUC — rappels utiles</h2>
 <ul>
-<li class="fragment"><strong>Question</strong> : Que signifie <span class="math inline">\(\exp(\beta_j)=0.5\)</span> pour une variable binaire <span class="math inline">\(x_j\)</span> ?<br>
-
-<details>
-<summary>
-Réponse
-</summary>
-L’odds est divisé par 2 quand <span class="math inline">\(x_j\)</span> passe de 0 à 1; la probabilité diminue (dans un intervalle dépendant des autres variables).
-</details></li>
-<li class="fragment"><strong>Vrai/Faux</strong> : Un AUC élevé implique qu’un seuil à 0.5 est le meilleur.<br>
-
-<details>
-<summary>
-Réponse
-</summary>
-Faux — l’AUC n’implique rien sur le seuil optimal; il faut le choisir selon le coût d’erreur et le contexte.
-</details></li>
+<li class="fragment"><strong>ROC</strong> : TPR (sensibilité) vs FPR (1-spécificité)<br>
+</li>
+<li class="fragment"><strong>AUC</strong> : probabilité qu’un positif ait un score &gt; qu’un négatif choisi au hasard<br>
+</li>
+<li class="fragment">AUC <strong>ne dépend pas</strong> d’un seuil particulier</li>
+</ul>
+</section>
+<section id="choix-de-seuil-contextuel" class="slide level2 center">
+<h2>Choix de seuil <strong>contextuel</strong></h2>
+<ul>
+<li class="fragment">Le choix du seuil dépend :
+<ul>
+<li class="fragment"><strong>Prévalence</strong> (taux de positifs)<br>
+</li>
+<li class="fragment"><strong>Coûts</strong> FP/FN<br>
+</li>
+</ul></li>
+<li class="fragment">Exemples :
+<ul>
+<li class="fragment">Diagnostic médical : <strong>FN coûteux</strong> ⇒ seuil bas (maximiser sensibilité)<br>
+</li>
+<li class="fragment">Détection fraude : <strong>FP coûteux</strong> ⇒ seuil haut (maximiser spécificité)</li>
+</ul></li>
+</ul>
+</section>
+<section id="calibration-intuition" class="slide level2 center">
+<h2>Calibration — intuition</h2>
+<ul>
+<li class="fragment">Découper les probas prédites en <strong>déciles</strong><br>
+</li>
+<li class="fragment">Comparer <strong>moyenne prédite</strong> vs <strong>taux observé</strong><br>
+</li>
+<li class="fragment">Points au-dessus de la diagonale ⇒ <strong>sur-estimation</strong><br>
+</li>
+<li class="fragment">Points en dessous ⇒ <strong>sous-estimation</strong></li>
+</ul>
+</section>
+<section id="compléments-aperçu" class="slide level2 center">
+<h2>Compléments (aperçu)</h2>
+<ul>
+<li class="fragment"><strong>Interactions</strong> et <strong>non-linéarités</strong> (splines, polynômes)<br>
+</li>
+<li class="fragment"><strong>Déséquilibre des classes</strong> : utiliser courbe <strong>PR</strong> (precision-recall)<br>
+</li>
+<li class="fragment"><strong>Séparation parfaite</strong> : coefficients infinis, solution = régularisation (ridge/lasso)</li>
+</ul>
+</section>
+<section id="débrief-pièges-fréquents" class="slide level2 center">
+<h2>Débrief &amp; pièges fréquents</h2>
+<ul>
+<li class="fragment">Confondre <strong>odds</strong> et <strong>probabilité</strong><br>
+</li>
+<li class="fragment">Utiliser par défaut un seuil de 0.5<br>
+</li>
+<li class="fragment">Juger un modèle uniquement par l’<strong>accuracy</strong><br>
+</li>
+<li class="fragment">Oublier d’intégrer le <strong>contexte</strong> (coûts, domaine)</li>
 </ul>
 
 
@@ -550,7 +613,7 @@ Faux — l’AUC n’implique rien sur le seuil optimal; il faut le choisir selo
         previewLinks: false,
 
         // Transition style (none/fade/slide/convex/concave/zoom)
-        transition: 'fade',
+        transition: 'slide',
 
         // Transition speed (default/fast/slow)
         transitionSpeed: 'default',
@@ -570,9 +633,9 @@ Faux — l’AUC n’implique rien sur le seuil optimal; il faut le choisir selo
         // The "normal" size of the presentation, aspect ratio will be preserved
         // when the presentation is scaled to fit different resolutions. Can be
         // specified using percentage units.
-        width: '100%',
+        width: 1050,
 
-        height: '100%',
+        height: 700,
 
         // Factor of the display size that should remain empty around the content
         margin: 0.1,

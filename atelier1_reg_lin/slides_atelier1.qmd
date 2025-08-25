@@ -83,10 +83,6 @@ $$
 - **Normalité** des erreurs (utile pour IC/tests).
 - **Pas de colinéarité parfaite** : $\mathbf{X}^\top \mathbf{X}$ inversible.
 
-Conséquences :
-- Estimateurs non biaisés $\mathbb{E}[\widehat{\beta}]=\beta$.
-- Estimateur de $\sigma^2$: $\widehat{\sigma}^2 = \frac{1}{n-p-1}\sum \widehat{\varepsilon}_i^2$.
-- Variance des coefficients : diag$(\widehat{\sigma}^2 (\mathbf{X}^\top \mathbf{X})^{-1})$.
 
 ---
 
@@ -103,6 +99,7 @@ Conséquences :
 d <- ames %>%
   select(Sale_Price, Gr_Liv_Area, Overall_Qual, Neighborhood) %>%
   mutate(Neighborhood = droplevels(Neighborhood))
+levels(d$Overall_Qual)
 m_cat <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Neighborhood, data = d)
 tidy(m_cat) %>% slice(1:8)
 ```
@@ -160,12 +157,9 @@ Ouvrir **`missions/M1_ames.qmd`** — EDA → `lm()` → diagnostics → interpr
 ## Tests d’hypothèses (Mission 2)
 - **Test individuel** : $H_0: \beta_j = 0$ vs $H_1: \beta_j \neq 0$ (t, p-value).
 - **Test global** : $H_0: \beta_1=\cdots=\beta_p=0$ (F).
-- **Modèles emboîtés** : comparaison via ANOVA.
 
 ```{r}
-sum_mod <- summary(m0)
-sum_mod$coefficients
-anova(lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=ames), m0)
+summary(m0)
 ```
 
 ---
@@ -183,20 +177,20 @@ predict(m0, newd, interval="prediction")
 
 ---
 
-## Calibration et couverture des IP
-- IP95 ≈ 95% de couverture si le modèle est bien spécifié.
-- Vérification empirique possible sur échantillon test.
+<!-- ## Calibration et couverture des IP -->
+<!-- - IP95 ≈ 95% de couverture si le modèle est bien spécifié. -->
+<!-- - Vérification empirique possible sur échantillon test. -->
 
-```{r}
-set.seed(42)
-idx <- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))
-train <- ames[idx,]; test <- ames[-idx,]
-mod_train <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train)
-pred_pi <- predict(mod_train, newdata=test, interval="prediction")
-mean(test$Sale_Price >= pred_pi[,"lwr"] & test$Sale_Price <= pred_pi[,"upr"])
-```
+<!-- ```{r} -->
+<!-- set.seed(42) -->
+<!-- idx <- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames))) -->
+<!-- train <- ames[idx,]; test <- ames[-idx,] -->
+<!-- mod_train <- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train) -->
+<!-- pred_pi <- predict(mod_train, newdata=test, interval="prediction") -->
+<!-- mean(test$Sale_Price >= pred_pi[,"lwr"] & test$Sale_Price <= pred_pi[,"upr"]) -->
+<!-- ``` -->
 
----
+<!-- --- -->
 
 ## Compromis biais-variance
 - Modèle trop simple : biais élevé.
@@ -267,10 +261,17 @@ broom::glance(m_log)
 
 ---
 
-## Quiz interactif (rapide)
-
+## Quiz interactif
+- **Vrai/Faux** : En régression linéaire multiple, chaque coefficient $\beta_j$ mesure l’effet de $x_j$ en tenant compte des autres variables.
+<details><summary>Réponse</summary>Vrai — c’est l’idée clé de la régression multiple.</details>
 - **Vrai/Faux** : Ajouter une variable catégorielle crée autant de colonnes que de niveaux.  
 <details><summary>Réponse</summary>Faux — on crée $K-1$ indicatrices si le facteur possède $K$ niveaux (référence incluse implicitement).</details>
 
 - **Question** : Pourquoi un $R^2$ plus grand ne garantit-il pas une meilleure **prédiction** ?  
 <details><summary>Réponse</summary>Un modèle peut sur-ajuster l’échantillon d’entraînement. Il faut juger sur un échantillon test (RMSE/MAE) et non sur l’ajustement seul.</details>
+
+---
+
+## Allez plus loin
+
+Ouvrir **`missions/Challenge_voitures.qmd`** 

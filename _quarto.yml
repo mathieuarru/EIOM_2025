@@ -1,7 +1,11 @@
 project:
   type: website
   output-dir: docs
-
+  render:
+    - index.qmd
+    - atelier1_reg_lin/**/*.qmd
+    - atelier2_reg_log/**/*.qmd
+    - utils/*.qmd
 website:
   title: "Ateliers EIOM — Régression linéaire multiple & logistique"
   navbar:
@@ -16,6 +20,8 @@ website:
             file: atelier1_reg_lin/missions/M1_ames.qmd
           - text: "Mission 2 — Interprétation"
             file: atelier1_reg_lin/missions/M2_interpretation.qmd
+          - text: "Challenge"
+            file: atelier1_reg_lin/missions/Challenge_voitures.qmd
       - text: "Atelier 2 — Logistique"
         menu:
           - text: "Slides"

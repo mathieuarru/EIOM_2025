@@ -1,30 +1,170 @@
 ---
 title: "Challenge — Prix de voitures"
 format: html
+execute: 
+  echo: true
+  eval: false
+
 ---
 
-> **Option A (sans Kaggle)** : l’animateur fournit un petit CSV local.\
-> **Option B (Kaggle)** : charger le CSV préparé par l’animateur.
+> **Dataset** : *Used Car Dataset* — Kaggle (auteur: **rishabhkarn**).  
+> Lien : https://www.kaggle.com/datasets/rishabhkarn/used-car-dataset  
+> ⚠️ **Vérifiez la description Kaggle pour les **noms exacts** de colonnes** (ils peuvent varier selon la version).  
+> Noms courants : `selling_price` (réponse), `year`, `km_driven`, `fuel`, `transmission`, `seller_type`, `owner`, `name`.
 
-## Objectif
-- Construire rapidement un `lm()` pertinent et **expliquer 1 effet majeur**.
+## 🎯 Objectif
+Construire un **modèle de régression linéaire multiple** `lm()` pour expliquer le **prix** d’une voiture d’occasion et **interpréter au moins un effet majeur**.
 
-## Pistes
-- Nettoyer `year`, `mileage`, `make`, `transmission`, `fuel`.
-- Encodage des catégorielles : vérifier les niveaux et la référence.
-- Tester une **transformation** pour `mileage` (`log1p(mileage)` par ex.).
-
-## Questions
-1. Quel **predictor** dominerait le prix après contrôle des autres ?
-2. Le **kilométrage** a-t-il un effet linéaire ? Essayez une transformation.
 ---
 
-## Points de discussion — approfondis
-- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
-- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
-- **Éthique & communication** : comment présenter l’incertitude à un public non technique.
-- **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+```{r setup}
 
-## Questions bonus
-1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
-2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).
+```
+
+
+## 0) Préparation
+```{r}
+# Packages utiles
+library(dplyr); library(ggplot2); library(readr); library(janitor); library(broom)
+# (Optionnel) diagnostics
+# library(car); library(performance)
+
+# ⚠️ Adaptez le chemin vers votre CSV Kaggle
+# Exemple : data/used_cars.csv
+# cars_raw <- read_csv("data/used_cars.csv")
+
+# Pour la démonstration, on crée un tibble vide si vous n'avez pas encore le fichier.
+# Supprimez ce bloc une fois votre CSV chargé.
+cars_raw <- tibble::tibble()
+```
+
+::: {.callout-warning}
+**Important — Noms de colonnes**  
+Les champs les plus fréquents sont :  
+`selling_price`, `year`, `km_driven`, `fuel`, `transmission`, `seller_type`, `owner`, `name`.  
+**Ouvrez le CSV** et **confirmez les noms** via `names(cars_raw)` ou `glimpse(cars_raw)`.
+:::
+
+```{r}
+# Vérifier les colonnes disponibles
+# glimpse(cars_raw)
+```
+
+---
+
+## 1) Nettoyage minimal
+```{r}
+cars <- cars_raw %>%
+  janitor::clean_names()
+
+# Exemple de normalisation (adaptez aux noms réels de votre fichier)
+# - Si votre fichier contient bien "selling_price", "km_driven", etc., ces lignes sont OK.
+# - Sinon, renommez selon la description Kaggle.
+cars <- cars %>%
+  dplyr::rename(
+    price = selling_price,       # <— renommer la variable réponse
+    mileage_km = km_driven       # <— renommer le kilométrage
+  )
+
+# Encodage des catégorielles (adaptez selon vos colonnes exactes)
+cars <- cars %>%
+  mutate(
+    fuel = as.factor(fuel),
+    transmission = as.factor(transmission),
+    seller_type = as.factor(seller_type),
+    owner = as.factor(owner)
+  )
+
+# Gestion simple des valeurs manquantes (à raffiner si besoin)
+cars_complete <- cars %>% tidyr::drop_na(price, year, mileage_km, fuel, transmission)
+```
+
+::: {.callout-note}
+**À faire (équipe)**  
+- Confirmer que `price` est bien la **réponse** (sinon, adaptez).  
+- Vérifier l’unité de `mileage_km` (km).  
+- Choisir une **référence** pertinente pour `fuel` et `transmission` (ex. essence, manuelle).
+:::
+
+---
+
+## 2) EDA rapide
+```{r}
+# Distribution du prix (attention aux queues)
+ggplot(cars_complete, aes(price)) + geom_histogram(bins=30, alpha=.7) +
+  scale_x_continuous(labels = scales::label_number_si()) +
+  labs(title="Distribution des prix")
+
+# Prix vs kilométrage (possible non-linéarité)
+ggplot(cars_complete, aes(mileage_km, price)) + geom_point(alpha=.3) +
+  scale_y_continuous(labels = scales::label_number_si()) +
+  scale_x_continuous(labels = scales::label_number_si()) +
+  labs(title="Prix en fonction du kilométrage")
+
+# Prix par transmission
+ggplot(cars_complete, aes(transmission, price)) + geom_boxplot() +
+  scale_y_continuous(labels = scales::label_number_si()) +
+  labs(title="Prix par type de transmission")
+```
+
+::: {.callout-tip}
+**Piste** : tester des **transformations** si la relation prix ~ kilométrage semble non linéaire (ex. `log(price)`, `log1p(mileage_km)`).  
+:::
+
+---
+
+## 3) Modèle de base (≤ 6 prédicteurs)
+```{r}
+mod0 <- lm(price ~ year + mileage_km + fuel + transmission + seller_type, data = cars_complete)
+summary(mod0)
+```
+
+::: {.callout-note}
+**Questions**  
+- Quel prédicteur a l’**effet le plus fort** (en valeur absolue) ?  
+- Interprétez l’effet de `transmission` (manuelle vs auto) **toutes choses égales par ailleurs**.  
+:::
+  
+---
+
+## 4) Variante avec transformation
+```{r}
+mod1 <- lm(log(price) ~ year + log1p(mileage_km) + fuel + transmission + seller_type, data = cars_complete)
+broom::glance(mod0)[,c("r.squared","AIC","BIC")]
+broom::glance(mod1)[,c("r.squared","AIC","BIC")]
+broom::tidy(mod1) %>% head()
+```
+
+::: {.callout-tip}
+**Interprétation** (log-prix)  
+- Un coefficient sur `year` ≈ **variation en %** de prix par année supplémentaire (petite pente).  
+- `log1p(mileage_km)` : élasticité approximative au kilométrage.  
+:::
+
+---
+
+## 5) (Option) Diagnostics rapides
+```{r}
+par(mfrow=c(2,2)); plot(mod1); par(mfrow=c(1,1))
+# car::vif(mod1)
+```
+
+::: {.callout-warning}
+**Attention**  
+- Colinéarité possible entre `year` et `owner` (ou d'autres variables).  
+- Valeurs extrêmes (prix/vehicules premium) pouvant influencer fortement les coefficients.  
+:::
+  
+---
+
+## 6) Restitution (équipe)
+1. **Expliquez un effet majeur** (ex. transmission, fuel, year) avec une phrase claire pour un public non technique.  
+2. **Comparez** `mod0` vs `mod1` (AIC/BIC, R²) → quel modèle retenez-vous, et pourquoi ?  
+3. **Limites** : mentionnez au moins une limite de votre modèle (données, hypothèses, variables manquantes).
+
+---
+
+## ⭐ Bonus
+1. Ajoutez `interaction(year:transmission)` si vous suspectez un effet différent selon la transmission.  
+2. Cherchez un **point influent** (distance de Cook) et discutez s’il faut l’exclure.  
+3. Proposez une **variable métier** à ajouter (ex. historique d’entretien, accidents, options).

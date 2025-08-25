@@ -1,57 +1,144 @@
 ---
-title: "Mission 2 — ROC, AUC, seuils"
+title: "Mission 2 — ROC, AUC & choix de seuil"
 format: html
 ---
 
 ```{r}
 source("../../utils/requirements.R")
-library(yardstick); library(pROC); library(dplyr)
-# On suppose df (avec pi_hat) et mod existent si Mission 1 a été exécutée dans la même session.
-# Sinon, inclure un petit bloc pour les recréer rapidement :
- library(titanic); data("titanic_train")
- df <- titanic_train %>% janitor::clean_names() %>%
- mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %>%
- tidyr::drop_na(age)
- mod <- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)
- df <- df %>% mutate(pi_hat = predict(mod, type="response"))
-
+library(titanic); library(dplyr); library(broom); library(ggplot2); library(pROC); library(janitor)
+data("titanic_train")
+df <- titanic_train %>%
+  clean_names() %>%
+  mutate(
+    survived = factor(survived, levels=c(0,1), labels=c("No","Yes")),
+    sex = factor(sex),
+    pclass = factor(pclass),
+    embarked = factor(embarked)
+  ) %>%
+  select(survived, pclass, sex, age, sib_sp, parch, fare, embarked) %>%
+  tidyr::drop_na()
+set.seed(42)
+idx <- sample(seq_len(nrow(df)), size = floor(.8*nrow(df)))
+train <- df[idx,]; test <- df[-idx,]
+mod <- glm(survived ~ sex + pclass + age + fare, data=train, family=binomial())
 ```
 
-## Étapes
+## Objectifs
+- Comprendre et **tracer** la **courbe ROC**
+- Mesurer l’**AUC** et l’interpréter
+- **Choisir un seuil** adapté au **coût d’erreur** (et pas seulement 0.5)
+- Évaluer **sensibilité/spécificité** selon le seuil
+- (Option) regarder la **calibration** simple
 
-### 1) Matrices de confusion pour différents seuils (0.3, 0.5, 0.7)
-```{r}
-make_cm <- function(th){
- pred <- ifelse(df$pi_hat >= th, 1, 0)
- as.data.frame(table(truth = df$survived, pred = pred))
-}
-knitr::kable(make_cm(.3), caption="Seuil 0.3")
-knitr::kable(make_cm(.5), caption="Seuil 0.5")
-knitr::kable(make_cm(.7), caption="Seuil 0.7")
-```
-
-### 2) Courbe ROC & AUC
-```{r}
-roc_obj <- pROC::roc(df$survived, df$pi_hat)
-plot(roc_obj, print.auc=TRUE)
-```
-
-### 3) Seuil "optimal" (Youden) & commentaire
-```{r}
-pROC::coords(roc_obj, x = "best", best.method="youden")
-```
-
-## Questions
-- Q1. Quel compromis **sensibilité/spécificité** choisir pour un contexte “sauvetage prioritaire” ?
-- Q2. Le seuil optimal ROC convient-il à votre **coût d’erreur** ? Pourquoi ?
 ---
 
-## Points de discussion — approfondis
-- **Justification métier** des variables incluses ou exclues (au-delà des p-valeurs).
-- **Stabilité** des coefficients : colinéarité, sous-échantillonnage répété (idée de validation).
-- **Éthique & communication** : comment présenter l’incertitude à un public non technique.
-- **Reproductibilité** : graine aléatoire, sessionInfo(), versionnage du code.
+### 1) ROC & AUC
+```{r}
+prob_test <- predict(mod, newdata=test, type="response")
+roc_obj <- pROC::roc(response=test$survived, predictor=prob_test, levels=c("No","Yes"))
+plot(roc_obj, print.auc=TRUE, main="ROC sur l'échantillon test")
+auc_val <- pROC::auc(roc_obj); auc_val
+```
 
-## Questions bonus
-1. Proposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.
-2. Identifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).
+::: {.callout-note}
+**Réflexion**  
+- Que signifie une **AUC = 0.85** concrètement ? (probabilité qu’un **survivant** ait un score supérieur à un **non-survivant** tirés au hasard)  
+:::
+
+---
+
+### 2) Sensibilité / Spécificité selon le seuil
+```{r}
+ths <- seq(0.1, 0.9, by=0.1)
+perf <- lapply(ths, function(t){
+  pred <- factor(ifelse(prob_test >= t, "Yes", "No"), levels=c("No","Yes"))
+  tab <- table(Truth=test$survived, Pred=pred)
+  sens <- tab["Yes","Yes"]/sum(tab[,"Yes"])
+  spec <- tab["No","No"]/sum(tab[,"No"])
+  acc  <- sum(diag(tab))/sum(tab)
+  tibble::tibble(threshold=t, sensitivity=sens, specificity=spec, accuracy=acc)
+}) %>% dplyr::bind_rows()
+ggplot(perf, aes(threshold, sensitivity)) + geom_line() + geom_point() + labs(title="Sensibilité selon le seuil")
+ggplot(perf, aes(threshold, specificity)) + geom_line() + geom_point() + labs(title="Spécificité selon le seuil")
+```
+
+::: {.callout-tip}
+**Question d’application**  
+- Si **rater un survivant** est très coûteux, vers quel **seuil** vous tournez-vous (plus bas/plus haut) ? Quelles conséquences sur la **spécificité** ?  
+:::
+
+---
+
+### 3) Choix de seuil par **coûts différenciés**
+```{r}
+### 3) Choix de seuil par **coûts différenciés**
+# Exemple de coûts (à adapter au contexte)
+cost_fp <- 1   # coût d'un faux positif
+cost_fn <- 5   # coût d'un faux négatif (plus grave)
+
+ths <- seq(0.01, 0.99, by = 0.01)
+
+grid <- do.call(rbind, lapply(ths, function(t) {
+  pred <- factor(ifelse(prob_test >= t, "Yes", "No"), levels = c("No","Yes"))
+  # Comptes robustes (même si une combinaison est absente)
+  FP <- sum(test$survived == "No"  & pred == "Yes")
+  FN <- sum(test$survived == "Yes" & pred == "No")
+  data.frame(
+    threshold = t,
+    FP = FP,
+    FN = FN,
+    expected_cost = cost_fp * FP + cost_fn * FN
+  )
+}))
+
+best_idx <- which.min(grid$expected_cost)
+best_threshold <- grid$threshold[best_idx]
+best_threshold
+
+```
+
+```{r}
+# Performance au meilleur seuil selon ce coût
+pred_best <- factor(ifelse(prob_test >= best_threshold, "Yes","No"), levels=c("No","Yes"))
+tab_best <- table(Truth=test$survived, Pred=pred_best)
+knitr::kable(as.data.frame.matrix(tab_best), caption = sprintf("Matrice de confusion au seuil optimal = %.2f (coûts FP=%d, FN=%d)", best_threshold, cost_fp, cost_fn))
+```
+
+::: {.callout-warning}
+**Attention**  
+- L’**AUC** **n’impose pas** un seuil ; elle juge la **discrimination** pour *tous* les seuils.  
+- Le **seuil optimal dépend du contexte** : coûts d’erreurs, prévalence, contraintes opérationnelles.  
+:::
+
+---
+
+### 4) Calibration (aperçu simple)
+```{r}
+cuts <- quantile(prob_test, probs=seq(0,1,by=.1))
+grp <- cut(prob_test, breaks=unique(cuts), include.lowest=TRUE)
+calib <- test %>% mutate(prob=prob_test, grp=grp) %>% group_by(grp) %>%
+  summarise(obs_rate=mean(survived=="Yes"), pred_mean=mean(prob), .groups="drop")
+knitr::kable(calib, caption="Calibration par déciles : moyenne prédite vs proportion observée")
+ggplot(calib, aes(pred_mean, obs_rate)) + geom_point() + geom_abline(slope=1, intercept=0, linetype=2) +
+  labs(x="Probabilité moyenne prédite", y="Taux observé (Yes)", title="Courbe de calibration (déciles)")
+```
+
+::: {.callout-note}
+**Réflexion**  
+- Si les points sont **au-dessus** de la diagonale, vos probabilités sont-elles **sous-** ou **sur-**estimées ?  
+:::
+
+---
+
+## Questions (différentes de M1)
+1. Donnez une **interprétation** de l’AUC en termes de paires (survivant vs non-survivant).  
+2. Expliquez pourquoi **changer le seuil** peut **augmenter la sensibilité** tout en **diminuant la spécificité**.  
+3. Avec un coût **FN > FP**, justifiez un **seuil < 0.5** même si l’accuracy baisse.  
+4. Que révèle la **calibration** de vos probabilités ?
+
+---
+
+## Points de discussion (retour groupe)
+- Pourquoi l’AUC **ne suffit pas** à choisir un seuil ?  
+- Comment fixer les **coûts** en pratique (métier, impact) ?  
+- Quelles limites de la ROC quand les classes sont **déséquilibrées** ? (courbe PR utile)
