@@ -38,10 +38,14 @@ GGally::ggpairs(ames %>% dplyr::select(sale_price, gr_liv_area, year_built, over
 **À faire (équipe):**
 
 - Quelles variables semblent corrélées avec `sale_price`? Notez les plus pertinentes.
+gr_live_area, garage_cars.
 
 - Quelles relations semblent linéaires? Lesquelles paraissent non linéaires?
+sale_price et gr_liv_area
 
 - Identifiez au moins une variable qui pourrait nécessiter une transformation.
+sale_price
+
 :::
 
 > Astuce : pensez aux **transformations** si une relation paraît non linéaire (p. ex. `log(sale_price)`).
@@ -60,10 +64,13 @@ summary(mod)
 **Réflexion :**
 
 - Quels sont les coefficients estimés? Que signifient-ils dans le contexte du prix des maisons?
+Les coéfficients estimés correpond au Beta. Ils signifient que le sale_price augmente de X par unité de la variable.
 
 - Quels prédicteurs sont significatifs? Comment l’interprétez-vous?
+Tous sauf qualPoor et qualFair.
 
 - Quelle est la valeur du $R^2$? Est-elle satisfaisante?
+0.81, il est assez élevé et proche de 1. Cela veut dire que nos variables expriment 81% de la variance du sale price.
 :::
 
 ---
