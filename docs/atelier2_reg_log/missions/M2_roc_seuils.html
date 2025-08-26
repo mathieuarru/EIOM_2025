@@ -3897,6 +3897,10 @@ vertical-align: -.125em;
     <a class="dropdown-item" href="../../atelier2_reg_log/missions/M2_roc_seuils.html">
  <span class="dropdown-text">Mission 2 — ROC &amp; seuils</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../atelier2_reg_log/missions/Challenge_logistique.html">
+ <span class="dropdown-text">Challenge</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -4129,8 +4133,8 @@ Warning
 </div>
 <hr>
 </section>
-<section id="calibration-aperçu-simple" class="level3">
-<h3 class="anchored" data-anchor-id="calibration-aperçu-simple">4) Calibration (aperçu simple)</h3>
+<section id="optionnel---calibration-aperçu-simple" class="level3">
+<h3 class="anchored" data-anchor-id="optionnel---calibration-aperçu-simple">4) (optionnel) - Calibration (aperçu simple)</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cuts <span class="ot">&lt;-</span> <span class="fu">quantile</span>(prob_test, <span class="at">probs=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="at">by=</span>.<span class="dv">1</span>))</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>grp <span class="ot">&lt;-</span> <span class="fu">cut</span>(prob_test, <span class="at">breaks=</span><span class="fu">unique</span>(cuts), <span class="at">include.lowest=</span><span class="cn">TRUE</span>)</span>

@@ -18,7 +18,7 @@
     "href": "atelier2_reg_log/missions/M2_roc_seuils.html#objectifs",
     "title": "Mission 2 — ROC, AUC & choix de seuil",
     "section": "Objectifs",
-    "text": "Objectifs\n\nComprendre et tracer la courbe ROC\nMesurer l’AUC et l’interpréter\nChoisir un seuil adapté au coût d’erreur (et pas seulement 0.5)\nÉvaluer sensibilité/spécificité selon le seuil\n(Option) regarder la calibration simple\n\n\n\n1) ROC & AUC\n\nprob_test &lt;- predict(mod, newdata=test, type=\"response\")\nroc_obj &lt;- pROC::roc(response=test$survived, predictor=prob_test, levels=c(\"No\",\"Yes\"))\nplot(roc_obj, print.auc=TRUE, main=\"ROC sur l'échantillon test\")\n\n\n\n\n\n\n\nauc_val &lt;- pROC::auc(roc_obj); auc_val\n\nArea under the curve: 0.8084\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion\n- Que signifie une AUC = 0.85 concrètement ? (probabilité qu’un survivant ait un score supérieur à un non-survivant tirés au hasard)\n\n\n\n\n\n2) Sensibilité / Spécificité selon le seuil\n\nths &lt;- seq(0.1, 0.9, by=0.1)\nperf &lt;- lapply(ths, function(t){\n  pred &lt;- factor(ifelse(prob_test &gt;= t, \"Yes\", \"No\"), levels=c(\"No\",\"Yes\"))\n  tab &lt;- table(Truth=test$survived, Pred=pred)\n  sens &lt;- tab[\"Yes\",\"Yes\"]/sum(tab[,\"Yes\"])\n  spec &lt;- tab[\"No\",\"No\"]/sum(tab[,\"No\"])\n  acc  &lt;- sum(diag(tab))/sum(tab)\n  tibble::tibble(threshold=t, sensitivity=sens, specificity=spec, accuracy=acc)\n}) %&gt;% dplyr::bind_rows()\nggplot(perf, aes(threshold, sensitivity)) + geom_line() + geom_point() + labs(title=\"Sensibilité selon le seuil\")\n\n\n\n\n\n\n\nggplot(perf, aes(threshold, specificity)) + geom_line() + geom_point() + labs(title=\"Spécificité selon le seuil\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nQuestion d’application\n- Si rater un survivant est très coûteux, vers quel seuil vous tournez-vous (plus bas/plus haut) ? Quelles conséquences sur la spécificité ?\n\n\n\n\n\n3) Choix de seuil par coûts différenciés\n\n### 3) Choix de seuil par **coûts différenciés**\n# Exemple de coûts (à adapter au contexte)\ncost_fp &lt;- 1   # coût d'un faux positif\ncost_fn &lt;- 5   # coût d'un faux négatif (plus grave)\n\nths &lt;- seq(0.01, 0.99, by = 0.01)\n\ngrid &lt;- do.call(rbind, lapply(ths, function(t) {\n  pred &lt;- factor(ifelse(prob_test &gt;= t, \"Yes\", \"No\"), levels = c(\"No\",\"Yes\"))\n  # Comptes robustes (même si une combinaison est absente)\n  FP &lt;- sum(test$survived == \"No\"  & pred == \"Yes\")\n  FN &lt;- sum(test$survived == \"Yes\" & pred == \"No\")\n  data.frame(\n    threshold = t,\n    FP = FP,\n    FN = FN,\n    expected_cost = cost_fp * FP + cost_fn * FN\n  )\n}))\n\nbest_idx &lt;- which.min(grid$expected_cost)\nbest_threshold &lt;- grid$threshold[best_idx]\nbest_threshold\n\n[1] 0.04\n\n\n\n# Performance au meilleur seuil selon ce coût\npred_best &lt;- factor(ifelse(prob_test &gt;= best_threshold, \"Yes\",\"No\"), levels=c(\"No\",\"Yes\"))\ntab_best &lt;- table(Truth=test$survived, Pred=pred_best)\nknitr::kable(as.data.frame.matrix(tab_best), caption = sprintf(\"Matrice de confusion au seuil optimal = %.2f (coûts FP=%d, FN=%d)\", best_threshold, cost_fp, cost_fn))\n\n\nMatrice de confusion au seuil optimal = 0.04 (coûts FP=1, FN=5)\n\n\n\nNo\nYes\n\n\n\n\nNo\n4\n85\n\n\nYes\n0\n54\n\n\n\n\n\n\n\n\n\n\n\nWarning\n\n\n\nAttention\n- L’AUC n’impose pas un seuil ; elle juge la discrimination pour tous les seuils.\n- Le seuil optimal dépend du contexte : coûts d’erreurs, prévalence, contraintes opérationnelles.\n\n\n\n\n\n4) Calibration (aperçu simple)\n\ncuts &lt;- quantile(prob_test, probs=seq(0,1,by=.1))\ngrp &lt;- cut(prob_test, breaks=unique(cuts), include.lowest=TRUE)\ncalib &lt;- test %&gt;% mutate(prob=prob_test, grp=grp) %&gt;% group_by(grp) %&gt;%\n  summarise(obs_rate=mean(survived==\"Yes\"), pred_mean=mean(prob), .groups=\"drop\")\nknitr::kable(calib, caption=\"Calibration par déciles : moyenne prédite vs proportion observée\")\n\n\nCalibration par déciles : moyenne prédite vs proportion observée\n\n\ngrp\nobs_rate\npred_mean\n\n\n\n\n[0.0137,0.0603]\n0.1333333\n0.0426319\n\n\n(0.0603,0.0746]\n0.3571429\n0.0674806\n\n\n(0.0746,0.0958]\n0.1428571\n0.0833150\n\n\n(0.0958,0.113]\n0.1428571\n0.1036356\n\n\n(0.113,0.219]\n0.1333333\n0.1685682\n\n\n(0.219,0.381]\n0.0714286\n0.2740320\n\n\n(0.381,0.595]\n0.3571429\n0.5072802\n\n\n(0.595,0.776]\n0.4285714\n0.6794945\n\n\n(0.776,0.875]\n1.0000000\n0.8320176\n\n\n(0.875,0.956]\n1.0000000\n0.9265891\n\n\n\n\nggplot(calib, aes(pred_mean, obs_rate)) + geom_point() + geom_abline(slope=1, intercept=0, linetype=2) +\n  labs(x=\"Probabilité moyenne prédite\", y=\"Taux observé (Yes)\", title=\"Courbe de calibration (déciles)\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion\n- Si les points sont au-dessus de la diagonale, vos probabilités sont-elles sous- ou sur-estimées ?"
+    "text": "Objectifs\n\nComprendre et tracer la courbe ROC\nMesurer l’AUC et l’interpréter\nChoisir un seuil adapté au coût d’erreur (et pas seulement 0.5)\nÉvaluer sensibilité/spécificité selon le seuil\n(Option) regarder la calibration simple\n\n\n\n1) ROC & AUC\n\nprob_test &lt;- predict(mod, newdata=test, type=\"response\")\nroc_obj &lt;- pROC::roc(response=test$survived, predictor=prob_test, levels=c(\"No\",\"Yes\"))\nplot(roc_obj, print.auc=TRUE, main=\"ROC sur l'échantillon test\")\n\n\n\n\n\n\n\nauc_val &lt;- pROC::auc(roc_obj); auc_val\n\nArea under the curve: 0.8084\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion\n- Que signifie une AUC = 0.85 concrètement ? (probabilité qu’un survivant ait un score supérieur à un non-survivant tirés au hasard)\n\n\n\n\n\n2) Sensibilité / Spécificité selon le seuil\n\nths &lt;- seq(0.1, 0.9, by=0.1)\nperf &lt;- lapply(ths, function(t){\n  pred &lt;- factor(ifelse(prob_test &gt;= t, \"Yes\", \"No\"), levels=c(\"No\",\"Yes\"))\n  tab &lt;- table(Truth=test$survived, Pred=pred)\n  sens &lt;- tab[\"Yes\",\"Yes\"]/sum(tab[,\"Yes\"])\n  spec &lt;- tab[\"No\",\"No\"]/sum(tab[,\"No\"])\n  acc  &lt;- sum(diag(tab))/sum(tab)\n  tibble::tibble(threshold=t, sensitivity=sens, specificity=spec, accuracy=acc)\n}) %&gt;% dplyr::bind_rows()\nggplot(perf, aes(threshold, sensitivity)) + geom_line() + geom_point() + labs(title=\"Sensibilité selon le seuil\")\n\n\n\n\n\n\n\nggplot(perf, aes(threshold, specificity)) + geom_line() + geom_point() + labs(title=\"Spécificité selon le seuil\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nQuestion d’application\n- Si rater un survivant est très coûteux, vers quel seuil vous tournez-vous (plus bas/plus haut) ? Quelles conséquences sur la spécificité ?\n\n\n\n\n\n3) Choix de seuil par coûts différenciés\n\n### 3) Choix de seuil par **coûts différenciés**\n# Exemple de coûts (à adapter au contexte)\ncost_fp &lt;- 1   # coût d'un faux positif\ncost_fn &lt;- 5   # coût d'un faux négatif (plus grave)\n\nths &lt;- seq(0.01, 0.99, by = 0.01)\n\ngrid &lt;- do.call(rbind, lapply(ths, function(t) {\n  pred &lt;- factor(ifelse(prob_test &gt;= t, \"Yes\", \"No\"), levels = c(\"No\",\"Yes\"))\n  # Comptes robustes (même si une combinaison est absente)\n  FP &lt;- sum(test$survived == \"No\"  & pred == \"Yes\")\n  FN &lt;- sum(test$survived == \"Yes\" & pred == \"No\")\n  data.frame(\n    threshold = t,\n    FP = FP,\n    FN = FN,\n    expected_cost = cost_fp * FP + cost_fn * FN\n  )\n}))\n\nbest_idx &lt;- which.min(grid$expected_cost)\nbest_threshold &lt;- grid$threshold[best_idx]\nbest_threshold\n\n[1] 0.04\n\n\n\n# Performance au meilleur seuil selon ce coût\npred_best &lt;- factor(ifelse(prob_test &gt;= best_threshold, \"Yes\",\"No\"), levels=c(\"No\",\"Yes\"))\ntab_best &lt;- table(Truth=test$survived, Pred=pred_best)\nknitr::kable(as.data.frame.matrix(tab_best), caption = sprintf(\"Matrice de confusion au seuil optimal = %.2f (coûts FP=%d, FN=%d)\", best_threshold, cost_fp, cost_fn))\n\n\nMatrice de confusion au seuil optimal = 0.04 (coûts FP=1, FN=5)\n\n\n\nNo\nYes\n\n\n\n\nNo\n4\n85\n\n\nYes\n0\n54\n\n\n\n\n\n\n\n\n\n\n\nWarning\n\n\n\nAttention\n- L’AUC n’impose pas un seuil ; elle juge la discrimination pour tous les seuils.\n- Le seuil optimal dépend du contexte : coûts d’erreurs, prévalence, contraintes opérationnelles.\n\n\n\n\n\n4) (optionnel) - Calibration (aperçu simple)\n\ncuts &lt;- quantile(prob_test, probs=seq(0,1,by=.1))\ngrp &lt;- cut(prob_test, breaks=unique(cuts), include.lowest=TRUE)\ncalib &lt;- test %&gt;% mutate(prob=prob_test, grp=grp) %&gt;% group_by(grp) %&gt;%\n  summarise(obs_rate=mean(survived==\"Yes\"), pred_mean=mean(prob), .groups=\"drop\")\nknitr::kable(calib, caption=\"Calibration par déciles : moyenne prédite vs proportion observée\")\n\n\nCalibration par déciles : moyenne prédite vs proportion observée\n\n\ngrp\nobs_rate\npred_mean\n\n\n\n\n[0.0137,0.0603]\n0.1333333\n0.0426319\n\n\n(0.0603,0.0746]\n0.3571429\n0.0674806\n\n\n(0.0746,0.0958]\n0.1428571\n0.0833150\n\n\n(0.0958,0.113]\n0.1428571\n0.1036356\n\n\n(0.113,0.219]\n0.1333333\n0.1685682\n\n\n(0.219,0.381]\n0.0714286\n0.2740320\n\n\n(0.381,0.595]\n0.3571429\n0.5072802\n\n\n(0.595,0.776]\n0.4285714\n0.6794945\n\n\n(0.776,0.875]\n1.0000000\n0.8320176\n\n\n(0.875,0.956]\n1.0000000\n0.9265891\n\n\n\n\nggplot(calib, aes(pred_mean, obs_rate)) + geom_point() + geom_abline(slope=1, intercept=0, linetype=2) +\n  labs(x=\"Probabilité moyenne prédite\", y=\"Taux observé (Yes)\", title=\"Courbe de calibration (déciles)\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion\n- Si les points sont au-dessus de la diagonale, vos probabilités sont-elles sous- ou sur-estimées ?"
   },
   {
     "objectID": "atelier2_reg_log/missions/M2_roc_seuils.html#questions-différentes-de-m1",
@@ -35,284 +35,109 @@
     "text": "Points de discussion (retour groupe)\n\nPourquoi l’AUC ne suffit pas à choisir un seuil ?\n\nComment fixer les coûts en pratique (métier, impact) ?\n\nQuelles limites de la ROC quand les classes sont déséquilibrées ? (courbe PR utile)"
   },
   {
-    "objectID": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html",
-    "href": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html",
-    "title": "Corrigé — Mission 2 ROC & seuils",
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
     "section": "",
-    "text": "source(\"../../utils/requirements.R\")\nlibrary(titanic); data(\"titanic_train\")\ndf &lt;- titanic_train %&gt;% janitor::clean_names() %&gt;%\n mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %&gt;%\n tidyr::drop_na(age)\nmod &lt;- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)\ndf &lt;- df %&gt;% mutate(pi_hat = predict(mod, type=\"response\"))\nroc_obj &lt;- pROC::roc(df$survived, df$pi_hat)\nplot(roc_obj, print.auc=TRUE)\n\n\n\n\n\n\n\npROC::coords(roc_obj, x = \"best\", best.method=\"youden\")\n\n  threshold specificity sensitivity\n1 0.4296214   0.8231132   0.7724138"
+    "text": "Vous travaillez pour un centre hospitalier. Objectif : prédire la présence d’une maladie cardiaque à partir de mesures cliniques simples, et interpréter les facteurs de risque. Nous allons utiliser la régression logistique et relier les résultats à des enjeux décisionnels (seuils, sensibilité/spécificité)."
   },
   {
-    "objectID": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html#conseils-de-présentation",
-    "href": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html#conseils-de-présentation",
-    "title": "Corrigé — Mission 2 ROC & seuils",
-    "section": "Conseils de présentation",
-    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
-  },
-  {
-    "objectID": "atelier2_reg_log/corriges/Challenge_default_corrige.html",
-    "href": "atelier2_reg_log/corriges/Challenge_default_corrige.html",
-    "title": "Corrigé — Challenge défaut (ISLR)",
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#contexte",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#contexte",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
     "section": "",
-    "text": "Exemple de solution : justification d’un seuil favorisant la réduction des faux négatifs si le coût d’un défaut non détecté est élevé.\nInclusion d’une matrice de confusion pour deux seuils et comparaison."
+    "text": "Vous travaillez pour un centre hospitalier. Objectif : prédire la présence d’une maladie cardiaque à partir de mesures cliniques simples, et interpréter les facteurs de risque. Nous allons utiliser la régression logistique et relier les résultats à des enjeux décisionnels (seuils, sensibilité/spécificité)."
   },
   {
-    "objectID": "atelier2_reg_log/corriges/Challenge_default_corrige.html#conseils-de-présentation",
-    "href": "atelier2_reg_log/corriges/Challenge_default_corrige.html#conseils-de-présentation",
-    "title": "Corrigé — Challenge défaut (ISLR)",
-    "section": "Conseils de présentation",
-    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#données",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#données",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "📊 Données",
+    "text": "📊 Données\nDataset recommandé : Heart Disease UCI (Kaggle).\nLien : https://www.kaggle.com/datasets/redwankarimsony/heart-disease-data\n\n⚠️ Les noms de colonnes peuvent varier selon la version. Vérifiez la description Kaggle et adaptez le code si nécessaire.\nNoms courants : age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, target (avec target = 1 malade / 0 sain)."
   },
   {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "",
-    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); set.seed(42); library(dplyr); library(broom)\names &lt;- make_ames()\nidx &lt;- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))\ntrain &lt;- ames[idx,]; test &lt;- ames[-idx,]\nmod &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)\nmod_small &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train)"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#objectifs",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#objectifs",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "Objectifs",
-    "text": "Objectifs\n\nTester des hypothèses (t-tests sur coefficients, test F global et modèles emboîtés).\nIntervalles : construire et interpréter des intervalles de confiance (IC) et de prédiction (IP).\nÉvaluer la calibration et la couverture des IP sur l’échantillon test.\nAnalyser l’erreur par sous-groupes (robustesse et équité de base)."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#tests-dhypothèses-sur-les-coefficients",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#tests-dhypothèses-sur-les-coefficients",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "1) Tests d’hypothèses sur les coefficients",
-    "text": "1) Tests d’hypothèses sur les coefficients\n\nsum_mod &lt;- summary(mod)\nsum_mod$coefficients\n\n                                Estimate   Std. Error    t value      Pr(&gt;|t|)\n(Intercept)                -881183.00199 66913.101296 -13.169065  2.967990e-38\nGr_Liv_Area                     56.74416     2.104504  26.963206 1.341430e-139\nOverall_QualPoor             23909.61553 20290.439629   1.178369  2.387700e-01\nOverall_QualFair             26465.61196 18198.854053   1.454246  1.460128e-01\nOverall_QualBelow_Average    38511.36847 17334.313212   2.221684  2.640040e-02\nOverall_QualAverage          51976.79659 17211.078719   3.019962  2.555518e-03\nOverall_QualAbove_Average    58489.05809 17263.901408   3.387940  7.159023e-04\nOverall_QualGood             78020.81605 17366.424861   4.492624  7.378771e-06\nOverall_QualVery_Good       120614.34000 17487.957022   6.896994  6.816907e-12\nOverall_QualExcellent       199510.31713 17861.122971  11.170088  2.941930e-28\nOverall_QualVery_Excellent  242212.29392 18922.086251  12.800507  2.641965e-36\nYear_Built                     448.30307    33.296147  13.464112  7.550363e-40\nFull_Bath                    -2792.26431  1878.872594  -1.486138  1.373779e-01\nGarage_Cars                  13870.75392  1257.341923  11.031807  1.278968e-27\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion ciblée :\n\nFormulez \\(H_0\\) et \\(H_1\\) pour \\(\\beta_{Year\\_Built}\\). Interprétez le t et la p-value au seuil 5%.\nQuelle(s) variable(s) reste(nt) non significative(s)? Les conservez-vous quand même? Justifiez (domaine, colinéarité, coût d’erreur, etc.)."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#test-global-et-modèles-emboîtés",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#test-global-et-modèles-emboîtés",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "2) Test global et modèles emboîtés",
-    "text": "2) Test global et modèles emboîtés\n\n# F global (déjà dans summary(mod) via statistic)\nanova(mod_small, mod)\n\nAnalysis of Variance Table\n\nModel 1: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built\nModel 2: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + \n    Garage_Cars\n  Res.Df        RSS Df  Sum of Sq      F    Pr(&gt;F)    \n1   2332 2.8789e+12                                   \n2   2330 2.7348e+12  2 1.4413e+11 61.401 &lt; 2.2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\n\n\n\n\n\nTip\n\n\n\nÀ faire (équipe) :\n\nInterprétez le test ANOVA ci-dessus : le modèle complet apporte-t-il un gain significatif par rapport au modèle réduit?\nCalculez et comparez AIC/BIC pour mod et mod_small. Quel critère privilégieriez-vous ici et pourquoi?\n\n\n\n\nAIC(mod_small, mod)\n\n          df      AIC\nmod_small 13 55735.13\nmod       15 55618.74\n\nBIC(mod_small, mod)\n\n          df      BIC\nmod_small 13 55810.00\nmod       15 55705.13"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#intervalles-de-confiance-et-de-prédiction",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#intervalles-de-confiance-et-de-prédiction",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "3) Intervalles de confiance et de prédiction",
-    "text": "3) Intervalles de confiance et de prédiction\n\n# Moyennes pour les numériques\nnum_means &lt;- train %&gt;% summarise(\n  Gr_Liv_Area = mean(Gr_Liv_Area, na.rm = TRUE),\n  Year_Built  = mean(Year_Built,  na.rm = TRUE),\n  Full_Bath   = mean(Full_Bath,   na.rm = TRUE),\n  Garage_Cars = mean(Garage_Cars, na.rm = TRUE)\n)\n\n# Modalité la plus fréquente pour le facteur Overall_Qual\nmode_qual &lt;- train %&gt;% summarise(\n  Overall_Qual = names(which.max(table(Overall_Qual)))\n) %&gt;% mutate(Overall_Qual = factor(Overall_Qual, levels = levels(train$Overall_Qual)))\n\n# Maison type\nnew0 &lt;- dplyr::bind_cols(num_means, mode_qual)\n\n# IC\npredict(mod, newdata = new0, interval = \"confidence\")\n\n       fit      lwr      upr\n1 160220.6 157199.6 163241.7\n\n# IP sur l’échantillon test\npred_pi &lt;- predict(mod, newdata = test, interval = \"prediction\")\nhead(pred_pi)\n\n       fit      lwr      upr\n1 180648.2 113338.9 247957.5\n2 170506.0 103198.6 237813.3\n3 271895.4 204579.2 339211.5\n4 405288.4 337646.4 472930.3\n5 300636.2 233315.5 367956.8\n6 231996.0 164646.9 299345.1\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion interprétation :\n\nDifférence IC vs IP : que quantifient-ils, et pourquoi l’IP est-il plus large?\nÀ quoi sert un IP pour un décideur (ex. courtier, évaluateur)? Donnez un exemple concret."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#couverture-des-ip-et-calibration",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#couverture-des-ip-et-calibration",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "4) Couverture des IP et calibration",
-    "text": "4) Couverture des IP et calibration\n\n# Taux de couverture 95% des IP sur test\ninside &lt;- (test$Sale_Price &gt;= pred_pi[ ,\"lwr\"]) & (test$Sale_Price &lt;= pred_pi[ ,\"upr\"]) \ncoverage &lt;- mean(inside)\nwidth &lt;- mean(pred_pi[ ,\"upr\"] - pred_pi[ ,\"lwr\"]) \nknitr::kable(data.frame(Couverture_IP95 = coverage, Largeur_moy_IP = width),\n             caption = \"Couverture et largeur moyenne des intervalles de prédiction (test)\")\n\n\nCouverture et largeur moyenne des intervalles de prédiction (test)\n\n\nCouverture_IP95\nLargeur_moy_IP\n\n\n\n\n0.9624573\n134744.5\n\n\n\n\n# Plot calibration : observé vs prédit\nplot(pred_pi[ ,\"fit\"], test$Sale_Price,\n     xlab = \"Prix prédit\", ylab = \"Prix observé\", main = \"Calibration: observé vs prédit\")\nabline(0, 1)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWarning\n\n\n\nAnalyse critique :\n\nLa couverture est-elle proche de 95%? Si non, quelles raisons possibles (mauvaise spécification, hétéroscédasticité, non-normalité, outliers…)?\nLa pente de calibration semble-t-elle proche de 1? Y a-t-il biais systématique (sous/sur-prédiction)?"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#erreurs-par-sous-groupes-robustesse",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#erreurs-par-sous-groupes-robustesse",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "5) Erreurs par sous-groupes (robustesse)",
-    "text": "5) Erreurs par sous-groupes (robustesse)\n\nerr &lt;- test$Sale_Price - pred_pi[ ,\"fit\"]\n# Stratification simple : quartiles de surface et niveaux de qualité\nq_area &lt;- cut(test$Gr_Liv_Area, breaks = quantile(test$Gr_Liv_Area, probs = seq(0,1,0.25), na.rm=TRUE), include.lowest=TRUE)\nby_grp &lt;- test %&gt;% mutate(err = err, q_area = q_area) %&gt;%\n  group_by(q_area, Overall_Qual) %&gt;% summarise(MAE = mean(abs(err)), RMSE = sqrt(mean(err^2)), .groups='drop')\nknitr::kable(by_grp, caption = \"Erreurs par sous-groupes (aire habitable en quartiles × qualité globale)\")\n\n\nErreurs par sous-groupes (aire habitable en quartiles × qualité globale)\n\n\nq_area\nOverall_Qual\nMAE\nRMSE\n\n\n\n\n[520,1.13e+03]\nPoor\n30364.570\n38651.540\n\n\n[520,1.13e+03]\nFair\n13414.979\n17555.484\n\n\n[520,1.13e+03]\nBelow_Average\n13564.462\n18418.238\n\n\n[520,1.13e+03]\nAverage\n13883.661\n17991.222\n\n\n[520,1.13e+03]\nAbove_Average\n13903.862\n17361.991\n\n\n[520,1.13e+03]\nGood\n20736.199\n21570.278\n\n\n(1.13e+03,1.42e+03]\nFair\n16939.169\n19902.571\n\n\n(1.13e+03,1.42e+03]\nBelow_Average\n21017.884\n24903.919\n\n\n(1.13e+03,1.42e+03]\nAverage\n13765.626\n17648.594\n\n\n(1.13e+03,1.42e+03]\nAbove_Average\n14439.528\n17670.036\n\n\n(1.13e+03,1.42e+03]\nGood\n14201.040\n17231.101\n\n\n(1.13e+03,1.42e+03]\nVery_Good\n31862.465\n37032.937\n\n\n(1.42e+03,1.72e+03]\nBelow_Average\n33394.954\n39938.912\n\n\n(1.42e+03,1.72e+03]\nAverage\n21226.006\n27886.582\n\n\n(1.42e+03,1.72e+03]\nAbove_Average\n16698.841\n24631.618\n\n\n(1.42e+03,1.72e+03]\nGood\n23702.029\n29274.231\n\n\n(1.42e+03,1.72e+03]\nVery_Good\n29526.155\n41360.485\n\n\n(1.42e+03,1.72e+03]\nExcellent\n32939.308\n33972.903\n\n\n(1.72e+03,4.68e+03]\nFair\n2609.718\n2609.718\n\n\n(1.72e+03,4.68e+03]\nBelow_Average\n58601.132\n58601.456\n\n\n(1.72e+03,4.68e+03]\nAverage\n30841.210\n39331.843\n\n\n(1.72e+03,4.68e+03]\nAbove_Average\n24321.604\n30690.056\n\n\n(1.72e+03,4.68e+03]\nGood\n28348.812\n35079.171\n\n\n(1.72e+03,4.68e+03]\nVery_Good\n37801.170\n50260.929\n\n\n(1.72e+03,4.68e+03]\nExcellent\n52026.385\n63023.133\n\n\n(1.72e+03,4.68e+03]\nVery_Excellent\n132702.685\n178022.285\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestion d’enquête :\n\nIdentifiez un sous-groupe avec une erreur nettement plus élevée. Donnez une hypothèse explicative (non-linéarité, interaction manquante, variable omise…).\nProposez une action concrète (transformation, terme quadratique, interaction, variable additionnelle) pour la Mission 3."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#comparaison-de-modèles",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#comparaison-de-modèles",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "6) Comparaison de modèles",
-    "text": "6) Comparaison de modèles\n\n# Performance globale simple (pour mémoire) :\npred &lt;- pred_pi[ ,\"fit\"]\nrmse &lt;- sqrt(mean((pred - test$Sale_Price)^2))\nmae  &lt;- mean(abs(pred - test$Sale_Price))\nknitr::kable(data.frame(Model=c(\"Complet\",\"Simple\"),\n                        RMSE=c(rmse, sqrt(mean((predict(mod_small, test) - test$Sale_Price)^2))),\n                        MAE =c(mae,  mean(abs(predict(mod_small, test) - test$Sale_Price)))),\n             caption = \"Comparaison rapide de performance (test)\")\n\n\nComparaison rapide de performance (test)\n\n\nModel\nRMSE\nMAE\n\n\n\n\nComplet\n34713.31\n22622.28\n\n\nSimple\n35150.98\n23088.00\n\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nDécision modèle :\n\nUtilisez ANOVA + AIC/BIC + calibration/couverture (pas seulement RMSE/MAE) pour trancher entre mod et mod_small. Justifiez la traçabilité de votre choix."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#questions",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#questions",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "Questions",
-    "text": "Questions\n\nQ1. Testez \\(H_0\\!:\\;\\beta_{Year\\_Built}=0\\) (5%). Concluez et interprétez dans le contexte.\nQ2. Le test ANOVA conclut-il à un apport significatif de Full_Bath et Garage_Cars pris ensemble? Décision?\nQ3. La couverture empirique des IP95 est-elle satisfaisante? Si non, quelle modification du modèle proposeriez-vous?\nQ4. Identifiez un sous-groupe à erreur élevée et proposez une amélioration."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#pour-aller-plus-loin",
-    "href": "atelier1_reg_lin/missions/M2_interpretation.html#pour-aller-plus-loin",
-    "title": "Mission 2 — Tester & interpréter",
-    "section": "Pour aller plus loin",
-    "text": "Pour aller plus loin\n\nCalculez un IC pour la moyenne conditionnelle d’une maison type (définissez explicitement la maison) et expliquez la différence avec un IP pour cette même maison.\nMontrez un exemple où AIC préfère mod mais BIC préfère mod_small. Laquelle des deux décisions retiendriez-vous ici et pourquoi (taille d’échantillon, parcimonie, objectif)?\nImplémentez une validation croisée K-fold maison (sans nouveaux packages) et comparez RMSE moyen de mod vs mod_small."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html",
-    "title": "Challenge — Prix de voitures",
-    "section": "",
-    "text": "Dataset : Used Car Dataset — Kaggle (auteur: rishabhkarn).\nLien : https://www.kaggle.com/datasets/rishabhkarn/used-car-dataset\n⚠️ Vérifiez la description Kaggle pour les noms exacts** de colonnes** (ils peuvent varier selon la version).\nNoms courants : selling_price (réponse), year, km_driven, fuel, transmission, seller_type, owner, name."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#objectif",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#objectif",
-    "title": "Challenge — Prix de voitures",
-    "section": "🎯 Objectif",
-    "text": "🎯 Objectif\nConstruire un modèle de régression linéaire multiple lm() pour expliquer le prix d’une voiture d’occasion et interpréter au moins un effet majeur."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#préparation",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#préparation",
-    "title": "Challenge — Prix de voitures",
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#préparation",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#préparation",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
     "section": "0) Préparation",
-    "text": "0) Préparation\n\n# Packages utiles\nlibrary(dplyr); library(ggplot2); library(readr); library(janitor); library(broom)\n# (Optionnel) diagnostics\n# library(car); library(performance)\n\n# ⚠️ Adaptez le chemin vers votre CSV Kaggle\n# Exemple : data/used_cars.csv\n# cars_raw &lt;- read_csv(\"data/used_cars.csv\")\n\n# Pour la démonstration, on crée un tibble vide si vous n'avez pas encore le fichier.\n# Supprimez ce bloc une fois votre CSV chargé.\ncars_raw &lt;- tibble::tibble()\n\n\n\n\n\n\n\nWarning\n\n\n\nImportant — Noms de colonnes\nLes champs les plus fréquents sont :\nselling_price, year, km_driven, fuel, transmission, seller_type, owner, name.\nOuvrez le CSV et confirmez les noms via names(cars_raw) ou glimpse(cars_raw).\n\n\n\n# Vérifier les colonnes disponibles\n# glimpse(cars_raw)"
+    "text": "0) Préparation\n\n# Packages utiles\nlibrary(dplyr); library(ggplot2); library(readr); library(janitor); library(broom); library(pROC)\n\n# ⚠️ Adaptez le chemin vers votre CSV Kaggle\n# Exemple : data/heart.csv\n# heart_raw &lt;- read_csv(\"data/heart.csv\")\n\n# Décommentez pour vérifier les colonnes\n# heart_raw %&gt;% glimpse()\n\n\n\n\n\n\n\nWarning\n\n\n\nImportant — Noms de colonnes - Confirmez le nom de la réponse (target attendu : 1 = malade, 0 = sain). - Vérifiez que sex est codée 0/1 (sinon recodez) et que cp est catégorielle à 4 niveaux."
   },
   {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#nettoyage-minimal",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#nettoyage-minimal",
-    "title": "Challenge — Prix de voitures",
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#nettoyage-minimal",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#nettoyage-minimal",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
     "section": "1) Nettoyage minimal",
-    "text": "1) Nettoyage minimal\n\ncars &lt;- cars_raw %&gt;%\n  janitor::clean_names()\n\n# Exemple de normalisation (adaptez aux noms réels de votre fichier)\n# - Si votre fichier contient bien \"selling_price\", \"km_driven\", etc., ces lignes sont OK.\n# - Sinon, renommez selon la description Kaggle.\ncars &lt;- cars %&gt;%\n  dplyr::rename(\n    price = selling_price,       # &lt;— renommer la variable réponse\n    mileage_km = km_driven       # &lt;— renommer le kilométrage\n  )\n\n# Encodage des catégorielles (adaptez selon vos colonnes exactes)\ncars &lt;- cars %&gt;%\n  mutate(\n    fuel = as.factor(fuel),\n    transmission = as.factor(transmission),\n    seller_type = as.factor(seller_type),\n    owner = as.factor(owner)\n  )\n\n# Gestion simple des valeurs manquantes (à raffiner si besoin)\ncars_complete &lt;- cars %&gt;% tidyr::drop_na(price, year, mileage_km, fuel, transmission)\n\n\n\n\n\n\n\nNote\n\n\n\nÀ faire (équipe)\n- Confirmer que price est bien la réponse (sinon, adaptez).\n- Vérifier l’unité de mileage_km (km).\n- Choisir une référence pertinente pour fuel et transmission (ex. essence, manuelle)."
+    "text": "1) Nettoyage minimal\n\nheart &lt;- heart_raw %&gt;% \n  janitor::clean_names()\n\n# Harmonisation (adaptez si besoin)\nheart &lt;- heart %&gt;% \n  mutate(\n    target = as.factor(target),           # réponse binaire en facteur (0/1 → \"0\",\"1\")\n    sex = as.factor(sex),                 # 0/1 → facteur\n    cp = as.factor(cp),                   # douleur thoracique (4 niv.)\n    exang = as.factor(exang),             # 0/1\n    fbs = as.factor(fbs),                 # 0/1 (glycémie à jeun &gt; 120 mg/dl)\n    restecg = as.factor(restecg),         # ECG au repos (0/1/2)\n    slope = as.factor(slope),             # pente du segment ST (1/2/3)\n    ca = as.integer(ca),                  # nb de vaisseaux colorés (souvent 0-4, parfois NA)\n    thal = as.factor(thal)                # thal (3 = normal, 6 = defect, 7 = reversible)\n  )\n\nheart_complete &lt;- heart %&gt;% tidyr::drop_na(target, age, sex, cp, trestbps, chol, thalach, exang, oldpeak, slope)\n\n\n\n\n\n\n\nTip\n\n\n\n\nChoisissez une référence pertinente pour les facteurs (ex.: cp niveau le plus bénin, sex = femme).\n# Exemple : fixer les références\n# heart_complete &lt;- heart_complete %&gt;% mutate(\n#   target = relevel(target, ref = \"0\"),\n#   sex = relevel(sex, ref = \"0\"),\n#   cp = relevel(cp, ref = levels(cp)[1])\n# )"
   },
   {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#eda-rapide",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#eda-rapide",
-    "title": "Challenge — Prix de voitures",
-    "section": "2) EDA rapide",
-    "text": "2) EDA rapide\n\n# Distribution du prix (attention aux queues)\nggplot(cars_complete, aes(price)) + geom_histogram(bins=30, alpha=.7) +\n  scale_x_continuous(labels = scales::label_number_si()) +\n  labs(title=\"Distribution des prix\")\n\n# Prix vs kilométrage (possible non-linéarité)\nggplot(cars_complete, aes(mileage_km, price)) + geom_point(alpha=.3) +\n  scale_y_continuous(labels = scales::label_number_si()) +\n  scale_x_continuous(labels = scales::label_number_si()) +\n  labs(title=\"Prix en fonction du kilométrage\")\n\n# Prix par transmission\nggplot(cars_complete, aes(transmission, price)) + geom_boxplot() +\n  scale_y_continuous(labels = scales::label_number_si()) +\n  labs(title=\"Prix par type de transmission\")\n\n\n\n\n\n\n\nTip\n\n\n\nPiste : tester des transformations si la relation prix ~ kilométrage semble non linéaire (ex. log(price), log1p(mileage_km))."
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#split-train-test-8020",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#split-train-test-8020",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "2) Split train / test (80/20)",
+    "text": "2) Split train / test (80/20)\n\nset.seed(1100)\nid_train &lt;- sample(seq_len(nrow(heart_complete)), size = floor(0.8*nrow(heart_complete)))\ntrain &lt;- heart_complete[id_train, ]\ntest  &lt;- heart_complete[-id_train, ]"
   },
   {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#modèle-de-base-6-prédicteurs",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#modèle-de-base-6-prédicteurs",
-    "title": "Challenge — Prix de voitures",
-    "section": "3) Modèle de base (≤ 6 prédicteurs)",
-    "text": "3) Modèle de base (≤ 6 prédicteurs)\n\nmod0 &lt;- lm(price ~ year + mileage_km + fuel + transmission + seller_type, data = cars_complete)\nsummary(mod0)\n\n\n\n\n\n\n\nNote\n\n\n\nQuestions\n- Quel prédicteur a l’effet le plus fort (en valeur absolue) ?\n- Interprétez l’effet de transmission (manuelle vs auto) toutes choses égales par ailleurs."
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#modèle-logistique-base",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#modèle-logistique-base",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "3) Modèle logistique (base)",
+    "text": "3) Modèle logistique (base)\n\n# Modèle simple et interprétable (ajustez au besoin)\nm &lt;- glm(target ~ sex + age + cp + thalach + exang + oldpeak,\n         data = train, family = binomial())\n\n# Odds ratios + IC\nbroom::tidy(m, exponentiate = TRUE, conf.int = TRUE) %&gt;%\n  arrange(desc(estimate))\n\n\n\n\n\n\n\nNote\n\n\n\nLecture\n- exp(beta) = odds ratio : multiplicateur de l’odds de maladie pour +1 unité (continu) ou vs la référence (catégoriel).\n- Exemple : OR(sex=1) = 2.0 ⇒ hommes avec 2× plus d’odds de maladie (vs femmes), toutes choses égales par ailleurs."
   },
   {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#variante-avec-transformation",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#variante-avec-transformation",
-    "title": "Challenge — Prix de voitures",
-    "section": "4) Variante avec transformation",
-    "text": "4) Variante avec transformation\n\nmod1 &lt;- lm(log(price) ~ year + log1p(mileage_km) + fuel + transmission + seller_type, data = cars_complete)\nbroom::glance(mod0)[,c(\"r.squared\",\"AIC\",\"BIC\")]\nbroom::glance(mod1)[,c(\"r.squared\",\"AIC\",\"BIC\")]\nbroom::tidy(mod1) %&gt;% head()\n\n\n\n\n\n\n\nTip\n\n\n\nInterprétation (log-prix)\n- Un coefficient sur year ≈ variation en % de prix par année supplémentaire (petite pente).\n- log1p(mileage_km) : élasticité approximative au kilométrage."
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#prédictions-matrice-de-confusion-seuil-0.5",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#prédictions-matrice-de-confusion-seuil-0.5",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "4) Prédictions & matrice de confusion (seuil 0.5)",
+    "text": "4) Prédictions & matrice de confusion (seuil 0.5)\n\nprob_test &lt;- predict(m, newdata = test, type = \"response\")\npred_05 &lt;- factor(ifelse(prob_test &gt;= 0.5, \"1\", \"0\"), levels = c(\"0\",\"1\"))\ntab_05 &lt;- table(Truth = test$target, Pred = pred_05)\ntab_05\n\n\n# Mesures simples\nTP &lt;- ifelse(\"1\" %in% rownames(tab_05), tab_05[\"1\",\"1\"], 0)\nTN &lt;- ifelse(\"0\" %in% rownames(tab_05), tab_05[\"0\",\"0\"], 0)\nFP &lt;- ifelse(\"0\" %in% rownames(tab_05), tab_05[\"0\",\"1\"], 0)\nFN &lt;- ifelse(\"1\" %in% rownames(tab_05), tab_05[\"1\",\"0\"], 0)\n\naccuracy &lt;- (TP + TN) / sum(tab_05)\nsensitivity &lt;- TP / (TP + FN)\nspecificity &lt;- TN / (TN + FP)\ncbind(accuracy = accuracy, sensitivity = sensitivity, specificity = specificity)\n\n\n\n\n\n\n\nWarning\n\n\n\nSeuil 0.5 : souvent non optimal, surtout si la classe positive est minoritaire ou si les coûts FN/FP sont asymétriques."
   },
   {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#option-diagnostics-rapides",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#option-diagnostics-rapides",
-    "title": "Challenge — Prix de voitures",
-    "section": "5) (Option) Diagnostics rapides",
-    "text": "5) (Option) Diagnostics rapides\n\npar(mfrow=c(2,2)); plot(mod1); par(mfrow=c(1,1))\n# car::vif(mod1)\n\n\n\n\n\n\n\nWarning\n\n\n\nAttention\n- Colinéarité possible entre year et owner (ou d’autres variables).\n- Valeurs extrêmes (prix/vehicules premium) pouvant influencer fortement les coefficients."
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#roc-auc",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#roc-auc",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "5) ROC & AUC",
+    "text": "5) ROC & AUC\n\nroc_obj &lt;- pROC::roc(response = test$target, predictor = prob_test, levels = c(\"0\",\"1\"))\npROC::auc(roc_obj)\n# plot(roc_obj)  # décommentez pour tracer\n\n\n\n\n\n\n\nNote\n\n\n\nInterprétation : AUC = probabilité qu’un patient malade ait une proba prédite plus élevée qu’un patient sain, tirés au hasard."
   },
   {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#restitution-équipe",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#restitution-équipe",
-    "title": "Challenge — Prix de voitures",
-    "section": "6) Restitution (équipe)",
-    "text": "6) Restitution (équipe)\n\nExpliquez un effet majeur (ex. transmission, fuel, year) avec une phrase claire pour un public non technique.\n\nComparez mod0 vs mod1 (AIC/BIC, R²) → quel modèle retenez-vous, et pourquoi ?\n\nLimites : mentionnez au moins une limite de votre modèle (données, hypothèses, variables manquantes)."
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#choix-de-seuil-par-coûts-différenciés",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#choix-de-seuil-par-coûts-différenciés",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "6) Choix de seuil par coûts différenciés",
+    "text": "6) Choix de seuil par coûts différenciés\n\n# Adapter les coûts selon le contexte clinique\ncost_fp &lt;- 1   # coût d'un faux positif\ncost_fn &lt;- 5   # coût d'un faux négatif (souvent plus grave)\n\nths &lt;- seq(0.01, 0.99, by = 0.01)\ngrid &lt;- do.call(rbind, lapply(ths, function(t) {\n  pred &lt;- factor(ifelse(prob_test &gt;= t, \"1\", \"0\"), levels = c(\"0\",\"1\"))\n  FP &lt;- sum(test$target == \"0\" & pred == \"1\")\n  FN &lt;- sum(test$target == \"1\" & pred == \"0\")\n  data.frame(threshold = t, FP = FP, FN = FN, expected_cost = cost_fp*FP + cost_fn*FN)\n}))\n\nbest_idx &lt;- which.min(grid$expected_cost)\nbest_threshold &lt;- grid-&gt;threshold[best_idx]\nbest_threshold\n\n\n# Matrice de confusion au meilleur seuil\npred_best &lt;- factor(ifelse(prob_test &gt;= best_threshold, \"1\", \"0\"), levels = c(\"0\",\"1\"))\ntab_best &lt;- table(Truth = test$target, Pred = pred_best)\ntab_best"
   },
   {
-    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#bonus",
-    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#bonus",
-    "title": "Challenge — Prix de voitures",
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#option-calibration-par-déciles",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#option-calibration-par-déciles",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "7) (Option) Calibration par déciles",
+    "text": "7) (Option) Calibration par déciles\n\ncuts &lt;- quantile(prob_test, probs = seq(0,1,by=.1), na.rm = TRUE)\ngrp &lt;- cut(prob_test, breaks = unique(cuts), include.lowest = TRUE)\ncalib &lt;- test %&gt;%\n  mutate(prob = prob_test, grp = grp) %&gt;%\n  group_by(grp) %&gt;%\n  summarise(obs_rate = mean(target == \"1\"), pred_mean = mean(prob), .groups = \"drop\")\ncalib\n# ggplot(calib, aes(pred_mean, obs_rate)) + geom_point() + geom_abline(slope=1, intercept=0, linetype=2)\n\n\n\n\n\n\n\nTip\n\n\n\nLecture : Points proches de la diagonale ⇒ proba bien calibrées ; au-dessus ⇒ sur-estimation ; en-dessous ⇒ sous-estimation."
+  },
+  {
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#restitution-équipe",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#restitution-équipe",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
+    "section": "8) Restitution (équipe)",
+    "text": "8) Restitution (équipe)\n\nExpliquez un effet majeur (ex. cp, sex, thalach) en langage simple pour un public non technique.\n\nComparez le seuil 0.5 au seuil optimal selon les coûts ; justifiez le choix.\n\nLimites : discutez au moins une limite (biais d’échantillon, variables manquantes, séparation, calibration)."
+  },
+  {
+    "objectID": "atelier2_reg_log/missions/Challenge_logistique.html#bonus",
+    "href": "atelier2_reg_log/missions/Challenge_logistique.html#bonus",
+    "title": "Challenge — Régression logistique (Heart Disease UCI)",
     "section": "⭐ Bonus",
-    "text": "⭐ Bonus\n\nAjoutez interaction(year:transmission) si vous suspectez un effet différent selon la transmission.\n\nCherchez un point influent (distance de Cook) et discutez s’il faut l’exclure.\n\nProposez une variable métier à ajouter (ex. historique d’entretien, accidents, options)."
+    "text": "⭐ Bonus\n\nAjouter une interaction (ex. sex:age) et discuter sa pertinence.\n\nComparer un modèle simple (age + sex) vs complet (variables cliniques) : AUC, sens/spéc.\n\nTester une transformation (ex. binariser age &gt; 50), et commenter l’impact sur l’interprétation."
   },
   {
-    "objectID": "atelier1_reg_lin/corriges/M1_ames_corrige.html",
-    "href": "atelier1_reg_lin/corriges/M1_ames_corrige.html",
-    "title": "Corrigé — Mission 1 Ames",
+    "objectID": "atelier2_reg_log/corriges/M1_titanic_corrige.html",
+    "href": "atelier2_reg_log/corriges/M1_titanic_corrige.html",
+    "title": "Corrigé — Mission 1 Titanic",
     "section": "",
-    "text": "Note\n\n\n\nNote : Une solution possible parmi d’autres raisonnables.\nLes chiffres peuvent varier selon l’échantillonnage et les versions de paquets.\n# Exemple de solution commentée\nsource(\"../../utils/requirements.R\")\nlibrary(AmesHousing); library(broom); library(performance); library(car); library(dplyr)\nset.seed(123)\names &lt;- make_ames() %&gt;% janitor::clean_names()\nmod &lt;- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)\nsummary(mod)\n\n\nCall:\nlm(formula = sale_price ~ gr_liv_area + overall_qual + year_built + \n    full_bath + garage_cars, data = ames)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-442829  -17192    -901   14649  225492 \n\nCoefficients:\n                             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)                -9.190e+05  6.013e+04 -15.284  &lt; 2e-16 ***\ngr_liv_area                 5.690e+01  1.897e+00  29.993  &lt; 2e-16 ***\noverall_qualPoor            1.965e+04  1.964e+04   1.000 0.317338    \noverall_qualFair            2.906e+04  1.802e+04   1.612 0.107034    \noverall_qualBelow_Average   3.808e+04  1.733e+04   2.198 0.028046 *  \noverall_qualAverage         5.348e+04  1.723e+04   3.105 0.001923 ** \noverall_qualAbove_Average   6.070e+04  1.727e+04   3.515 0.000446 ***\noverall_qualGood            7.858e+04  1.735e+04   4.530 6.12e-06 ***\noverall_qualVery_Good       1.230e+05  1.744e+04   7.053 2.17e-12 ***\noverall_qualExcellent       2.013e+05  1.773e+04  11.356  &lt; 2e-16 ***\noverall_qualVery_Excellent  2.424e+05  1.862e+04  13.022  &lt; 2e-16 ***\nyear_built                  4.686e+02  2.968e+01  15.789  &lt; 2e-16 ***\nfull_bath                  -4.496e+03  1.670e+03  -2.692 0.007140 ** \ngarage_cars                 1.318e+04  1.136e+03  11.600  &lt; 2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 34330 on 2916 degrees of freedom\nMultiple R-squared:  0.8162,    Adjusted R-squared:  0.8154 \nF-statistic: 996.1 on 13 and 2916 DF,  p-value: &lt; 2.2e-16\n\nperformance::check_collinearity(mod)\n\n# Check for Multicollinearity\n\nLow Correlation\n\n         Term  VIF   VIF 95% CI adj. VIF Tolerance Tolerance 95% CI\n  gr_liv_area 2.29 [2.16, 2.42]     1.51      0.44     [0.41, 0.46]\n overall_qual 2.63 [2.48, 2.79]     1.06      0.38     [0.36, 0.40]\n   year_built 2.00 [1.90, 2.12]     1.42      0.50     [0.47, 0.53]\n    full_bath 2.12 [2.01, 2.24]     1.46      0.47     [0.45, 0.50]\n  garage_cars 1.86 [1.77, 1.96]     1.36      0.54     [0.51, 0.57]\n\ncar::ncvTest(mod)\n\nNon-constant Variance Score Test \nVariance formula: ~ fitted.values \nChisquare = 4219.156, Df = 1, p = &lt; 2.22e-16\n\n# Interprétations clés et alternatives (texte libre dans le document)"
+    "text": "# Exemple de solution commentée\nsource(\"../../utils/requirements.R\")\nlibrary(titanic); data(\"titanic_train\")\ndf &lt;- titanic_train %&gt;% janitor::clean_names() %&gt;%\n mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %&gt;%\n tidyr::drop_na(age)\nmod &lt;- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)\nsummary(mod); exp(coef(mod))\n\n\nCall:\nglm(formula = survived ~ sex + pclass + age + sib_sp + parch + \n    fare, family = binomial, data = df)\n\nCoefficients:\n             Estimate Std. Error z value Pr(&gt;|z|)    \n(Intercept)  4.179995   0.503420   8.303  &lt; 2e-16 ***\nsexmale     -2.637451   0.220077 -11.984  &lt; 2e-16 ***\npclass2     -1.292538   0.321756  -4.017 5.89e-05 ***\npclass3     -2.501069   0.338744  -7.383 1.54e-13 ***\nage         -0.044159   0.008264  -5.343 9.12e-08 ***\nsib_sp      -0.376847   0.127483  -2.956  0.00312 ** \nparch       -0.061268   0.122927  -0.498  0.61820    \nfare         0.002043   0.002564   0.797  0.42543    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n(Dispersion parameter for binomial family taken to be 1)\n\n    Null deviance: 964.52  on 713  degrees of freedom\nResidual deviance: 635.78  on 706  degrees of freedom\nAIC: 651.78\n\nNumber of Fisher Scoring iterations: 5\n\n\n(Intercept)     sexmale     pclass2     pclass3         age      sib_sp \n65.36551425  0.07154337  0.27457309  0.08199731  0.95680222  0.68602126 \n      parch        fare \n 0.94057105  1.00204540 \n\n# Commentaires d'interprétation à compléter lors du débrief."
   },
   {
-    "objectID": "atelier1_reg_lin/corriges/M1_ames_corrige.html#conseils-de-présentation",
-    "href": "atelier1_reg_lin/corriges/M1_ames_corrige.html#conseils-de-présentation",
-    "title": "Corrigé — Mission 1 Ames",
+    "objectID": "atelier2_reg_log/corriges/M1_titanic_corrige.html#conseils-de-présentation",
+    "href": "atelier2_reg_log/corriges/M1_titanic_corrige.html#conseils-de-présentation",
+    "title": "Corrigé — Mission 1 Titanic",
     "section": "Conseils de présentation",
     "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Accueil",
-    "section": "",
-    "text": "Bienvenue sur le site des Ateliers EIOM 2025, consacrés à la découverte et à la pratique de la régression linéaire multiple et de la régression logistique.\nIci, vous trouverez :\n- des diapositives claires pour la théorie,\n- des missions pratiques pas à pas,\n- et des ressources complémentaires pour aller plus loin.\n\n\n\n\nAtelier 1 — Régression linéaire multiple\nExplorer les relations entre une variable quantitative et plusieurs prédicteurs.\n👉 Modélisation avec lm(), diagnostics, interprétation des coefficients.\nAtelier 2 — Régression logistique\nModéliser une réponse binaire (Oui/Non).\n👉 Modélisation avec glm(), interprétation en termes d’odds ratio, ROC, AUC et choix de seuils.\n\n\n\n\n\nConsultez la section Préparation pour installer les librairies nécessaires en R et configurer votre environnement."
-  },
-  {
-    "objectID": "index.html#contenus-des-ateliers",
-    "href": "index.html#contenus-des-ateliers",
-    "title": "Accueil",
-    "section": "",
-    "text": "Atelier 1 — Régression linéaire multiple\nExplorer les relations entre une variable quantitative et plusieurs prédicteurs.\n👉 Modélisation avec lm(), diagnostics, interprétation des coefficients.\nAtelier 2 — Régression logistique\nModéliser une réponse binaire (Oui/Non).\n👉 Modélisation avec glm(), interprétation en termes d’odds ratio, ROC, AUC et choix de seuils."
-  },
-  {
-    "objectID": "index.html#avant-de-commencer",
-    "href": "index.html#avant-de-commencer",
-    "title": "Accueil",
-    "section": "",
-    "text": "Consultez la section Préparation pour installer les librairies nécessaires en R et configurer votre environnement."
-  },
-  {
-    "objectID": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html",
-    "href": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html",
-    "title": "Corrigé — Challenge voitures",
-    "section": "",
-    "text": "Proposition de solution structurée selon le CSV utilisé (à compléter en atelier selon la source).\nRappels : encodage catégoriel, transformation des prédicteurs, diagnostics rapides."
-  },
-  {
-    "objectID": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html#conseils-de-présentation",
-    "href": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html#conseils-de-présentation",
-    "title": "Corrigé — Challenge voitures",
-    "section": "Conseils de présentation",
-    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
-  },
-  {
-    "objectID": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html",
-    "href": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html",
-    "title": "Corrigé — Mission 2 Ames",
-    "section": "",
-    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); set.seed(42); library(dplyr)\names &lt;- make_ames()\nidx &lt;- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))\ntrain &lt;- ames[idx,]; test &lt;- ames[-idx,]\nmod &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)\npred &lt;- predict(mod, newdata=test)\nrmse &lt;- sqrt(mean((pred - test$Sale_Price)^2))\nmae &lt;- mean(abs(pred - test$Sale_Price))\nknitr::kable(data.frame(RMSE = rmse, MAE = mae))\n\n\n\n\nRMSE\nMAE\n\n\n\n\n34713.31\n22622.28"
-  },
-  {
-    "objectID": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html#conseils-de-présentation",
-    "href": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html#conseils-de-présentation",
-    "title": "Corrigé — Mission 2 Ames",
-    "section": "Conseils de présentation",
-    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html",
-    "href": "atelier1_reg_lin/missions/M1_ames.html",
-    "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "",
-    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); library(broom); library(performance); library(car); library(GGally); library(dplyr)\nset.seed(123)\names &lt;- make_ames()"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#objectifs",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#objectifs",
-    "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Objectifs",
-    "text": "Objectifs\n\nRéaliser une EDA rapide — identifier les variables candidates\nConstruire un modèle de régression linéaire lm() avec ≤ 6 prédicteurs pertinents\nVérifier les diagnostics — résidus, normalité, homoscédasticité, VIF\nInterpréter les coefficients \\(\\beta\\)"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#étapes-guidées",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#étapes-guidées",
-    "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Étapes guidées",
-    "text": "Étapes guidées\n\n1) Nettoyage minimal\n\names &lt;- ames %&gt;% janitor::clean_names()\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion : Pourquoi est-il important de nettoyer les noms de variables avant de travailler? Quels problèmes cela pourrait-il éviter?\n\n\n\n\n\n2) EDA éclair\n\nGGally::ggpairs(ames %&gt;% dplyr::select(sale_price, gr_liv_area, year_built, overall_qual, full_bath, garage_cars))\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nÀ faire (équipe):\n\nQuelles variables semblent corrélées avec sale_price? Notez les plus pertinentes.\nQuelles relations semblent linéaires? Lesquelles paraissent non linéaires?\nIdentifiez au moins une variable qui pourrait nécessiter une transformation.\n\n\n\n\nAstuce : pensez aux transformations si une relation paraît non linéaire (p. ex. log(sale_price)).\n\n\n\n\n3) Modèle de base\nEssayez de construire votre premier modèle à partir de 4 à 6 variables qui vous semblent pertinentes.\n\nmod &lt;- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)\nsummary(mod)\n\n\nCall:\nlm(formula = sale_price ~ gr_liv_area + overall_qual + year_built + \n    full_bath + garage_cars, data = ames)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-442829  -17192    -901   14649  225492 \n\nCoefficients:\n                             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)                -9.190e+05  6.013e+04 -15.284  &lt; 2e-16 ***\ngr_liv_area                 5.690e+01  1.897e+00  29.993  &lt; 2e-16 ***\noverall_qualPoor            1.965e+04  1.964e+04   1.000 0.317338    \noverall_qualFair            2.906e+04  1.802e+04   1.612 0.107034    \noverall_qualBelow_Average   3.808e+04  1.733e+04   2.198 0.028046 *  \noverall_qualAverage         5.348e+04  1.723e+04   3.105 0.001923 ** \noverall_qualAbove_Average   6.070e+04  1.727e+04   3.515 0.000446 ***\noverall_qualGood            7.858e+04  1.735e+04   4.530 6.12e-06 ***\noverall_qualVery_Good       1.230e+05  1.744e+04   7.053 2.17e-12 ***\noverall_qualExcellent       2.013e+05  1.773e+04  11.356  &lt; 2e-16 ***\noverall_qualVery_Excellent  2.424e+05  1.862e+04  13.022  &lt; 2e-16 ***\nyear_built                  4.686e+02  2.968e+01  15.789  &lt; 2e-16 ***\nfull_bath                  -4.496e+03  1.670e+03  -2.692 0.007140 ** \ngarage_cars                 1.318e+04  1.136e+03  11.600  &lt; 2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 34330 on 2916 degrees of freedom\nMultiple R-squared:  0.8162,    Adjusted R-squared:  0.8154 \nF-statistic: 996.1 on 13 and 2916 DF,  p-value: &lt; 2.2e-16\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion :\n\nQuels sont les coefficients estimés? Que signifient-ils dans le contexte du prix des maisons?\nQuels prédicteurs sont significatifs? Comment l’interprétez-vous?\nQuelle est la valeur du \\(R^2\\)? Est-elle satisfaisante?\n\n\n\n\n\n\n4) Diagnostics\n\npar(mfrow=c(2,2)); plot(mod); par(mfrow=c(1,1))\n\n\n\n\n\n\n\nperformance::check_collinearity(mod)\n\n# Check for Multicollinearity\n\nLow Correlation\n\n         Term  VIF   VIF 95% CI adj. VIF Tolerance Tolerance 95% CI\n  gr_liv_area 2.29 [2.16, 2.42]     1.51      0.44     [0.41, 0.46]\n overall_qual 2.63 [2.48, 2.79]     1.06      0.38     [0.36, 0.40]\n   year_built 2.00 [1.90, 2.12]     1.42      0.50     [0.47, 0.53]\n    full_bath 2.12 [2.01, 2.24]     1.46      0.47     [0.45, 0.50]\n  garage_cars 1.86 [1.77, 1.96]     1.36      0.54     [0.51, 0.57]\n\ncar::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan\n\nNon-constant Variance Score Test \nVariance formula: ~ fitted.values \nChisquare = 4219.156, Df = 1, p = &lt; 2.22e-16\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestions de réflexion :\n\nQue remarquez-vous sur le QQ-plot? Les résidus sont-ils approximativement normaux?\nY a-t-il des indices de variance non constante? Quelles en seraient les conséquences?\nLe VIF suggère-t-il de la multicolinéarité?\n\n\n\n\n\n\n5) Interprétation\n\nExemple : \\(\\beta_{gr\\_liv\\_area}\\) indique la variation moyenne du prix pour +1 pi².\nPour comparer les effets entre variables, testez un modèle standardisé.\n\n\nmod_std &lt;- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(as.numeric(overall_qual)) + scale(year_built) + scale(full_bath) + scale(garage_cars),\n data = ames)\nbroom::tidy(mod_std)\n\n# A tibble: 6 × 5\n  term                             estimate std.error statistic    p.value\n  &lt;chr&gt;                               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;\n1 (Intercept)                      5.63e-16   0.00891  6.32e-14 1.000e+  0\n2 scale(gr_liv_area)               4.03e- 1   0.0132   3.04e+ 1 9.73 e-177\n3 scale(as.numeric(overall_qual))  4.24e- 1   0.0136   3.11e+ 1 2.55 e-183\n4 scale(year_built)                1.67e- 1   0.0125   1.33e+ 1 3.21 e- 39\n5 scale(full_bath)                -7.63e- 2   0.0127  -6.02e+ 0 1.92 e-  9\n6 scale(garage_cars)               1.44e- 1   0.0121   1.19e+ 1 6.12 e- 32\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion :\n\nQuelle variable a le plus grand effet relatif? Est-ce cohérent avec vos attentes?\nComment interprétez-vous les coefficients standardisés?\nY a-t-il des signes inattendus? Comment les expliqueriez-vous?"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#travail-déquipe",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#travail-déquipe",
-    "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Travail d’équipe",
-    "text": "Travail d’équipe\n\nQuelle variable a l’effet le plus fort ? Justifiez via les coefficients standardisés.\nY a-t-il des signes inattendus ? Proposez une explication.\nQue raconte le QQ-plot des résidus ?\nProposez une variable que vous auriez pu inclure mais que vous avez laissée de côté. Pourquoi?"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#discussion-collective",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#discussion-collective",
-    "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Discussion collective",
-    "text": "Discussion collective\n\nSélection raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)\nVariables corrélées et VIF: seuils et bons réflexes\nComment présenter un modèle imparfait à un non-spécialiste?"
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-approfondis",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-approfondis",
-    "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Points de discussion — approfondis",
-    "text": "Points de discussion — approfondis\n\nJustification avec un expert des variables incluses ou exclues (au-delà des p-valeurs).\nStabilité des coefficients : colinéarité, sous-échantillonnage répété (validation).\nÉthique & communication : comment présenter l’incertitude à un public non technique.\nReproductibilité : graine aléatoire, sessionInfo(), versionnage du code."
-  },
-  {
-    "objectID": "atelier1_reg_lin/missions/M1_ames.html#questions-bonus",
-    "href": "atelier1_reg_lin/missions/M1_ames.html#questions-bonus",
-    "title": "Mission 1 — Ames: modéliser le prix",
-    "section": "Questions bonus",
-    "text": "Questions bonus\n\nProposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.\nIdentifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).\nImaginez un scénario où une variable est très significative statistiquement mais peu pertinente dans la réalité. Que faites-vous?"
   },
   {
     "objectID": "atelier1_reg_lin/slides_atelier1.html#brise-glace",
@@ -455,16 +280,282 @@
     "text": "Allez plus loin\nOuvrir missions/Challenge_voitures.qmd"
   },
   {
-    "objectID": "atelier2_reg_log/corriges/M1_titanic_corrige.html",
-    "href": "atelier2_reg_log/corriges/M1_titanic_corrige.html",
-    "title": "Corrigé — Mission 1 Titanic",
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html",
+    "href": "atelier1_reg_lin/missions/M1_ames.html",
+    "title": "Mission 1 — Ames: modéliser le prix",
     "section": "",
-    "text": "# Exemple de solution commentée\nsource(\"../../utils/requirements.R\")\nlibrary(titanic); data(\"titanic_train\")\ndf &lt;- titanic_train %&gt;% janitor::clean_names() %&gt;%\n mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %&gt;%\n tidyr::drop_na(age)\nmod &lt;- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)\nsummary(mod); exp(coef(mod))\n\n\nCall:\nglm(formula = survived ~ sex + pclass + age + sib_sp + parch + \n    fare, family = binomial, data = df)\n\nCoefficients:\n             Estimate Std. Error z value Pr(&gt;|z|)    \n(Intercept)  4.179995   0.503420   8.303  &lt; 2e-16 ***\nsexmale     -2.637451   0.220077 -11.984  &lt; 2e-16 ***\npclass2     -1.292538   0.321756  -4.017 5.89e-05 ***\npclass3     -2.501069   0.338744  -7.383 1.54e-13 ***\nage         -0.044159   0.008264  -5.343 9.12e-08 ***\nsib_sp      -0.376847   0.127483  -2.956  0.00312 ** \nparch       -0.061268   0.122927  -0.498  0.61820    \nfare         0.002043   0.002564   0.797  0.42543    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n(Dispersion parameter for binomial family taken to be 1)\n\n    Null deviance: 964.52  on 713  degrees of freedom\nResidual deviance: 635.78  on 706  degrees of freedom\nAIC: 651.78\n\nNumber of Fisher Scoring iterations: 5\n\n\n(Intercept)     sexmale     pclass2     pclass3         age      sib_sp \n65.36551425  0.07154337  0.27457309  0.08199731  0.95680222  0.68602126 \n      parch        fare \n 0.94057105  1.00204540 \n\n# Commentaires d'interprétation à compléter lors du débrief."
+    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); library(broom); library(performance); library(car); library(GGally); library(dplyr)\nset.seed(123)\names &lt;- make_ames()"
   },
   {
-    "objectID": "atelier2_reg_log/corriges/M1_titanic_corrige.html#conseils-de-présentation",
-    "href": "atelier2_reg_log/corriges/M1_titanic_corrige.html#conseils-de-présentation",
-    "title": "Corrigé — Mission 1 Titanic",
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#objectifs",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#objectifs",
+    "title": "Mission 1 — Ames: modéliser le prix",
+    "section": "Objectifs",
+    "text": "Objectifs\n\nRéaliser une EDA rapide — identifier les variables candidates\nConstruire un modèle de régression linéaire lm() avec ≤ 6 prédicteurs pertinents\nVérifier les diagnostics — résidus, normalité, homoscédasticité, VIF\nInterpréter les coefficients \\(\\beta\\)"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#étapes-guidées",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#étapes-guidées",
+    "title": "Mission 1 — Ames: modéliser le prix",
+    "section": "Étapes guidées",
+    "text": "Étapes guidées\n\n1) Nettoyage minimal\n\names &lt;- ames %&gt;% janitor::clean_names()\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion : Pourquoi est-il important de nettoyer les noms de variables avant de travailler? Quels problèmes cela pourrait-il éviter?\n\n\n\n\n\n2) EDA éclair\n\nGGally::ggpairs(ames %&gt;% dplyr::select(sale_price, gr_liv_area, year_built, overall_qual, full_bath, garage_cars))\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nÀ faire (équipe):\n\nQuelles variables semblent corrélées avec sale_price? Notez les plus pertinentes.\nQuelles relations semblent linéaires? Lesquelles paraissent non linéaires?\nIdentifiez au moins une variable qui pourrait nécessiter une transformation.\n\n\n\n\nAstuce : pensez aux transformations si une relation paraît non linéaire (p. ex. log(sale_price)).\n\n\n\n\n3) Modèle de base\nEssayez de construire votre premier modèle à partir de 4 à 6 variables qui vous semblent pertinentes.\n\nmod &lt;- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)\nsummary(mod)\n\n\nCall:\nlm(formula = sale_price ~ gr_liv_area + overall_qual + year_built + \n    full_bath + garage_cars, data = ames)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-442829  -17192    -901   14649  225492 \n\nCoefficients:\n                             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)                -9.190e+05  6.013e+04 -15.284  &lt; 2e-16 ***\ngr_liv_area                 5.690e+01  1.897e+00  29.993  &lt; 2e-16 ***\noverall_qualPoor            1.965e+04  1.964e+04   1.000 0.317338    \noverall_qualFair            2.906e+04  1.802e+04   1.612 0.107034    \noverall_qualBelow_Average   3.808e+04  1.733e+04   2.198 0.028046 *  \noverall_qualAverage         5.348e+04  1.723e+04   3.105 0.001923 ** \noverall_qualAbove_Average   6.070e+04  1.727e+04   3.515 0.000446 ***\noverall_qualGood            7.858e+04  1.735e+04   4.530 6.12e-06 ***\noverall_qualVery_Good       1.230e+05  1.744e+04   7.053 2.17e-12 ***\noverall_qualExcellent       2.013e+05  1.773e+04  11.356  &lt; 2e-16 ***\noverall_qualVery_Excellent  2.424e+05  1.862e+04  13.022  &lt; 2e-16 ***\nyear_built                  4.686e+02  2.968e+01  15.789  &lt; 2e-16 ***\nfull_bath                  -4.496e+03  1.670e+03  -2.692 0.007140 ** \ngarage_cars                 1.318e+04  1.136e+03  11.600  &lt; 2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 34330 on 2916 degrees of freedom\nMultiple R-squared:  0.8162,    Adjusted R-squared:  0.8154 \nF-statistic: 996.1 on 13 and 2916 DF,  p-value: &lt; 2.2e-16\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion :\n\nQuels sont les coefficients estimés? Que signifient-ils dans le contexte du prix des maisons?\nQuels prédicteurs sont significatifs? Comment l’interprétez-vous?\nQuelle est la valeur du \\(R^2\\)? Est-elle satisfaisante?\n\n\n\n\n\n\n4) Diagnostics\n\npar(mfrow=c(2,2)); plot(mod); par(mfrow=c(1,1))\n\n\n\n\n\n\n\nperformance::check_collinearity(mod)\n\n# Check for Multicollinearity\n\nLow Correlation\n\n         Term  VIF   VIF 95% CI adj. VIF Tolerance Tolerance 95% CI\n  gr_liv_area 2.29 [2.16, 2.42]     1.51      0.44     [0.41, 0.46]\n overall_qual 2.63 [2.48, 2.79]     1.06      0.38     [0.36, 0.40]\n   year_built 2.00 [1.90, 2.12]     1.42      0.50     [0.47, 0.53]\n    full_bath 2.12 [2.01, 2.24]     1.46      0.47     [0.45, 0.50]\n  garage_cars 1.86 [1.77, 1.96]     1.36      0.54     [0.51, 0.57]\n\ncar::ncvTest(mod) # test d'homoscédasticité de Breusch-Pagan\n\nNon-constant Variance Score Test \nVariance formula: ~ fitted.values \nChisquare = 4219.156, Df = 1, p = &lt; 2.22e-16\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestions de réflexion :\n\nQue remarquez-vous sur le QQ-plot? Les résidus sont-ils approximativement normaux?\nY a-t-il des indices de variance non constante? Quelles en seraient les conséquences?\nLe VIF suggère-t-il de la multicolinéarité?\n\n\n\n\n\n\n5) Interprétation\n\nExemple : \\(\\beta_{gr\\_liv\\_area}\\) indique la variation moyenne du prix pour +1 pi².\nPour comparer les effets entre variables, testez un modèle standardisé.\n\n\nmod_std &lt;- lm(scale(sale_price) ~ scale(gr_liv_area) + scale(as.numeric(overall_qual)) + scale(year_built) + scale(full_bath) + scale(garage_cars),\n data = ames)\nbroom::tidy(mod_std)\n\n# A tibble: 6 × 5\n  term                             estimate std.error statistic    p.value\n  &lt;chr&gt;                               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;\n1 (Intercept)                      5.63e-16   0.00891  6.32e-14 1.000e+  0\n2 scale(gr_liv_area)               4.03e- 1   0.0132   3.04e+ 1 9.73 e-177\n3 scale(as.numeric(overall_qual))  4.24e- 1   0.0136   3.11e+ 1 2.55 e-183\n4 scale(year_built)                1.67e- 1   0.0125   1.33e+ 1 3.21 e- 39\n5 scale(full_bath)                -7.63e- 2   0.0127  -6.02e+ 0 1.92 e-  9\n6 scale(garage_cars)               1.44e- 1   0.0121   1.19e+ 1 6.12 e- 32\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion :\n\nQuelle variable a le plus grand effet relatif? Est-ce cohérent avec vos attentes?\nComment interprétez-vous les coefficients standardisés?\nY a-t-il des signes inattendus? Comment les expliqueriez-vous?"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#travail-déquipe",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#travail-déquipe",
+    "title": "Mission 1 — Ames: modéliser le prix",
+    "section": "Travail d’équipe",
+    "text": "Travail d’équipe\n\nQuelle variable a l’effet le plus fort ? Justifiez via les coefficients standardisés.\nY a-t-il des signes inattendus ? Proposez une explication.\nQue raconte le QQ-plot des résidus ?\nProposez une variable que vous auriez pu inclure mais que vous avez laissée de côté. Pourquoi?"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#discussion-collective",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#discussion-collective",
+    "title": "Mission 1 — Ames: modéliser le prix",
+    "section": "Discussion collective",
+    "text": "Discussion collective\n\nSélection raisonnée vs. pas à pas (pourquoi éviter l’automatisme aveugle)\nVariables corrélées et VIF: seuils et bons réflexes\nComment présenter un modèle imparfait à un non-spécialiste?"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-approfondis",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#points-de-discussion-approfondis",
+    "title": "Mission 1 — Ames: modéliser le prix",
+    "section": "Points de discussion — approfondis",
+    "text": "Points de discussion — approfondis\n\nJustification avec un expert des variables incluses ou exclues (au-delà des p-valeurs).\nStabilité des coefficients : colinéarité, sous-échantillonnage répété (validation).\nÉthique & communication : comment présenter l’incertitude à un public non technique.\nReproductibilité : graine aléatoire, sessionInfo(), versionnage du code."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M1_ames.html#questions-bonus",
+    "href": "atelier1_reg_lin/missions/M1_ames.html#questions-bonus",
+    "title": "Mission 1 — Ames: modéliser le prix",
+    "section": "Questions bonus",
+    "text": "Questions bonus\n\nProposez une transformation (log, standardisation, polynomial) pour un prédicteur et justifiez-la.\nIdentifiez un point potentiellement influent et discutez s’il faut l’exclure (et pourquoi).\nImaginez un scénario où une variable est très significative statistiquement mais peu pertinente dans la réalité. Que faites-vous?"
+  },
+  {
+    "objectID": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html",
+    "href": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html",
+    "title": "Corrigé — Mission 2 Ames",
+    "section": "",
+    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); set.seed(42); library(dplyr)\names &lt;- make_ames()\nidx &lt;- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))\ntrain &lt;- ames[idx,]; test &lt;- ames[-idx,]\nmod &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)\npred &lt;- predict(mod, newdata=test)\nrmse &lt;- sqrt(mean((pred - test$Sale_Price)^2))\nmae &lt;- mean(abs(pred - test$Sale_Price))\nknitr::kable(data.frame(RMSE = rmse, MAE = mae))\n\n\n\n\nRMSE\nMAE\n\n\n\n\n34713.31\n22622.28"
+  },
+  {
+    "objectID": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html#conseils-de-présentation",
+    "href": "atelier1_reg_lin/corriges/M2_interpretation_corrige.html#conseils-de-présentation",
+    "title": "Corrigé — Mission 2 Ames",
+    "section": "Conseils de présentation",
+    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
+  },
+  {
+    "objectID": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html",
+    "href": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html",
+    "title": "Corrigé — Challenge voitures",
+    "section": "",
+    "text": "Proposition de solution structurée selon le CSV utilisé (à compléter en atelier selon la source).\nRappels : encodage catégoriel, transformation des prédicteurs, diagnostics rapides."
+  },
+  {
+    "objectID": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html#conseils-de-présentation",
+    "href": "atelier1_reg_lin/corriges/Challenge_voitures_corrige.html#conseils-de-présentation",
+    "title": "Corrigé — Challenge voitures",
+    "section": "Conseils de présentation",
+    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Accueil",
+    "section": "",
+    "text": "Bienvenue sur le site des Ateliers EIOM 2025, consacrés à la découverte et à la pratique de la régression linéaire multiple et de la régression logistique.\nIci, vous trouverez :\n- des diapositives claires pour la théorie,\n- des missions pratiques pas à pas,\n- et des ressources complémentaires pour aller plus loin.\n\n\n\n\nAtelier 1 — Régression linéaire multiple\nExplorer les relations entre une variable quantitative et plusieurs prédicteurs.\n👉 Modélisation avec lm(), diagnostics, interprétation des coefficients.\nAtelier 2 — Régression logistique\nModéliser une réponse binaire (Oui/Non).\n👉 Modélisation avec glm(), interprétation en termes d’odds ratio, ROC, AUC et choix de seuils.\n\n\n\n\n\nConsultez la section Préparation pour installer les librairies nécessaires en R et configurer votre environnement."
+  },
+  {
+    "objectID": "index.html#contenus-des-ateliers",
+    "href": "index.html#contenus-des-ateliers",
+    "title": "Accueil",
+    "section": "",
+    "text": "Atelier 1 — Régression linéaire multiple\nExplorer les relations entre une variable quantitative et plusieurs prédicteurs.\n👉 Modélisation avec lm(), diagnostics, interprétation des coefficients.\nAtelier 2 — Régression logistique\nModéliser une réponse binaire (Oui/Non).\n👉 Modélisation avec glm(), interprétation en termes d’odds ratio, ROC, AUC et choix de seuils."
+  },
+  {
+    "objectID": "index.html#avant-de-commencer",
+    "href": "index.html#avant-de-commencer",
+    "title": "Accueil",
+    "section": "",
+    "text": "Consultez la section Préparation pour installer les librairies nécessaires en R et configurer votre environnement."
+  },
+  {
+    "objectID": "atelier1_reg_lin/corriges/M1_ames_corrige.html",
+    "href": "atelier1_reg_lin/corriges/M1_ames_corrige.html",
+    "title": "Corrigé — Mission 1 Ames",
+    "section": "",
+    "text": "Note\n\n\n\nNote : Une solution possible parmi d’autres raisonnables.\nLes chiffres peuvent varier selon l’échantillonnage et les versions de paquets.\n# Exemple de solution commentée\nsource(\"../../utils/requirements.R\")\nlibrary(AmesHousing); library(broom); library(performance); library(car); library(dplyr)\nset.seed(123)\names &lt;- make_ames() %&gt;% janitor::clean_names()\nmod &lt;- lm(sale_price ~ gr_liv_area + overall_qual + year_built + full_bath + garage_cars, data = ames)\nsummary(mod)\n\n\nCall:\nlm(formula = sale_price ~ gr_liv_area + overall_qual + year_built + \n    full_bath + garage_cars, data = ames)\n\nResiduals:\n    Min      1Q  Median      3Q     Max \n-442829  -17192    -901   14649  225492 \n\nCoefficients:\n                             Estimate Std. Error t value Pr(&gt;|t|)    \n(Intercept)                -9.190e+05  6.013e+04 -15.284  &lt; 2e-16 ***\ngr_liv_area                 5.690e+01  1.897e+00  29.993  &lt; 2e-16 ***\noverall_qualPoor            1.965e+04  1.964e+04   1.000 0.317338    \noverall_qualFair            2.906e+04  1.802e+04   1.612 0.107034    \noverall_qualBelow_Average   3.808e+04  1.733e+04   2.198 0.028046 *  \noverall_qualAverage         5.348e+04  1.723e+04   3.105 0.001923 ** \noverall_qualAbove_Average   6.070e+04  1.727e+04   3.515 0.000446 ***\noverall_qualGood            7.858e+04  1.735e+04   4.530 6.12e-06 ***\noverall_qualVery_Good       1.230e+05  1.744e+04   7.053 2.17e-12 ***\noverall_qualExcellent       2.013e+05  1.773e+04  11.356  &lt; 2e-16 ***\noverall_qualVery_Excellent  2.424e+05  1.862e+04  13.022  &lt; 2e-16 ***\nyear_built                  4.686e+02  2.968e+01  15.789  &lt; 2e-16 ***\nfull_bath                  -4.496e+03  1.670e+03  -2.692 0.007140 ** \ngarage_cars                 1.318e+04  1.136e+03  11.600  &lt; 2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nResidual standard error: 34330 on 2916 degrees of freedom\nMultiple R-squared:  0.8162,    Adjusted R-squared:  0.8154 \nF-statistic: 996.1 on 13 and 2916 DF,  p-value: &lt; 2.2e-16\n\nperformance::check_collinearity(mod)\n\n# Check for Multicollinearity\n\nLow Correlation\n\n         Term  VIF   VIF 95% CI adj. VIF Tolerance Tolerance 95% CI\n  gr_liv_area 2.29 [2.16, 2.42]     1.51      0.44     [0.41, 0.46]\n overall_qual 2.63 [2.48, 2.79]     1.06      0.38     [0.36, 0.40]\n   year_built 2.00 [1.90, 2.12]     1.42      0.50     [0.47, 0.53]\n    full_bath 2.12 [2.01, 2.24]     1.46      0.47     [0.45, 0.50]\n  garage_cars 1.86 [1.77, 1.96]     1.36      0.54     [0.51, 0.57]\n\ncar::ncvTest(mod)\n\nNon-constant Variance Score Test \nVariance formula: ~ fitted.values \nChisquare = 4219.156, Df = 1, p = &lt; 2.22e-16\n\n# Interprétations clés et alternatives (texte libre dans le document)"
+  },
+  {
+    "objectID": "atelier1_reg_lin/corriges/M1_ames_corrige.html#conseils-de-présentation",
+    "href": "atelier1_reg_lin/corriges/M1_ames_corrige.html#conseils-de-présentation",
+    "title": "Corrigé — Mission 1 Ames",
+    "section": "Conseils de présentation",
+    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html",
+    "title": "Challenge — Prix de voitures",
+    "section": "",
+    "text": "Dataset : Used Car Dataset — Kaggle (auteur: rishabhkarn).\nLien : https://www.kaggle.com/datasets/rishabhkarn/used-car-dataset\n⚠️ Vérifiez la description Kaggle pour les noms exacts** de colonnes** (ils peuvent varier selon la version).\nNoms courants : selling_price (réponse), year, km_driven, fuel, transmission, seller_type, owner, name."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#objectif",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#objectif",
+    "title": "Challenge — Prix de voitures",
+    "section": "🎯 Objectif",
+    "text": "🎯 Objectif\nConstruire un modèle de régression linéaire multiple lm() pour expliquer le prix d’une voiture d’occasion et interpréter au moins un effet majeur."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#préparation",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#préparation",
+    "title": "Challenge — Prix de voitures",
+    "section": "0) Préparation",
+    "text": "0) Préparation\n\n# Packages utiles\nlibrary(dplyr); library(ggplot2); library(readr); library(janitor); library(broom)\n# (Optionnel) diagnostics\n# library(car); library(performance)\n\n# ⚠️ Adaptez le chemin vers votre CSV Kaggle\n# Exemple : data/used_cars.csv\n# cars_raw &lt;- read_csv(\"data/used_cars.csv\")\n\n# Pour la démonstration, on crée un tibble vide si vous n'avez pas encore le fichier.\n# Supprimez ce bloc une fois votre CSV chargé.\ncars_raw &lt;- tibble::tibble()\n\n\n\n\n\n\n\nWarning\n\n\n\nImportant — Noms de colonnes\nLes champs les plus fréquents sont :\nselling_price, year, km_driven, fuel, transmission, seller_type, owner, name.\nOuvrez le CSV et confirmez les noms via names(cars_raw) ou glimpse(cars_raw).\n\n\n\n# Vérifier les colonnes disponibles\n# glimpse(cars_raw)"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#nettoyage-minimal",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#nettoyage-minimal",
+    "title": "Challenge — Prix de voitures",
+    "section": "1) Nettoyage minimal",
+    "text": "1) Nettoyage minimal\n\ncars &lt;- cars_raw %&gt;%\n  janitor::clean_names()\n\n# Exemple de normalisation (adaptez aux noms réels de votre fichier)\n# - Si votre fichier contient bien \"selling_price\", \"km_driven\", etc., ces lignes sont OK.\n# - Sinon, renommez selon la description Kaggle.\ncars &lt;- cars %&gt;%\n  dplyr::rename(\n    price = selling_price,       # &lt;— renommer la variable réponse\n    mileage_km = km_driven       # &lt;— renommer le kilométrage\n  )\n\n# Encodage des catégorielles (adaptez selon vos colonnes exactes)\ncars &lt;- cars %&gt;%\n  mutate(\n    fuel = as.factor(fuel),\n    transmission = as.factor(transmission),\n    seller_type = as.factor(seller_type),\n    owner = as.factor(owner)\n  )\n\n# Gestion simple des valeurs manquantes (à raffiner si besoin)\ncars_complete &lt;- cars %&gt;% tidyr::drop_na(price, year, mileage_km, fuel, transmission)\n\n\n\n\n\n\n\nNote\n\n\n\nÀ faire (équipe)\n- Confirmer que price est bien la réponse (sinon, adaptez).\n- Vérifier l’unité de mileage_km (km).\n- Choisir une référence pertinente pour fuel et transmission (ex. essence, manuelle)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#eda-rapide",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#eda-rapide",
+    "title": "Challenge — Prix de voitures",
+    "section": "2) EDA rapide",
+    "text": "2) EDA rapide\n\n# Distribution du prix (attention aux queues)\nggplot(cars_complete, aes(price)) + geom_histogram(bins=30, alpha=.7) +\n  scale_x_continuous(labels = scales::label_number_si()) +\n  labs(title=\"Distribution des prix\")\n\n# Prix vs kilométrage (possible non-linéarité)\nggplot(cars_complete, aes(mileage_km, price)) + geom_point(alpha=.3) +\n  scale_y_continuous(labels = scales::label_number_si()) +\n  scale_x_continuous(labels = scales::label_number_si()) +\n  labs(title=\"Prix en fonction du kilométrage\")\n\n# Prix par transmission\nggplot(cars_complete, aes(transmission, price)) + geom_boxplot() +\n  scale_y_continuous(labels = scales::label_number_si()) +\n  labs(title=\"Prix par type de transmission\")\n\n\n\n\n\n\n\nTip\n\n\n\nPiste : tester des transformations si la relation prix ~ kilométrage semble non linéaire (ex. log(price), log1p(mileage_km))."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#modèle-de-base-6-prédicteurs",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#modèle-de-base-6-prédicteurs",
+    "title": "Challenge — Prix de voitures",
+    "section": "3) Modèle de base (≤ 6 prédicteurs)",
+    "text": "3) Modèle de base (≤ 6 prédicteurs)\n\nmod0 &lt;- lm(price ~ year + mileage_km + fuel + transmission + seller_type, data = cars_complete)\nsummary(mod0)\n\n\n\n\n\n\n\nNote\n\n\n\nQuestions\n- Quel prédicteur a l’effet le plus fort (en valeur absolue) ?\n- Interprétez l’effet de transmission (manuelle vs auto) toutes choses égales par ailleurs."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#variante-avec-transformation",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#variante-avec-transformation",
+    "title": "Challenge — Prix de voitures",
+    "section": "4) Variante avec transformation",
+    "text": "4) Variante avec transformation\n\nmod1 &lt;- lm(log(price) ~ year + log1p(mileage_km) + fuel + transmission + seller_type, data = cars_complete)\nbroom::glance(mod0)[,c(\"r.squared\",\"AIC\",\"BIC\")]\nbroom::glance(mod1)[,c(\"r.squared\",\"AIC\",\"BIC\")]\nbroom::tidy(mod1) %&gt;% head()\n\n\n\n\n\n\n\nTip\n\n\n\nInterprétation (log-prix)\n- Un coefficient sur year ≈ variation en % de prix par année supplémentaire (petite pente).\n- log1p(mileage_km) : élasticité approximative au kilométrage."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#option-diagnostics-rapides",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#option-diagnostics-rapides",
+    "title": "Challenge — Prix de voitures",
+    "section": "5) (Option) Diagnostics rapides",
+    "text": "5) (Option) Diagnostics rapides\n\npar(mfrow=c(2,2)); plot(mod1); par(mfrow=c(1,1))\n# car::vif(mod1)\n\n\n\n\n\n\n\nWarning\n\n\n\nAttention\n- Colinéarité possible entre year et owner (ou d’autres variables).\n- Valeurs extrêmes (prix/vehicules premium) pouvant influencer fortement les coefficients."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#restitution-équipe",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#restitution-équipe",
+    "title": "Challenge — Prix de voitures",
+    "section": "6) Restitution (équipe)",
+    "text": "6) Restitution (équipe)\n\nExpliquez un effet majeur (ex. transmission, fuel, year) avec une phrase claire pour un public non technique.\n\nComparez mod0 vs mod1 (AIC/BIC, R²) → quel modèle retenez-vous, et pourquoi ?\n\nLimites : mentionnez au moins une limite de votre modèle (données, hypothèses, variables manquantes)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/Challenge_voitures.html#bonus",
+    "href": "atelier1_reg_lin/missions/Challenge_voitures.html#bonus",
+    "title": "Challenge — Prix de voitures",
+    "section": "⭐ Bonus",
+    "text": "⭐ Bonus\n\nAjoutez interaction(year:transmission) si vous suspectez un effet différent selon la transmission.\n\nCherchez un point influent (distance de Cook) et discutez s’il faut l’exclure.\n\nProposez une variable métier à ajouter (ex. historique d’entretien, accidents, options)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "",
+    "text": "source(\"../../utils/requirements.R\")\nlibrary(AmesHousing); set.seed(42); library(dplyr); library(broom)\names &lt;- make_ames()\nidx &lt;- sample(seq_len(nrow(ames)), size = floor(.8*nrow(ames)))\ntrain &lt;- ames[idx,]; test &lt;- ames[-idx,]\nmod &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + Garage_Cars, data=train)\nmod_small &lt;- lm(Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built, data=train)"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#objectifs",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#objectifs",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "Objectifs",
+    "text": "Objectifs\n\nTester des hypothèses (t-tests sur coefficients, test F global et modèles emboîtés).\nIntervalles : construire et interpréter des intervalles de confiance (IC) et de prédiction (IP).\nÉvaluer la calibration et la couverture des IP sur l’échantillon test.\nAnalyser l’erreur par sous-groupes (robustesse et équité de base)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#tests-dhypothèses-sur-les-coefficients",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#tests-dhypothèses-sur-les-coefficients",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "1) Tests d’hypothèses sur les coefficients",
+    "text": "1) Tests d’hypothèses sur les coefficients\n\nsum_mod &lt;- summary(mod)\nsum_mod$coefficients\n\n                                Estimate   Std. Error    t value      Pr(&gt;|t|)\n(Intercept)                -881183.00199 66913.101296 -13.169065  2.967990e-38\nGr_Liv_Area                     56.74416     2.104504  26.963206 1.341430e-139\nOverall_QualPoor             23909.61553 20290.439629   1.178369  2.387700e-01\nOverall_QualFair             26465.61196 18198.854053   1.454246  1.460128e-01\nOverall_QualBelow_Average    38511.36847 17334.313212   2.221684  2.640040e-02\nOverall_QualAverage          51976.79659 17211.078719   3.019962  2.555518e-03\nOverall_QualAbove_Average    58489.05809 17263.901408   3.387940  7.159023e-04\nOverall_QualGood             78020.81605 17366.424861   4.492624  7.378771e-06\nOverall_QualVery_Good       120614.34000 17487.957022   6.896994  6.816907e-12\nOverall_QualExcellent       199510.31713 17861.122971  11.170088  2.941930e-28\nOverall_QualVery_Excellent  242212.29392 18922.086251  12.800507  2.641965e-36\nYear_Built                     448.30307    33.296147  13.464112  7.550363e-40\nFull_Bath                    -2792.26431  1878.872594  -1.486138  1.373779e-01\nGarage_Cars                  13870.75392  1257.341923  11.031807  1.278968e-27\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion ciblée :\n\nFormulez \\(H_0\\) et \\(H_1\\) pour \\(\\beta_{Year\\_Built}\\). Interprétez le t et la p-value au seuil 5%.\nQuelle(s) variable(s) reste(nt) non significative(s)? Les conservez-vous quand même? Justifiez (domaine, colinéarité, coût d’erreur, etc.)."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#test-global-et-modèles-emboîtés",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#test-global-et-modèles-emboîtés",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "2) Test global et modèles emboîtés",
+    "text": "2) Test global et modèles emboîtés\n\n# F global (déjà dans summary(mod) via statistic)\nanova(mod_small, mod)\n\nAnalysis of Variance Table\n\nModel 1: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built\nModel 2: Sale_Price ~ Gr_Liv_Area + Overall_Qual + Year_Built + Full_Bath + \n    Garage_Cars\n  Res.Df        RSS Df  Sum of Sq      F    Pr(&gt;F)    \n1   2332 2.8789e+12                                   \n2   2330 2.7348e+12  2 1.4413e+11 61.401 &lt; 2.2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\n\n\n\n\n\nTip\n\n\n\nÀ faire (équipe) :\n\nInterprétez le test ANOVA ci-dessus : le modèle complet apporte-t-il un gain significatif par rapport au modèle réduit?\nCalculez et comparez AIC/BIC pour mod et mod_small. Quel critère privilégieriez-vous ici et pourquoi?\n\n\n\n\nAIC(mod_small, mod)\n\n          df      AIC\nmod_small 13 55735.13\nmod       15 55618.74\n\nBIC(mod_small, mod)\n\n          df      BIC\nmod_small 13 55810.00\nmod       15 55705.13"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#intervalles-de-confiance-et-de-prédiction",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#intervalles-de-confiance-et-de-prédiction",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "3) Intervalles de confiance et de prédiction",
+    "text": "3) Intervalles de confiance et de prédiction\n\n# Moyennes pour les numériques\nnum_means &lt;- train %&gt;% summarise(\n  Gr_Liv_Area = mean(Gr_Liv_Area, na.rm = TRUE),\n  Year_Built  = mean(Year_Built,  na.rm = TRUE),\n  Full_Bath   = mean(Full_Bath,   na.rm = TRUE),\n  Garage_Cars = mean(Garage_Cars, na.rm = TRUE)\n)\n\n# Modalité la plus fréquente pour le facteur Overall_Qual\nmode_qual &lt;- train %&gt;% summarise(\n  Overall_Qual = names(which.max(table(Overall_Qual)))\n) %&gt;% mutate(Overall_Qual = factor(Overall_Qual, levels = levels(train$Overall_Qual)))\n\n# Maison type\nnew0 &lt;- dplyr::bind_cols(num_means, mode_qual)\n\n# IC\npredict(mod, newdata = new0, interval = \"confidence\")\n\n       fit      lwr      upr\n1 160220.6 157199.6 163241.7\n\n# IP sur l’échantillon test\npred_pi &lt;- predict(mod, newdata = test, interval = \"prediction\")\nhead(pred_pi)\n\n       fit      lwr      upr\n1 180648.2 113338.9 247957.5\n2 170506.0 103198.6 237813.3\n3 271895.4 204579.2 339211.5\n4 405288.4 337646.4 472930.3\n5 300636.2 233315.5 367956.8\n6 231996.0 164646.9 299345.1\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion interprétation :\n\nDifférence IC vs IP : que quantifient-ils, et pourquoi l’IP est-il plus large?\nÀ quoi sert un IP pour un décideur (ex. courtier, évaluateur)? Donnez un exemple concret."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#couverture-des-ip-et-calibration",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#couverture-des-ip-et-calibration",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "4) Couverture des IP et calibration",
+    "text": "4) Couverture des IP et calibration\n\n# Taux de couverture 95% des IP sur test\ninside &lt;- (test$Sale_Price &gt;= pred_pi[ ,\"lwr\"]) & (test$Sale_Price &lt;= pred_pi[ ,\"upr\"]) \ncoverage &lt;- mean(inside)\nwidth &lt;- mean(pred_pi[ ,\"upr\"] - pred_pi[ ,\"lwr\"]) \nknitr::kable(data.frame(Couverture_IP95 = coverage, Largeur_moy_IP = width),\n             caption = \"Couverture et largeur moyenne des intervalles de prédiction (test)\")\n\n\nCouverture et largeur moyenne des intervalles de prédiction (test)\n\n\nCouverture_IP95\nLargeur_moy_IP\n\n\n\n\n0.9624573\n134744.5\n\n\n\n\n# Plot calibration : observé vs prédit\nplot(pred_pi[ ,\"fit\"], test$Sale_Price,\n     xlab = \"Prix prédit\", ylab = \"Prix observé\", main = \"Calibration: observé vs prédit\")\nabline(0, 1)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWarning\n\n\n\nAnalyse critique :\n\nLa couverture est-elle proche de 95%? Si non, quelles raisons possibles (mauvaise spécification, hétéroscédasticité, non-normalité, outliers…)?\nLa pente de calibration semble-t-elle proche de 1? Y a-t-il biais systématique (sous/sur-prédiction)?"
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#erreurs-par-sous-groupes-robustesse",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#erreurs-par-sous-groupes-robustesse",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "5) Erreurs par sous-groupes (robustesse)",
+    "text": "5) Erreurs par sous-groupes (robustesse)\n\nerr &lt;- test$Sale_Price - pred_pi[ ,\"fit\"]\n# Stratification simple : quartiles de surface et niveaux de qualité\nq_area &lt;- cut(test$Gr_Liv_Area, breaks = quantile(test$Gr_Liv_Area, probs = seq(0,1,0.25), na.rm=TRUE), include.lowest=TRUE)\nby_grp &lt;- test %&gt;% mutate(err = err, q_area = q_area) %&gt;%\n  group_by(q_area, Overall_Qual) %&gt;% summarise(MAE = mean(abs(err)), RMSE = sqrt(mean(err^2)), .groups='drop')\nknitr::kable(by_grp, caption = \"Erreurs par sous-groupes (aire habitable en quartiles × qualité globale)\")\n\n\nErreurs par sous-groupes (aire habitable en quartiles × qualité globale)\n\n\nq_area\nOverall_Qual\nMAE\nRMSE\n\n\n\n\n[520,1.13e+03]\nPoor\n30364.570\n38651.540\n\n\n[520,1.13e+03]\nFair\n13414.979\n17555.484\n\n\n[520,1.13e+03]\nBelow_Average\n13564.462\n18418.238\n\n\n[520,1.13e+03]\nAverage\n13883.661\n17991.222\n\n\n[520,1.13e+03]\nAbove_Average\n13903.862\n17361.991\n\n\n[520,1.13e+03]\nGood\n20736.199\n21570.278\n\n\n(1.13e+03,1.42e+03]\nFair\n16939.169\n19902.571\n\n\n(1.13e+03,1.42e+03]\nBelow_Average\n21017.884\n24903.919\n\n\n(1.13e+03,1.42e+03]\nAverage\n13765.626\n17648.594\n\n\n(1.13e+03,1.42e+03]\nAbove_Average\n14439.528\n17670.036\n\n\n(1.13e+03,1.42e+03]\nGood\n14201.040\n17231.101\n\n\n(1.13e+03,1.42e+03]\nVery_Good\n31862.465\n37032.937\n\n\n(1.42e+03,1.72e+03]\nBelow_Average\n33394.954\n39938.912\n\n\n(1.42e+03,1.72e+03]\nAverage\n21226.006\n27886.582\n\n\n(1.42e+03,1.72e+03]\nAbove_Average\n16698.841\n24631.618\n\n\n(1.42e+03,1.72e+03]\nGood\n23702.029\n29274.231\n\n\n(1.42e+03,1.72e+03]\nVery_Good\n29526.155\n41360.485\n\n\n(1.42e+03,1.72e+03]\nExcellent\n32939.308\n33972.903\n\n\n(1.72e+03,4.68e+03]\nFair\n2609.718\n2609.718\n\n\n(1.72e+03,4.68e+03]\nBelow_Average\n58601.132\n58601.456\n\n\n(1.72e+03,4.68e+03]\nAverage\n30841.210\n39331.843\n\n\n(1.72e+03,4.68e+03]\nAbove_Average\n24321.604\n30690.056\n\n\n(1.72e+03,4.68e+03]\nGood\n28348.812\n35079.171\n\n\n(1.72e+03,4.68e+03]\nVery_Good\n37801.170\n50260.929\n\n\n(1.72e+03,4.68e+03]\nExcellent\n52026.385\n63023.133\n\n\n(1.72e+03,4.68e+03]\nVery_Excellent\n132702.685\n178022.285\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestion d’enquête :\n\nIdentifiez un sous-groupe avec une erreur nettement plus élevée. Donnez une hypothèse explicative (non-linéarité, interaction manquante, variable omise…).\nProposez une action concrète (transformation, terme quadratique, interaction, variable additionnelle) pour la Mission 3."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#comparaison-de-modèles",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#comparaison-de-modèles",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "6) Comparaison de modèles",
+    "text": "6) Comparaison de modèles\n\n# Performance globale simple (pour mémoire) :\npred &lt;- pred_pi[ ,\"fit\"]\nrmse &lt;- sqrt(mean((pred - test$Sale_Price)^2))\nmae  &lt;- mean(abs(pred - test$Sale_Price))\nknitr::kable(data.frame(Model=c(\"Complet\",\"Simple\"),\n                        RMSE=c(rmse, sqrt(mean((predict(mod_small, test) - test$Sale_Price)^2))),\n                        MAE =c(mae,  mean(abs(predict(mod_small, test) - test$Sale_Price)))),\n             caption = \"Comparaison rapide de performance (test)\")\n\n\nComparaison rapide de performance (test)\n\n\nModel\nRMSE\nMAE\n\n\n\n\nComplet\n34713.31\n22622.28\n\n\nSimple\n35150.98\n23088.00\n\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nDécision modèle :\n\nUtilisez ANOVA + AIC/BIC + calibration/couverture (pas seulement RMSE/MAE) pour trancher entre mod et mod_small. Justifiez la traçabilité de votre choix."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#questions",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#questions",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "Questions",
+    "text": "Questions\n\nQ1. Testez \\(H_0\\!:\\;\\beta_{Year\\_Built}=0\\) (5%). Concluez et interprétez dans le contexte.\nQ2. Le test ANOVA conclut-il à un apport significatif de Full_Bath et Garage_Cars pris ensemble? Décision?\nQ3. La couverture empirique des IP95 est-elle satisfaisante? Si non, quelle modification du modèle proposeriez-vous?\nQ4. Identifiez un sous-groupe à erreur élevée et proposez une amélioration."
+  },
+  {
+    "objectID": "atelier1_reg_lin/missions/M2_interpretation.html#pour-aller-plus-loin",
+    "href": "atelier1_reg_lin/missions/M2_interpretation.html#pour-aller-plus-loin",
+    "title": "Mission 2 — Tester & interpréter",
+    "section": "Pour aller plus loin",
+    "text": "Pour aller plus loin\n\nCalculez un IC pour la moyenne conditionnelle d’une maison type (définissez explicitement la maison) et expliquez la différence avec un IP pour cette même maison.\nMontrez un exemple où AIC préfère mod mais BIC préfère mod_small. Laquelle des deux décisions retiendriez-vous ici et pourquoi (taille d’échantillon, parcimonie, objectif)?\nImplémentez une validation croisée K-fold maison (sans nouveaux packages) et comparez RMSE moyen de mod vs mod_small."
+  },
+  {
+    "objectID": "atelier2_reg_log/corriges/Challenge_default_corrige.html",
+    "href": "atelier2_reg_log/corriges/Challenge_default_corrige.html",
+    "title": "Corrigé — Challenge défaut (ISLR)",
+    "section": "",
+    "text": "Exemple de solution : justification d’un seuil favorisant la réduction des faux négatifs si le coût d’un défaut non détecté est élevé.\nInclusion d’une matrice de confusion pour deux seuils et comparaison."
+  },
+  {
+    "objectID": "atelier2_reg_log/corriges/Challenge_default_corrige.html#conseils-de-présentation",
+    "href": "atelier2_reg_log/corriges/Challenge_default_corrige.html#conseils-de-présentation",
+    "title": "Corrigé — Challenge défaut (ISLR)",
+    "section": "Conseils de présentation",
+    "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
+  },
+  {
+    "objectID": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html",
+    "href": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html",
+    "title": "Corrigé — Mission 2 ROC & seuils",
+    "section": "",
+    "text": "source(\"../../utils/requirements.R\")\nlibrary(titanic); data(\"titanic_train\")\ndf &lt;- titanic_train %&gt;% janitor::clean_names() %&gt;%\n mutate(survived = factor(survived), sex=factor(sex), pclass=factor(pclass)) %&gt;%\n tidyr::drop_na(age)\nmod &lt;- glm(survived ~ sex + pclass + age + sib_sp + parch + fare, family = binomial, data=df)\ndf &lt;- df %&gt;% mutate(pi_hat = predict(mod, type=\"response\"))\nroc_obj &lt;- pROC::roc(df$survived, df$pi_hat)\nplot(roc_obj, print.auc=TRUE)\n\n\n\n\n\n\n\npROC::coords(roc_obj, x = \"best\", best.method=\"youden\")\n\n  threshold specificity sensitivity\n1 0.4296214   0.8231132   0.7724138"
+  },
+  {
+    "objectID": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html#conseils-de-présentation",
+    "href": "atelier2_reg_log/corriges/M2_roc_seuils_corrige.html#conseils-de-présentation",
+    "title": "Corrigé — Mission 2 ROC & seuils",
     "section": "Conseils de présentation",
     "text": "Conseils de présentation\n\nÉnoncez d’abord la question métier.\nDonnez l’effet principal en une phrase par variable.\nIllustrez avec une prédiction et un intervalle."
   },
@@ -480,7 +571,7 @@
     "href": "atelier2_reg_log/missions/M1_titanic.html#objectifs",
     "title": "Mission 1 — Titanic: modéliser la survie (logistique)",
     "section": "Objectifs",
-    "text": "Objectifs\n\nEDA rapide — comprendre les prédicteurs clés et le sens attendu des effets\nModèle de régression logistique glm(..., family = binomial)\nInterprétation des coefficients via odds ratios (rapports de cotes)\nÉvaluation de base : prédictions, matrice de confusion (seuil 0.5), sensibilité/spécificité\nPréparer le terrain pour M2 (ROC, AUC, choix de seuil)\n\n\n\n1) EDA éclair\n\nsummary(df)\n\n survived  pclass      sex           age            sib_sp     \n No :549   1:216   female:314   Min.   : 0.42   Min.   :0.000  \n Yes:342   2:184   male  :577   1st Qu.:20.12   1st Qu.:0.000  \n           3:491                Median :28.00   Median :0.000  \n                                Mean   :29.70   Mean   :0.523  \n                                3rd Qu.:38.00   3rd Qu.:1.000  \n                                Max.   :80.00   Max.   :8.000  \n                                NA's   :177                    \n     parch             fare        embarked\n Min.   :0.0000   Min.   :  0.00    :  2   \n 1st Qu.:0.0000   1st Qu.:  7.91   C:168   \n Median :0.0000   Median : 14.45   Q: 77   \n Mean   :0.3816   Mean   : 32.20   S:644   \n 3rd Qu.:0.0000   3rd Qu.: 31.00           \n Max.   :6.0000   Max.   :512.33           \n                                           \n\nggplot(df, aes(sex, fill=survived)) + geom_bar(position=\"fill\") + labs(y=\"Proportion\", title=\"Survie par sexe\")\n\n\n\n\n\n\n\nggplot(df, aes(pclass, fill=survived)) + geom_bar(position=\"fill\") + labs(y=\"Proportion\", title=\"Survie par classe\")\n\n\n\n\n\n\n\nggplot(df, aes(age, fill=survived)) + geom_histogram(alpha=.6, bins=30, position=\"identity\") + labs(title=\"Âge: distribution par statut de survie\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nÀ faire (équipe)\n- Quelles variables semblent fortement associées à la survie ?\n- Y a-t-il des valeurs manquantes importantes (ex. age) ? Comment les géreriez-vous pour un premier modèle simple (supprimer lignes manquantes vs imputation grossière) ?\n\n\n\nAstuce : pour aller vite, on peut filtrer les NA dans un premier temps, puis discuter des alternatives plus rigoureuses plus tard.\n\n\ndf_complete &lt;- df %&gt;% tidyr::drop_na()\n\n\n\n\n2) Modèle logistique de base\n\nmod0 &lt;- glm(survived ~ sex + pclass + age + fare, data=df_complete, family=binomial())\nsummary(mod0)\n\n\nCall:\nglm(formula = survived ~ sex + pclass + age + fare, family = binomial(), \n    data = df_complete)\n\nCoefficients:\n              Estimate Std. Error z value Pr(&gt;|z|)    \n(Intercept)  3.7225052  0.4645113   8.014 1.11e-15 ***\nsexmale     -2.5185052  0.2082017 -12.096  &lt; 2e-16 ***\npclass2     -1.2765903  0.3126370  -4.083 4.44e-05 ***\npclass3     -2.5415762  0.3277677  -7.754 8.89e-15 ***\nage         -0.0367302  0.0077325  -4.750 2.03e-06 ***\nfare         0.0005226  0.0022579   0.231    0.817    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n(Dispersion parameter for binomial family taken to be 1)\n\n    Null deviance: 964.52  on 713  degrees of freedom\nResidual deviance: 647.23  on 708  degrees of freedom\nAIC: 659.23\n\nNumber of Fisher Scoring iterations: 5\n\n\n\n\n\n\n\n\nTip\n\n\n\nInterprétation rapide\n- Le signe de \\(\\\\beta\\) indique si la variable augmente ou diminue l’odds de survie.\n- Pour une interprétation multiplicative, calculez \\(\\\\exp(\\\\beta)\\) : c’est le odds ratio.\n\n\n\ntidy(mod0, exponentiate = TRUE, conf.int = TRUE) %&gt;%\n  mutate(across(c(estimate, conf.low, conf.high), round, 3)) %&gt;%\n  knitr::kable(caption=\"Odds ratios (exp(coefficients)) avec IC à 95%\")\n\n\nOdds ratios (exp(coefficients)) avec IC à 95%\n\n\n\n\n\n\n\n\n\n\n\nterm\nestimate\nstd.error\nstatistic\np.value\nconf.low\nconf.high\n\n\n\n\n(Intercept)\n41.368\n0.4645113\n8.0138092\n0.0000000\n16.939\n105.090\n\n\nsexmale\n0.081\n0.2082017\n-12.0964697\n0.0000000\n0.053\n0.120\n\n\npclass2\n0.279\n0.3126370\n-4.0832994\n0.0000444\n0.150\n0.512\n\n\npclass3\n0.079\n0.3277677\n-7.7541995\n0.0000000\n0.041\n0.148\n\n\nage\n0.964\n0.0077325\n-4.7501079\n0.0000020\n0.949\n0.978\n\n\nfare\n1.001\n0.0022579\n0.2314361\n0.8169761\n0.996\n1.005\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion\n- Interprétez l’odds ratio de sex et pclass. Est-ce cohérent avec le contexte historique ?\n- age est-il cliniquement important même si son effet paraît plus faible ?\n\n\n\n\n\n3) Prédictions et matrice de confusion (seuil 0.5)\n\ndf_complete &lt;- df_complete %&gt;% mutate(prob = predict(mod0, type=\"response\"),\n                                      pred = ifelse(prob &gt;= 0.5, \"Yes\", \"No\") %&gt;% factor(levels=c(\"No\",\"Yes\")))\ntab &lt;- table(Truth = df_complete$survived, Pred = df_complete$pred)\nacc &lt;- sum(diag(tab))/sum(tab)\nsens &lt;- tab[\"Yes\",\"Yes\"]/sum(tab[,\"Yes\"])        # Sensibilité (rappel des 'Yes')\nspec &lt;- tab[\"No\",\"No\"]/sum(tab[,\"No\"])           # Spécificité\nknitr::kable(as.data.frame.matrix(tab), caption=sprintf(\"Matrice de confusion (seuil 0.5) — Acc=%.3f, Sens=%.3f, Spec=%.3f\", acc, sens, spec))\n\n\nMatrice de confusion (seuil 0.5) — Acc=0.793, Sens=0.757, Spec=0.815\n\n\n\nNo\nYes\n\n\n\n\nNo\n357\n67\n\n\nYes\n81\n209\n\n\n\n\n\n\n\n\n\n\n\nWarning\n\n\n\nAttention — piège classique\nLe seuil 0.5 n’est pas toujours pertinent. Sa pertinence dépend : (i) de la prévalence des classes, (ii) des coûts d’erreurs (faux positifs/négatifs).\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestion\n- Si rater un survivant (faux négatif) coûte plus cher que classer à tort comme survivant (faux positif), voudriez-vous un seuil plus bas ou plus haut ? Expliquez.\n\n\n\n\n\n4) Effets non linéaires et interactions (aperçu)\n\nmod1 &lt;- glm(survived ~ sex * pclass + splines::ns(age, df = 3) + fare, data=df_complete, family=binomial())\nbroom::glance(mod0); broom::glance(mod1)\n\n# A tibble: 1 × 8\n  null.deviance df.null logLik   AIC   BIC deviance df.residual  nobs\n          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt; &lt;int&gt;\n1          965.     713  -324.  659.  687.     647.         708   714\n\n\n# A tibble: 1 × 8\n  null.deviance df.null logLik   AIC   BIC deviance df.residual  nobs\n          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt; &lt;int&gt;\n1          965.     713  -304.  628.  673.     608.         704   714\n\n\n\n\n\n\n\n\nTip\n\n\n\nÀ discuter\n- Pourquoi une spline sur age ? (relation non linéaire plausible)\n- L’interaction sex:pclass a-t-elle un sens ?"
+    "text": "Objectifs\n\nEDA rapide — comprendre les prédicteurs clés et le sens attendu des effets\nModèle de régression logistique glm(..., family = binomial)\nInterprétation des coefficients via odds ratios (rapports de cotes)\nÉvaluation de base : prédictions, matrice de confusion (seuil 0.5), sensibilité/spécificité\nPréparer le terrain pour M2 (ROC, AUC, choix de seuil)\n\n\n\n1) EDA éclair\n\nsummary(df)\n\n survived  pclass      sex           age            sib_sp     \n No :549   1:216   female:314   Min.   : 0.42   Min.   :0.000  \n Yes:342   2:184   male  :577   1st Qu.:20.12   1st Qu.:0.000  \n           3:491                Median :28.00   Median :0.000  \n                                Mean   :29.70   Mean   :0.523  \n                                3rd Qu.:38.00   3rd Qu.:1.000  \n                                Max.   :80.00   Max.   :8.000  \n                                NA's   :177                    \n     parch             fare        embarked\n Min.   :0.0000   Min.   :  0.00    :  2   \n 1st Qu.:0.0000   1st Qu.:  7.91   C:168   \n Median :0.0000   Median : 14.45   Q: 77   \n Mean   :0.3816   Mean   : 32.20   S:644   \n 3rd Qu.:0.0000   3rd Qu.: 31.00           \n Max.   :6.0000   Max.   :512.33           \n                                           \n\nggplot(df, aes(sex, fill=survived)) + geom_bar(position=\"fill\") + labs(y=\"Proportion\", title=\"Survie par sexe\")\n\n\n\n\n\n\n\nggplot(df, aes(pclass, fill=survived)) + geom_bar(position=\"fill\") + labs(y=\"Proportion\", title=\"Survie par classe\")\n\n\n\n\n\n\n\nggplot(df, aes(age, fill=survived)) + geom_histogram(alpha=.6, bins=30, position=\"identity\") + labs(title=\"Âge: distribution par statut de survie\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nÀ faire (équipe)\n- Quelles variables semblent fortement associées à la survie ?\n- Y a-t-il des valeurs manquantes importantes (ex. age) ? Comment les géreriez-vous pour un premier modèle simple (supprimer lignes manquantes vs imputation grossière) ?\n\n\n\nAstuce : pour aller vite, on peut filtrer les NA dans un premier temps, puis discuter des alternatives plus rigoureuses plus tard.\n\n\ndf_complete &lt;- df %&gt;% tidyr::drop_na()\n\n\n\n\n2) Modèle logistique de base\n\nmod0 &lt;- glm(survived ~ sex + pclass + age + fare, data=df_complete, family=binomial())\nsummary(mod0)\n\n\nCall:\nglm(formula = survived ~ sex + pclass + age + fare, family = binomial(), \n    data = df_complete)\n\nCoefficients:\n              Estimate Std. Error z value Pr(&gt;|z|)    \n(Intercept)  3.7225052  0.4645113   8.014 1.11e-15 ***\nsexmale     -2.5185052  0.2082017 -12.096  &lt; 2e-16 ***\npclass2     -1.2765903  0.3126370  -4.083 4.44e-05 ***\npclass3     -2.5415762  0.3277677  -7.754 8.89e-15 ***\nage         -0.0367302  0.0077325  -4.750 2.03e-06 ***\nfare         0.0005226  0.0022579   0.231    0.817    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n(Dispersion parameter for binomial family taken to be 1)\n\n    Null deviance: 964.52  on 713  degrees of freedom\nResidual deviance: 647.23  on 708  degrees of freedom\nAIC: 659.23\n\nNumber of Fisher Scoring iterations: 5\n\n\n\n\n\n\n\n\nTip\n\n\n\nInterprétation rapide\n- Le signe de \\(\\\\beta\\) indique si la variable augmente ou diminue l’odds de survie.\n- Pour une interprétation multiplicative, calculez \\(\\\\exp(\\\\beta)\\) : c’est le odds ratio.\n\n\n\ntidy(mod0, exponentiate = TRUE, conf.int = TRUE) %&gt;%\n  mutate(across(c(estimate, conf.low, conf.high), round, 3)) %&gt;%\n  knitr::kable(caption=\"Odds ratios (exp(coefficients)) avec IC à 95%\")\n\n\nOdds ratios (exp(coefficients)) avec IC à 95%\n\n\n\n\n\n\n\n\n\n\n\nterm\nestimate\nstd.error\nstatistic\np.value\nconf.low\nconf.high\n\n\n\n\n(Intercept)\n41.368\n0.4645113\n8.0138092\n0.0000000\n16.939\n105.090\n\n\nsexmale\n0.081\n0.2082017\n-12.0964697\n0.0000000\n0.053\n0.120\n\n\npclass2\n0.279\n0.3126370\n-4.0832994\n0.0000444\n0.150\n0.512\n\n\npclass3\n0.079\n0.3277677\n-7.7541995\n0.0000000\n0.041\n0.148\n\n\nage\n0.964\n0.0077325\n-4.7501079\n0.0000020\n0.949\n0.978\n\n\nfare\n1.001\n0.0022579\n0.2314361\n0.8169761\n0.996\n1.005\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nRéflexion\n- Interprétez l’odds ratio de sex et pclass. Est-ce cohérent avec le contexte historique ?\n- age est-il cliniquement important même si son effet paraît plus faible ?\n\n\n\n\n\n3) Prédictions et matrice de confusion (seuil 0.5)\n\ndf_complete &lt;- df_complete %&gt;% mutate(prob = predict(mod0, type=\"response\"),\n                                      pred = ifelse(prob &gt;= 0.5, \"Yes\", \"No\") %&gt;% factor(levels=c(\"No\",\"Yes\")))\ntab &lt;- table(Truth = df_complete$survived, Pred = df_complete$pred)\nacc &lt;- sum(diag(tab))/sum(tab)\nsens &lt;- tab[\"Yes\",\"Yes\"]/sum(tab[,\"Yes\"])        # Sensibilité (rappel des 'Yes')\nspec &lt;- tab[\"No\",\"No\"]/sum(tab[,\"No\"])           # Spécificité\nknitr::kable(as.data.frame.matrix(tab), caption=sprintf(\"Matrice de confusion (seuil 0.5) — Acc=%.3f, Sens=%.3f, Spec=%.3f\", acc, sens, spec))\n\n\nMatrice de confusion (seuil 0.5) — Acc=0.793, Sens=0.757, Spec=0.815\n\n\n\nNo\nYes\n\n\n\n\nNo\n357\n67\n\n\nYes\n81\n209\n\n\n\n\n\n\n\n\n\n\n\nWarning\n\n\n\nAttention — piège classique\nLe seuil 0.5 n’est pas toujours pertinent. Sa pertinence dépend : (i) de la prévalence des classes, (ii) des coûts d’erreurs (faux positifs/négatifs).\n\n\n\n\n\n\n\n\nNote\n\n\n\nQuestion\n- Si rater un survivant (faux négatif) coûte plus cher que classer à tort comme survivant (faux positif), voudriez-vous un seuil plus bas ou plus haut ? Expliquez.\n\n\n\n\n\n4) (optionnel) - Effets non linéaires et interactions (aperçu)\n\nmod1 &lt;- glm(survived ~ sex * pclass + splines::ns(age, df = 3) + fare, data=df_complete, family=binomial())\nbroom::glance(mod0); broom::glance(mod1)\n\n# A tibble: 1 × 8\n  null.deviance df.null logLik   AIC   BIC deviance df.residual  nobs\n          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt; &lt;int&gt;\n1          965.     713  -324.  659.  687.     647.         708   714\n\n\n# A tibble: 1 × 8\n  null.deviance df.null logLik   AIC   BIC deviance df.residual  nobs\n          &lt;dbl&gt;   &lt;int&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt; &lt;int&gt;\n1          965.     713  -304.  628.  673.     608.         704   714\n\n\n\n\n\n\n\n\nTip\n\n\n\nÀ discuter\n- Pourquoi une spline sur age ? (relation non linéaire plausible)\n- L’interaction sex:pclass a-t-elle un sens ?"
   },
   {
     "objectID": "atelier2_reg_log/missions/M1_titanic.html#travail-déquipe",
@@ -504,11 +595,11 @@
     "text": "Questions bonus\n\nMontrez que \\(\\\\text{logit}(p)=\\\\log\\\\frac{p}{1-p}\\) est une fonction croissante de \\(p\\).\n\nCalculez la variation d’odds pour +10 ans d’âge (utilisez \\(\\\\exp(10\\\\beta_\\\\text{age})\\)).\n\nDonnez un exemple où un coefficient est significatif statistiquement mais peu utile pour la décision au seuil 0.5."
   },
   {
-    "objectID": "atelier2_reg_log/slides_atelier2.html#brise-glace",
-    "href": "atelier2_reg_log/slides_atelier2.html#brise-glace",
+    "objectID": "atelier2_reg_log/slides_atelier2.html#brise-glace-survie-sur-le-titanic",
+    "href": "atelier2_reg_log/slides_atelier2.html#brise-glace-survie-sur-le-titanic",
     "title": "Atelier 2 — Régression logistique",
-    "section": "Brise-glace",
-    "text": "Brise-glace\n\n\n\nggplot(df, aes(sex, fill=survived)) + geom_bar(position=\"fill\") + labs(y=\"Proportion\", title=\"Survie par sexe\")\n\n\n\n\n\n\n\n\n\n\nggplot(df, aes(pclass, fill=survived)) + geom_bar(position=\"fill\") + labs(y=\"Proportion\", title=\"Survie par classe\")\n\n\n\n\n\n\n\n\n\n\nDiscussion : Pourquoi une probabilité bornée entre 0 et 1 ? Pourquoi pas une droite comme en régression linéaire ?"
+    "section": "Brise-glace (Survie sur le titanic)",
+    "text": "Brise-glace (Survie sur le titanic)\n\n\n\nggplot(df, aes(sex, fill=survived)) + geom_bar(position=\"fill\") + labs(y=\"Proportion\", title=\"Survie par sexe\")\n\n\n\n\n\n\n\n\n\n\nggplot(df, aes(fare, y=survived)) + geom_point() + labs(y=\"Survie\", title=\"Survie selon le prix\")\n\n\n\n\n\n\n\n\n\n\nDiscussion : Pourquoi une probabilité bornée entre 0 et 1 ? Pourquoi pas une droite comme en régression linéaire ?"
   },
   {
     "objectID": "atelier2_reg_log/slides_atelier2.html#logistique-de-la-probabilité-aux-log-odds",
@@ -522,14 +613,14 @@
     "href": "atelier2_reg_log/slides_atelier2.html#estimation-sortie-r",
     "title": "Atelier 2 — Régression logistique",
     "section": "Estimation & sortie R",
-    "text": "Estimation & sortie R\n\nFonction : glm(y ~ x, family=binomial, data=...)\nsummary() fournit les coefficients (log-odds)\nbroom::tidy(..., exponentiate=TRUE) donne les OR et IC\n\n\nm &lt;- glm(survived ~ sex + pclass + age + fare, data=df %&gt;% tidyr::drop_na(), family=binomial())\nbroom::tidy(m, exponentiate=TRUE, conf.int=TRUE) %&gt;%\n  dplyr::mutate(across(c(estimate, conf.low, conf.high), round, 3))\n\n# A tibble: 6 × 7\n  term        estimate std.error statistic  p.value conf.low conf.high\n  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;\n1 (Intercept)   41.4     0.465       8.01  1.11e-15   16.9     105.   \n2 sexmale        0.081   0.208     -12.1   1.10e-33    0.053     0.12 \n3 pclass2        0.279   0.313      -4.08  4.44e- 5    0.15      0.512\n4 pclass3        0.079   0.328      -7.75  8.89e-15    0.041     0.148\n5 age            0.964   0.00773    -4.75  2.03e- 6    0.949     0.978\n6 fare           1.00    0.00226     0.231 8.17e- 1    0.996     1.00 \n\n\n\n\n\n\n\n\nNote\n\n\nRéflexion : - Que signifie un OR supérieur à 1 ? inférieur à 1 ? - Pourquoi présenter des OR plutôt que des coefficients bruts ?"
+    "text": "Estimation & sortie R\n\nFonction : glm(y ~ x, family=binomial, data=...)\nsummary() fournit les coefficients (log-odds)\nbroom::tidy(..., exponentiate=TRUE) donne les OR et IC\n\n\nm &lt;- glm(survived ~ sex + pclass + age + fare, data=df %&gt;% tidyr::drop_na(), family=binomial())\nsummary(m)\n\n\nCall:\nglm(formula = survived ~ sex + pclass + age + fare, family = binomial(), \n    data = df %&gt;% tidyr::drop_na())\n\nCoefficients:\n              Estimate Std. Error z value Pr(&gt;|z|)    \n(Intercept)  3.7225052  0.4645113   8.014 1.11e-15 ***\nsexmale     -2.5185052  0.2082017 -12.096  &lt; 2e-16 ***\npclass2     -1.2765903  0.3126370  -4.083 4.44e-05 ***\npclass3     -2.5415762  0.3277677  -7.754 8.89e-15 ***\nage         -0.0367302  0.0077325  -4.750 2.03e-06 ***\nfare         0.0005226  0.0022579   0.231    0.817    \n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n(Dispersion parameter for binomial family taken to be 1)\n\n    Null deviance: 964.52  on 713  degrees of freedom\nResidual deviance: 647.23  on 708  degrees of freedom\nAIC: 659.23\n\nNumber of Fisher Scoring iterations: 5\n\nbroom::tidy(m, exponentiate=TRUE, conf.int=TRUE) %&gt;%\n  dplyr::mutate(across(c(estimate, conf.low, conf.high), round, 3))\n\n# A tibble: 6 × 7\n  term        estimate std.error statistic  p.value conf.low conf.high\n  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;\n1 (Intercept)   41.4     0.465       8.01  1.11e-15   16.9     105.   \n2 sexmale        0.081   0.208     -12.1   1.10e-33    0.053     0.12 \n3 pclass2        0.279   0.313      -4.08  4.44e- 5    0.15      0.512\n4 pclass3        0.079   0.328      -7.75  8.89e-15    0.041     0.148\n5 age            0.964   0.00773    -4.75  2.03e- 6    0.949     0.978\n6 fare           1.00    0.00226     0.231 8.17e- 1    0.996     1.00 \n\n\n\n\n\n\n\n\nNote\n\n\nRéflexion : - Que signifie un OR supérieur à 1 ? inférieur à 1 ? - Pourquoi présenter des OR plutôt que des coefficients bruts ?"
   },
   {
-    "objectID": "atelier2_reg_log/slides_atelier2.html#diagnostics-base",
-    "href": "atelier2_reg_log/slides_atelier2.html#diagnostics-base",
+    "objectID": "atelier2_reg_log/slides_atelier2.html#diagnostics-du-modèle-logistique",
+    "href": "atelier2_reg_log/slides_atelier2.html#diagnostics-du-modèle-logistique",
     "title": "Atelier 2 — Régression logistique",
-    "section": "Diagnostics (base)",
-    "text": "Diagnostics (base)\n\nRésidus déviance/pearson (idée générale)\nPoints influents (Cook)\nProblème de séparation quasi-parfaite\nMulticolinéarité : mêmes réflexes que pour la régression linéaire\n\n\npar(mfrow=c(2,2)); plot(m); par(mfrow=c(1,1))\n\n\n\n\n\n\n\nplot(cooks.distance(m), type=\"h\"); abline(h=4/nrow(df), lty=2)"
+    "section": "🔍 Diagnostics du modèle logistique",
+    "text": "🔍 Diagnostics du modèle logistique\n\nRésidus déviance : repérer des motifs → un motif = variable manquante ou non-linéarité.\n\nQQ-plot : points très écartés → observations atypiques (influence forte).\n\nRésidus vs ajustés : structure (U, pente) → lien mal capté avec les log-odds.\n\nLeverage : cas qui influencent beaucoup la prédiction.\n\nDistance de Cook : barres hautes → observations qui tirent les coefficients.\n\n\npar(mfrow=c(2,2)); plot(m); par(mfrow=c(1,1))"
   },
   {
     "objectID": "atelier2_reg_log/slides_atelier2.html#transition-mission-1",
@@ -549,8 +640,8 @@
     "objectID": "atelier2_reg_log/slides_atelier2.html#mesures-de-performance",
     "href": "atelier2_reg_log/slides_atelier2.html#mesures-de-performance",
     "title": "Atelier 2 — Régression logistique",
-    "section": "Mesures de performance",
-    "text": "Mesures de performance\n\nAccuracy = proportion bien classée\n\nSensibilité = rappel des Yes (TPR)\n\nSpécificité = proportion de vrais No (TNR)\n\nROC = performance sur tous les seuils possibles\n\nAUC = capacité de discrimination (0.5 = hasard, 1 = parfait)\n\nCalibration = probas bien calibrées (observé ≈ prédit)"
+    "section": "📊 Mesures de performance",
+    "text": "📊 Mesures de performance\n\nAccuracy (exactitude)\n= proportion de prédictions correctes ((TP + TN) / Total)\n→ Globalement utile, mais trompeuse si les classes sont déséquilibrées.\nSensibilité (Recall / TPR)\n= proportion de positifs bien détectés (TP / (TP + FN))\n→ “Parmi les passagers qui ont survécu, combien le modèle a-t-il bien prédits ?”\nSpécificité (TNR)\n= proportion de négatifs bien détectés (TN / (TN + FP))\n→ “Parmi ceux qui n’ont pas survécu, combien le modèle a-t-il bien classés ?”\nPrécision (PPV) (utile si classes déséquilibrées)\n= proportion de prédictions positives correctes (TP / (TP + FP))\n→ “Quand le modèle dit Yes, quelle est la confiance ?”\nCourbe ROC\n= trace la sensibilité (TPR) vs 1-spécificité (FPR) pour tous les seuils possibles.\nAUC (Area Under the Curve)\n= probabilité qu’un positif ait une proba prédite plus élevée qu’un négatif.\n→ 0.5 = hasard complet, 1 = discrimination parfaite."
   },
   {
     "objectID": "atelier2_reg_log/slides_atelier2.html#transition-mission-2",
@@ -574,18 +665,11 @@
     "text": "Choix de seuil contextuel\n\nLe choix du seuil dépend :\n\nPrévalence (taux de positifs)\n\nCoûts FP/FN\n\n\nExemples :\n\nDiagnostic médical : FN coûteux ⇒ seuil bas (maximiser sensibilité)\n\nDétection fraude : FP coûteux ⇒ seuil haut (maximiser spécificité)"
   },
   {
-    "objectID": "atelier2_reg_log/slides_atelier2.html#calibration-intuition",
-    "href": "atelier2_reg_log/slides_atelier2.html#calibration-intuition",
-    "title": "Atelier 2 — Régression logistique",
-    "section": "Calibration — intuition",
-    "text": "Calibration — intuition\n\nDécouper les probas prédites en déciles\n\nComparer moyenne prédite vs taux observé\n\nPoints au-dessus de la diagonale ⇒ sur-estimation\n\nPoints en dessous ⇒ sous-estimation"
-  },
-  {
     "objectID": "atelier2_reg_log/slides_atelier2.html#compléments-aperçu",
     "href": "atelier2_reg_log/slides_atelier2.html#compléments-aperçu",
     "title": "Atelier 2 — Régression logistique",
     "section": "Compléments (aperçu)",
-    "text": "Compléments (aperçu)\n\nInteractions et non-linéarités (splines, polynômes)\n\nDéséquilibre des classes : utiliser courbe PR (precision-recall)\n\nSéparation parfaite : coefficients infinis, solution = régularisation (ridge/lasso)"
+    "text": "Compléments (aperçu)\n\nInteractions et non-linéarités (splines, polynômes)\n\nDéséquilibre des classes"
   },
   {
     "objectID": "atelier2_reg_log/slides_atelier2.html#débrief-pièges-fréquents",

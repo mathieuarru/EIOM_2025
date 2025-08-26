@@ -30,6 +30,8 @@ website:
             file: atelier2_reg_log/missions/M1_titanic.qmd
           - text: "Mission 2 — ROC & seuils"
             file: atelier2_reg_log/missions/M2_roc_seuils.qmd
+          - text: "Challenge"
+            file: atelier2_reg_log/missions/Challenge_logistique.qmd
     right:
       - text: "Préparation"
         file: utils/setup-packages.qmd

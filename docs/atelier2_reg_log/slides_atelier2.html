@@ -212,8 +212,8 @@
 <li class="fragment">Débrief &amp; pièges fréquents</li>
 </ul>
 </section>
-<section id="brise-glace" class="slide level2 center">
-<h2>Brise-glace</h2>
+<section id="brise-glace-survie-sur-le-titanic" class="slide level2 center">
+<h2>Brise-glace (Survie sur le titanic)</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="cell">
@@ -228,7 +228,7 @@
 </div>
 </div><div class="column" style="width:50%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(pclass, <span class="at">fill=</span>survived)) <span class="sc">+</span> <span class="fu">geom_bar</span>(<span class="at">position=</span><span class="st">"fill"</span>) <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">y=</span><span class="st">"Proportion"</span>, <span class="at">title=</span><span class="st">"Survie par classe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(fare, <span class="at">y=</span>survived)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">y=</span><span class="st">"Survie"</span>, <span class="at">title=</span><span class="st">"Survie selon le prix"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -265,8 +265,34 @@
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">glm</span>(survived <span class="sc">~</span> sex <span class="sc">+</span> pclass <span class="sc">+</span> age <span class="sc">+</span> fare, <span class="at">data=</span>df <span class="sc">%&gt;%</span> tidyr<span class="sc">::</span><span class="fu">drop_na</span>(), <span class="at">family=</span><span class="fu">binomial</span>())</span>
-<span id="cb3-2"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(m, <span class="at">exponentiate=</span><span class="cn">TRUE</span>, <span class="at">conf.int=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-3"><a aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(estimate, conf.low, conf.high), round, <span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-2"><a aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = survived ~ sex + pclass + age + fare, family = binomial(), 
+    data = df %&gt;% tidyr::drop_na())
+
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)  3.7225052  0.4645113   8.014 1.11e-15 ***
+sexmale     -2.5185052  0.2082017 -12.096  &lt; 2e-16 ***
+pclass2     -1.2765903  0.3126370  -4.083 4.44e-05 ***
+pclass3     -2.5415762  0.3277677  -7.754 8.89e-15 ***
+age         -0.0367302  0.0077325  -4.750 2.03e-06 ***
+fare         0.0005226  0.0022579   0.231    0.817    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 964.52  on 713  degrees of freedom
+Residual deviance: 647.23  on 708  degrees of freedom
+AIC: 659.23
+
+Number of Fisher Scoring iterations: 5</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(m, <span class="at">exponentiate=</span><span class="cn">TRUE</span>, <span class="at">conf.int=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(estimate, conf.low, conf.high), round, <span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 7
   term        estimate std.error statistic  p.value conf.low conf.high
@@ -293,33 +319,24 @@
 </div>
 </div>
 </section>
-<section id="diagnostics-base" class="slide level2 center">
-<h2>Diagnostics (base)</h2>
+<section id="diagnostics-du-modèle-logistique" class="slide level2 center">
+<h2>🔍 Diagnostics du modèle logistique</h2>
 <ul>
-<li class="fragment">Résidus déviance/pearson (idée générale)</li>
-<li class="fragment">Points influents (Cook)</li>
-<li class="fragment">Problème de <strong>séparation quasi-parfaite</strong></li>
-<li class="fragment">Multicolinéarité : mêmes réflexes que pour la régression linéaire</li>
+<li class="fragment"><strong>Résidus déviance</strong> : repérer des motifs → un motif = variable manquante ou non-linéarité.<br>
+</li>
+<li class="fragment"><strong>QQ-plot</strong> : points très écartés → observations atypiques (influence forte).<br>
+</li>
+<li class="fragment"><strong>Résidus vs ajustés</strong> : structure (U, pente) → lien mal capté avec les log-odds.<br>
+</li>
+<li class="fragment"><strong>Leverage</strong> : cas qui influencent beaucoup la prédiction.<br>
+</li>
+<li class="fragment"><strong>Distance de Cook</strong> : barres hautes → observations qui tirent les coefficients.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="slides_atelier2_files/figure-revealjs/unnamed-chunk-5-1.png" width="960"></p>
-</figure>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)); <span class="fu">plot</span>(m); <span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+
 </div>
-</div>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">cooks.distance</span>(m), <span class="at">type=</span><span class="st">"h"</span>); <span class="fu">abline</span>(<span class="at">h=</span><span class="dv">4</span><span class="sc">/</span><span class="fu">nrow</span>(df), <span class="at">lty=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="slides_atelier2_files/figure-revealjs/unnamed-chunk-5-2.png" width="960"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
+<img data-src="slides_atelier2_files/figure-revealjs/unnamed-chunk-5-1.png" width="960" class="r-stretch"></section>
 <section id="transition-mission-1" class="slide level2 center">
 <h2>🚀 Transition — Mission 1</h2>
 <p><strong>Objectifs pédagogiques :</strong><br>
@@ -335,12 +352,12 @@
 <li class="fragment"><strong>Seuil 0.5</strong> : simple mais rarement optimal</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a aria-hidden="true" tabindex="-1"></a>df_fit <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> tidyr<span class="sc">::</span><span class="fu">drop_na</span>()</span>
-<span id="cb7-2"><a aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(m, <span class="at">newdata =</span> df_fit, <span class="at">type =</span> <span class="st">"response"</span>)</span>
-<span id="cb7-4"><a aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">ifelse</span>(prob <span class="sc">&gt;=</span> <span class="fl">0.5</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>,<span class="st">"Yes"</span>))</span>
-<span id="cb7-5"><a aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="at">Truth =</span> df_fit<span class="sc">$</span>survived, <span class="at">Pred =</span> pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a aria-hidden="true" tabindex="-1"></a>df_fit <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> tidyr<span class="sc">::</span><span class="fu">drop_na</span>()</span>
+<span id="cb8-2"><a aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a aria-hidden="true" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(m, <span class="at">newdata =</span> df_fit, <span class="at">type =</span> <span class="st">"response"</span>)</span>
+<span id="cb8-4"><a aria-hidden="true" tabindex="-1"></a>pred <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">ifelse</span>(prob <span class="sc">&gt;=</span> <span class="fl">0.5</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>), <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"No"</span>,<span class="st">"Yes"</span>))</span>
+<span id="cb8-5"><a aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(<span class="at">Truth =</span> df_fit<span class="sc">$</span>survived, <span class="at">Pred =</span> pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     Pred
 Truth  No Yes
@@ -365,19 +382,25 @@ Truth  No Yes
 </div>
 </section>
 <section id="mesures-de-performance" class="slide level2 center">
-<h2>Mesures de performance</h2>
+<h2>📊 Mesures de performance</h2>
 <ul>
-<li class="fragment"><strong>Accuracy</strong> = proportion bien classée<br>
-</li>
-<li class="fragment"><strong>Sensibilité</strong> = rappel des <em>Yes</em> (TPR)<br>
-</li>
-<li class="fragment"><strong>Spécificité</strong> = proportion de vrais <em>No</em> (TNR)<br>
-</li>
-<li class="fragment"><strong>ROC</strong> = performance sur tous les seuils possibles<br>
-</li>
-<li class="fragment"><strong>AUC</strong> = capacité de discrimination (0.5 = hasard, 1 = parfait)<br>
-</li>
-<li class="fragment"><strong>Calibration</strong> = probas bien calibrées (observé ≈ prédit)</li>
+<li class="fragment"><p><strong>Accuracy (exactitude)</strong><br>
+= proportion de prédictions correctes (<strong>(TP + TN) / Total</strong>)<br>
+→ Globalement utile, mais <strong>trompeuse si les classes sont déséquilibrées</strong>.</p></li>
+<li class="fragment"><p><strong>Sensibilité (Recall / TPR)</strong><br>
+= proportion de positifs bien détectés (<strong>TP / (TP + FN)</strong>)<br>
+→ “Parmi les passagers qui ont survécu, combien le modèle a-t-il bien prédits ?”</p></li>
+<li class="fragment"><p><strong>Spécificité (TNR)</strong><br>
+= proportion de négatifs bien détectés (<strong>TN / (TN + FP)</strong>)<br>
+→ “Parmi ceux qui n’ont pas survécu, combien le modèle a-t-il bien classés ?”</p></li>
+<li class="fragment"><p><strong>Précision (PPV)</strong> <em>(utile si classes déséquilibrées)</em><br>
+= proportion de prédictions positives correctes (<strong>TP / (TP + FP)</strong>)<br>
+→ “Quand le modèle dit <em>Yes</em>, quelle est la confiance ?”</p></li>
+<li class="fragment"><p><strong>Courbe ROC</strong><br>
+= trace la sensibilité (TPR) vs 1-spécificité (FPR) pour <strong>tous les seuils possibles</strong>.</p></li>
+<li class="fragment"><p><strong>AUC (Area Under the Curve)</strong><br>
+= probabilité qu’un positif ait une proba prédite plus élevée qu’un négatif.<br>
+→ 0.5 = hasard complet, 1 = discrimination parfaite.</p></li>
 </ul>
 </section>
 <section id="transition-mission-2" class="slide level2 center">
@@ -416,26 +439,12 @@ Truth  No Yes
 </ul></li>
 </ul>
 </section>
-<section id="calibration-intuition" class="slide level2 center">
-<h2>Calibration — intuition</h2>
-<ul>
-<li class="fragment">Découper les probas prédites en <strong>déciles</strong><br>
-</li>
-<li class="fragment">Comparer <strong>moyenne prédite</strong> vs <strong>taux observé</strong><br>
-</li>
-<li class="fragment">Points au-dessus de la diagonale ⇒ <strong>sur-estimation</strong><br>
-</li>
-<li class="fragment">Points en dessous ⇒ <strong>sous-estimation</strong></li>
-</ul>
-</section>
 <section id="compléments-aperçu" class="slide level2 center">
 <h2>Compléments (aperçu)</h2>
 <ul>
 <li class="fragment"><strong>Interactions</strong> et <strong>non-linéarités</strong> (splines, polynômes)<br>
 </li>
-<li class="fragment"><strong>Déséquilibre des classes</strong> : utiliser courbe <strong>PR</strong> (precision-recall)<br>
-</li>
-<li class="fragment"><strong>Séparation parfaite</strong> : coefficients infinis, solution = régularisation (ridge/lasso)</li>
+<li class="fragment"><strong>Déséquilibre des classes</strong></li>
 </ul>
 </section>
 <section id="débrief-pièges-fréquents" class="slide level2 center">

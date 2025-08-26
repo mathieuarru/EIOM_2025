@@ -1,0 +1,200 @@
+---
+title: "Challenge — Régression logistique (Heart Disease UCI)"
+format: html
+execute:
+  echo: true
+  eval: false   
+---
+
+## 🩺 Contexte
+Vous travaillez pour un centre hospitalier. Objectif : **prédire la présence d'une maladie cardiaque** à partir de mesures cliniques simples, et **interpréter** les facteurs de risque.
+Nous allons utiliser la **régression logistique** et relier les résultats à des enjeux décisionnels (seuils, sensibilité/spécificité).
+
+---
+
+## 📊 Données
+Dataset recommandé : **Heart Disease UCI** (Kaggle).  
+Lien : https://www.kaggle.com/datasets/redwankarimsony/heart-disease-data
+
+> ⚠️ Les noms de colonnes peuvent varier selon la version. Vérifiez la description Kaggle et adaptez le code si nécessaire.  
+> Noms courants : `age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, target` (avec `target` = 1 malade / 0 sain).
+
+---
+
+## 0) Préparation
+
+```{r}
+# Packages utiles
+library(dplyr); library(ggplot2); library(readr); library(janitor); library(broom); library(pROC)
+
+# ⚠️ Adaptez le chemin vers votre CSV Kaggle
+# Exemple : data/heart.csv
+# heart_raw <- read_csv("data/heart.csv")
+
+# Décommentez pour vérifier les colonnes
+# heart_raw %>% glimpse()
+```
+::: {.callout-warning}
+**Important — Noms de colonnes**
+- Confirmez le nom de la **réponse** (`target` attendu : 1 = malade, 0 = sain).
+- Vérifiez que `sex` est codée 0/1 (sinon recodez) et que `cp` est catégorielle à 4 niveaux.
+:::
+---
+
+## 1) Nettoyage minimal
+
+```{r}
+heart <- heart_raw %>% 
+  janitor::clean_names()
+
+# Harmonisation (adaptez si besoin)
+heart <- heart %>% 
+  mutate(
+    target = as.factor(target),           # réponse binaire en facteur (0/1 → "0","1")
+    sex = as.factor(sex),                 # 0/1 → facteur
+    cp = as.factor(cp),                   # douleur thoracique (4 niv.)
+    exang = as.factor(exang),             # 0/1
+    fbs = as.factor(fbs),                 # 0/1 (glycémie à jeun > 120 mg/dl)
+    restecg = as.factor(restecg),         # ECG au repos (0/1/2)
+    slope = as.factor(slope),             # pente du segment ST (1/2/3)
+    ca = as.integer(ca),                  # nb de vaisseaux colorés (souvent 0-4, parfois NA)
+    thal = as.factor(thal)                # thal (3 = normal, 6 = defect, 7 = reversible)
+  )
+
+heart_complete <- heart %>% tidyr::drop_na(target, age, sex, cp, trestbps, chol, thalach, exang, oldpeak, slope)
+```
+::: {.callout-tip}
+- Choisissez une **référence** pertinente pour les facteurs (ex.: `cp` niveau le plus bénin, `sex` = femme).  
+  ```r
+  # Exemple : fixer les références
+  # heart_complete <- heart_complete %>% mutate(
+  #   target = relevel(target, ref = "0"),
+  #   sex = relevel(sex, ref = "0"),
+  #   cp = relevel(cp, ref = levels(cp)[1])
+  # )
+  ```
+:::
+---
+
+## 2) Split train / test (80/20)
+
+```{r}
+set.seed(1100)
+id_train <- sample(seq_len(nrow(heart_complete)), size = floor(0.8*nrow(heart_complete)))
+train <- heart_complete[id_train, ]
+test  <- heart_complete[-id_train, ]
+```
+
+---
+
+## 3) Modèle logistique (base)
+
+```{r}
+# Modèle simple et interprétable (ajustez au besoin)
+m <- glm(target ~ sex + age + cp + thalach + exang + oldpeak,
+         data = train, family = binomial())
+
+# Odds ratios + IC
+broom::tidy(m, exponentiate = TRUE, conf.int = TRUE) %>%
+  arrange(desc(estimate))
+```
+::: {.callout-note}
+**Lecture**  
+- `exp(beta)` = **odds ratio** : multiplicateur de l'odds de maladie pour +1 unité (continu) ou vs la référence (catégoriel).  
+- Exemple : OR(sex=1) = 2.0 ⇒ hommes avec **2×** plus d'odds de maladie (vs femmes), toutes choses égales par ailleurs.
+:::
+---
+
+## 4) Prédictions & matrice de confusion (seuil 0.5)
+
+```{r}
+prob_test <- predict(m, newdata = test, type = "response")
+pred_05 <- factor(ifelse(prob_test >= 0.5, "1", "0"), levels = c("0","1"))
+tab_05 <- table(Truth = test$target, Pred = pred_05)
+tab_05
+```
+
+```{r}
+# Mesures simples
+TP <- ifelse("1" %in% rownames(tab_05), tab_05["1","1"], 0)
+TN <- ifelse("0" %in% rownames(tab_05), tab_05["0","0"], 0)
+FP <- ifelse("0" %in% rownames(tab_05), tab_05["0","1"], 0)
+FN <- ifelse("1" %in% rownames(tab_05), tab_05["1","0"], 0)
+
+accuracy <- (TP + TN) / sum(tab_05)
+sensitivity <- TP / (TP + FN)
+specificity <- TN / (TN + FP)
+cbind(accuracy = accuracy, sensitivity = sensitivity, specificity = specificity)
+```
+::: {.callout-warning}
+**Seuil 0.5** : souvent **non optimal**, surtout si la classe positive est minoritaire ou si les coûts FN/FP sont asymétriques.
+:::
+---
+
+## 5) ROC & AUC
+
+```{r}
+roc_obj <- pROC::roc(response = test$target, predictor = prob_test, levels = c("0","1"))
+pROC::auc(roc_obj)
+# plot(roc_obj)  # décommentez pour tracer
+```
+::: {.callout-note}
+**Interprétation** : AUC = probabilité qu'un patient malade ait une proba prédite **plus élevée** qu'un patient sain, tirés au hasard.
+:::
+---
+
+## 6) Choix de seuil par **coûts différenciés**
+
+```{r}
+# Adapter les coûts selon le contexte clinique
+cost_fp <- 1   # coût d'un faux positif
+cost_fn <- 5   # coût d'un faux négatif (souvent plus grave)
+
+ths <- seq(0.01, 0.99, by = 0.01)
+grid <- do.call(rbind, lapply(ths, function(t) {
+  pred <- factor(ifelse(prob_test >= t, "1", "0"), levels = c("0","1"))
+  FP <- sum(test$target == "0" & pred == "1")
+  FN <- sum(test$target == "1" & pred == "0")
+  data.frame(threshold = t, FP = FP, FN = FN, expected_cost = cost_fp*FP + cost_fn*FN)
+}))
+
+best_idx <- which.min(grid$expected_cost)
+best_threshold <- grid->threshold[best_idx]
+best_threshold
+```
+```{r}
+# Matrice de confusion au meilleur seuil
+pred_best <- factor(ifelse(prob_test >= best_threshold, "1", "0"), levels = c("0","1"))
+tab_best <- table(Truth = test$target, Pred = pred_best)
+tab_best
+```
+---
+
+## 7) (Option) Calibration par déciles
+
+```{r}
+cuts <- quantile(prob_test, probs = seq(0,1,by=.1), na.rm = TRUE)
+grp <- cut(prob_test, breaks = unique(cuts), include.lowest = TRUE)
+calib <- test %>%
+  mutate(prob = prob_test, grp = grp) %>%
+  group_by(grp) %>%
+  summarise(obs_rate = mean(target == "1"), pred_mean = mean(prob), .groups = "drop")
+calib
+# ggplot(calib, aes(pred_mean, obs_rate)) + geom_point() + geom_abline(slope=1, intercept=0, linetype=2)
+```
+::: {.callout-tip}
+**Lecture** : Points proches de la diagonale ⇒ proba bien **calibrées** ; au-dessus ⇒ **sur-estimation** ; en-dessous ⇒ **sous-estimation**.
+:::
+---
+
+## 8) Restitution (équipe)
+1) **Expliquez un effet majeur** (ex. `cp`, `sex`, `thalach`) en langage simple pour un public non technique.  
+2) **Comparez** le seuil 0.5 au **seuil optimal** selon les coûts ; justifiez le choix.  
+3) **Limites** : discutez au moins une limite (biais d’échantillon, variables manquantes, séparation, calibration).
+
+---
+
+## ⭐ Bonus
+- Ajouter une **interaction** (ex. `sex:age`) et discuter sa pertinence.  
+- Comparer un modèle **simple** (`age + sex`) vs **complet** (variables cliniques) : AUC, sens/spéc.  
+- Tester une transformation (ex. binariser `age > 50`), et commenter l’impact sur l’interprétation.
