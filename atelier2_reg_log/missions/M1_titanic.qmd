@@ -99,7 +99,7 @@ Le **seuil 0.5** n’est pas toujours pertinent. Sa pertinence dépend : (i) de 
 
 ---
 
-### 4) Effets non linéaires et interactions (aperçu)
+### 4) (optionnel) - Effets non linéaires et interactions (aperçu)
 ```{r}
 mod1 <- glm(survived ~ sex * pclass + splines::ns(age, df = 3) + fare, data=df_complete, family=binomial())
 broom::glance(mod0); broom::glance(mod1)

@@ -112,7 +112,7 @@ knitr::kable(as.data.frame.matrix(tab_best), caption = sprintf("Matrice de confu
 
 ---
 
-### 4) Calibration (aperçu simple)
+### 4) (optionnel) - Calibration (aperçu simple)
 ```{r}
 cuts <- quantile(prob_test, probs=seq(0,1,by=.1))
 grp <- cut(prob_test, breaks=unique(cuts), include.lowest=TRUE)

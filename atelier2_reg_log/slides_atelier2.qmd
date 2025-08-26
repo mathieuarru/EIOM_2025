@@ -29,7 +29,7 @@ df <- titanic_train %>%
 
 ---
 
-## Brise-glace 
+## Brise-glace (Survie sur le titanic)
 
 ::: {.columns}
 ::: {.column width="50%"}
@@ -39,7 +39,7 @@ ggplot(df, aes(sex, fill=survived)) + geom_bar(position="fill") + labs(y="Propor
 :::
 ::: {.column width="50%"}
 ```{r}
-ggplot(df, aes(pclass, fill=survived)) + geom_bar(position="fill") + labs(y="Proportion", title="Survie par classe")
+ggplot(df, aes(fare, y=survived)) + geom_point() + labs(y="Survie", title="Survie selon le prix")
 ```
 :::
 :::
@@ -71,6 +71,7 @@ $$
 
 ```{r}
 m <- glm(survived ~ sex + pclass + age + fare, data=df %>% tidyr::drop_na(), family=binomial())
+summary(m)
 broom::tidy(m, exponentiate=TRUE, conf.int=TRUE) %>%
   dplyr::mutate(across(c(estimate, conf.low, conf.high), round, 3))
 ```
@@ -83,17 +84,19 @@ broom::tidy(m, exponentiate=TRUE, conf.int=TRUE) %>%
 
 ---
 
-## Diagnostics (base)
+## 🔍 Diagnostics du modèle logistique
 
-- Résidus déviance/pearson (idée générale)
-- Points influents (Cook)
-- Problème de **séparation quasi-parfaite**
-- Multicolinéarité : mêmes réflexes que pour la régression linéaire
+- **Résidus déviance** : repérer des motifs → un motif = variable manquante ou non-linéarité.  
+- **QQ-plot** : points très écartés → observations atypiques (influence forte).  
+- **Résidus vs ajustés** : structure (U, pente) → lien mal capté avec les log-odds.  
+- **Leverage** : cas qui influencent beaucoup la prédiction.  
+- **Distance de Cook** : barres hautes → observations qui tirent les coefficients.
+
 
 ```{r}
 par(mfrow=c(2,2)); plot(m); par(mfrow=c(1,1))
-plot(cooks.distance(m), type="h"); abline(h=4/nrow(df), lty=2)
 ```
+
 
 ---
 
@@ -129,14 +132,32 @@ table(Truth = df_fit$survived, Pred = pred)
 
 ---
 
-## Mesures de performance
+## 📊 Mesures de performance
 
-- **Accuracy** = proportion bien classée  
-- **Sensibilité** = rappel des *Yes* (TPR)  
-- **Spécificité** = proportion de vrais *No* (TNR)  
-- **ROC** = performance sur tous les seuils possibles  
-- **AUC** = capacité de discrimination (0.5 = hasard, 1 = parfait)  
-- **Calibration** = probas bien calibrées (observé ≈ prédit)
+- **Accuracy (exactitude)**  
+  = proportion de prédictions correctes (**(TP + TN) / Total**)  
+  → Globalement utile, mais **trompeuse si les classes sont déséquilibrées**.  
+
+- **Sensibilité (Recall / TPR)**  
+  = proportion de positifs bien détectés (**TP / (TP + FN)**)  
+  → "Parmi les passagers qui ont survécu, combien le modèle a-t-il bien prédits ?"  
+
+- **Spécificité (TNR)**  
+  = proportion de négatifs bien détectés (**TN / (TN + FP)**)  
+  → "Parmi ceux qui n’ont pas survécu, combien le modèle a-t-il bien classés ?"  
+
+- **Précision (PPV)** *(utile si classes déséquilibrées)*  
+  = proportion de prédictions positives correctes (**TP / (TP + FP)**)  
+  → "Quand le modèle dit *Yes*, quelle est la confiance ?"  
+
+- **Courbe ROC**  
+  = trace la sensibilité (TPR) vs 1-spécificité (FPR) pour **tous les seuils possibles**.  
+
+- **AUC (Area Under the Curve)**  
+  = probabilité qu’un positif ait une proba prédite plus élevée qu’un négatif.  
+  → 0.5 = hasard complet, 1 = discrimination parfaite.  
+
+
 
 ---
 
@@ -169,20 +190,11 @@ table(Truth = df_fit$survived, Pred = pred)
 
 ---
 
-## Calibration — intuition
-
-- Découper les probas prédites en **déciles**  
-- Comparer **moyenne prédite** vs **taux observé**  
-- Points au-dessus de la diagonale ⇒ **sur-estimation**  
-- Points en dessous ⇒ **sous-estimation**  
-
----
 
 ## Compléments (aperçu)
 
 - **Interactions** et **non-linéarités** (splines, polynômes)  
-- **Déséquilibre des classes** : utiliser courbe **PR** (precision-recall)  
-- **Séparation parfaite** : coefficients infinis, solution = régularisation (ridge/lasso)  
+- **Déséquilibre des classes**  
 
 ---
 

@@ -4036,6 +4036,10 @@ window.Quarto = {
     <a class="dropdown-item" href="../../atelier2_reg_log/missions/M2_roc_seuils.html">
  <span class="dropdown-text">Mission 2 — ROC &amp; seuils</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../atelier2_reg_log/missions/Challenge_logistique.html">
+ <span class="dropdown-text">Challenge</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -4392,8 +4396,8 @@ Note
 </div>
 <hr>
 </section>
-<section id="effets-non-linéaires-et-interactions-aperçu" class="level3">
-<h3 class="anchored" data-anchor-id="effets-non-linéaires-et-interactions-aperçu">4) Effets non linéaires et interactions (aperçu)</h3>
+<section id="optionnel---effets-non-linéaires-et-interactions-aperçu" class="level3">
+<h3 class="anchored" data-anchor-id="optionnel---effets-non-linéaires-et-interactions-aperçu">4) (optionnel) - Effets non linéaires et interactions (aperçu)</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>mod1 <span class="ot">&lt;-</span> <span class="fu">glm</span>(survived <span class="sc">~</span> sex <span class="sc">*</span> pclass <span class="sc">+</span> splines<span class="sc">::</span><span class="fu">ns</span>(age, <span class="at">df =</span> <span class="dv">3</span>) <span class="sc">+</span> fare, <span class="at">data=</span>df_complete, <span class="at">family=</span><span class="fu">binomial</span>())</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(mod0); broom<span class="sc">::</span><span class="fu">glance</span>(mod1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
